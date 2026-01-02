@@ -107,7 +107,7 @@ export default function AdminLoginPage() {
             {loading ? 'Signing in...' : 'Sign in'}
           </button>
 
-          <div className="d-flex justify-content-between align-items-center mt-3 small">
+          {/* <div className="d-flex justify-content-between align-items-center mt-3 small">
             <span className="opacity-75">No account yet?</span>
             <Link
               href={`/admin/register?next=${encodeURIComponent(nextUrl)}`}
@@ -115,7 +115,7 @@ export default function AdminLoginPage() {
             >
               Create account
             </Link>
-          </div>
+          </div> */}
         </form>
       </AdminCard>
     </div>

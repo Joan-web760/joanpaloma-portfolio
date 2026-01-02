@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { getSession, isAdminUser, signOut } from '@/lib/auth';
 
-const PUBLIC_ADMIN_ROUTES = ['/admin/login', '/admin/register'];
+const PUBLIC_ADMIN_ROUTES = ['/admin/login'];
 
 export default function AuthGuard({ children }) {
   const router = useRouter();

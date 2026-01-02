@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { getSession, isAdminUser, signOut } from '@/lib/auth';
 
 const PUBLIC_ADMIN_ROUTES = ['/admin/login', '/admin/register'];
@@ -9,7 +9,6 @@ const PUBLIC_ADMIN_ROUTES = ['/admin/login', '/admin/register'];
 export default function AuthGuard({ children }) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
 
   const [ready, setReady] = useState(false);
   const [allowed, setAllowed] = useState(false);
@@ -18,7 +17,7 @@ export default function AuthGuard({ children }) {
     let alive = true;
 
     const run = async () => {
-      // Allow public admin routes (avoid redirect loop)
+      // Public admin routes should be accessible without session
       if (PUBLIC_ADMIN_ROUTES.includes(pathname)) {
         if (!alive) return;
         setReady(true);
@@ -37,25 +36,21 @@ export default function AuthGuard({ children }) {
         return;
       }
 
-      const ok = await isAdminUser();
+      const ok = await isAdminUser(session.user.id);
       if (!alive) return;
 
       if (!ok) {
-        // Logged in but not allowlisted -> sign out then go to login with error
         await signOut();
         if (!alive) return;
 
         setReady(true);
         setAllowed(false);
 
-        const nextUrl = pathname || '/admin';
-        router.replace(`/admin/login?error=not_allowed&next=${encodeURIComponent(nextUrl)}`);
+        router.replace(
+          `/admin/login?error=not_allowed&next=${encodeURIComponent(pathname || '/admin')}`
+        );
         return;
       }
-
-      // Optional: if user is already logged in and navigates to /admin/login manually,
-      // send them to next or dashboard (handled above by PUBLIC_ADMIN_ROUTES bypass).
-      // Leaving this comment for clarity.
 
       setReady(true);
       setAllowed(true);
@@ -66,7 +61,7 @@ export default function AuthGuard({ children }) {
     return () => {
       alive = false;
     };
-  }, [router, pathname, searchParams]);
+  }, [router, pathname]);
 
   if (!ready) {
     return <div className="py-5 text-center opacity-75">Checking admin access...</div>;

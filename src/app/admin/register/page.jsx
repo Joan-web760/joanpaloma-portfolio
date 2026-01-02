@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import AdminCard from '@/components/admin/AdminCard';
@@ -28,7 +29,7 @@ export default function AdminRegisterPage() {
 
       // Already logged in and admin -> go to admin
       if (session?.user) {
-        const ok = await isAdminUser();
+        const ok = await isAdminUser(session.user.id);
         if (!alive) return;
 
         if (ok) router.replace(nextUrl);
@@ -64,7 +65,6 @@ export default function AdminRegisterPage() {
     }
 
     // If email confirmation is ON, session may be null until confirmed.
-    // We'll handle both cases:
     if (!data?.session?.user) {
       setLoading(false);
       setInfo('Account created. Please check your email to confirm, then return to login.');
@@ -72,7 +72,7 @@ export default function AdminRegisterPage() {
     }
 
     // If we do have a session, enforce allowlist
-    const ok = await isAdminUser();
+    const ok = await isAdminUser(data.session.user.id);
     if (!ok) {
       await signOut();
       setLoading(false);
@@ -111,9 +111,14 @@ export default function AdminRegisterPage() {
             {loading ? 'Creating account...' : 'Create account'}
           </button>
 
-          <div className="small opacity-75 mt-3">
-            Note: Registration does not grant admin access automatically. Your account must be allowlisted in{' '}
-            <code>admin_users</code>.
+          <div className="d-flex justify-content-between align-items-center mt-3 small">
+            <span className="opacity-75">Already have an account?</span>
+            <Link
+              href={`/admin/login?next=${encodeURIComponent(nextUrl)}`}
+              className="text-decoration-none"
+            >
+              Back to login
+            </Link>
           </div>
         </form>
       </AdminCard>

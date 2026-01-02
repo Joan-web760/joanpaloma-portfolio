@@ -18,8 +18,31 @@ export async function signOut() {
   return supabase.auth.signOut();
 }
 
-export async function isAdminUser() {
-  const { data, error } = await supabase.from('admin_users').select('user_id').limit(1);
-  if (error) return false;
-  return Array.isArray(data) && data.length > 0;
+/**
+ * Checks if the CURRENT user is allowlisted in `admin_users`.
+ * Expected schema: admin_users.user_id = auth.users.id (uuid)
+ */
+export async function isAdminUser(userId) {
+  try {
+    let uid = userId;
+
+    if (!uid) {
+      const { data: authData, error: authErr } = await supabase.auth.getUser();
+      if (authErr) return false;
+      uid = authData?.user?.id;
+    }
+
+    if (!uid) return false;
+
+    const { data, error } = await supabase
+      .from('admin_users')
+      .select('user_id')
+      .eq('user_id', uid)
+      .maybeSingle();
+
+    if (error) return false;
+    return !!data?.user_id;
+  } catch {
+    return false;
+  }
 }

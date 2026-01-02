@@ -30,7 +30,7 @@ export default function RootLayout({ children }) {
         />
       </head>
 
-      <body className="bg-black text-light">
+      <body className="text-light" style={{ background: 'transparent' }}>
         <BackgroundWrapper>
           <PublicNavbar />
           <main className="container py-4">{children}</main>

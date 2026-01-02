@@ -1,95 +1,95 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 
-const OLD_FALLBACK_GRADIENT = 'linear-gradient(180deg, #0b1220, #070b14)';
+const FALLBACK =
+  'radial-gradient(1200px circle at 20% 10%, rgba(59,130,246,.25), transparent 45%), radial-gradient(900px circle at 80% 30%, rgba(168,85,247,.20), transparent 40%), linear-gradient(180deg, #0b1220, #070b14)';
+
+const sanitizeCssValue = (v) => (v || '').trim().replace(/;+\s*$/, '');
 
 export default function BackgroundWrapper({ children }) {
+  const pathname = usePathname();
   const [bg, setBg] = useState(null);
 
-  useEffect(() => {
-    let alive = true;
+  const load = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('site_background_settings')
+      .select('*')
+      .eq('id', true)
+      .maybeSingle();
 
-    const load = async () => {
-      const { data } = await supabase
-        .from('background_settings')
-        .select('*')
-        .eq('id', true)
-        .single();
+    if (error) {
+      setBg(null);
+      return;
+    }
 
-      if (alive) setBg(data || null);
-    };
-
-    load();
-
-    return () => {
-      alive = false;
-    };
+    setBg(data || null);
   }, []);
 
-  /**
-   * Always keep a real background to avoid "white flash"
-   */
-  const baseStyle = {
-    minHeight: '100vh',
-    backgroundRepeat: 'no-repeat',
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-  };
+  // Load on route change (existing behavior)
+  useEffect(() => {
+    load();
+  }, [load, pathname]);
 
-  const fallbackStyle = {
-    ...baseStyle,
-    background: OLD_FALLBACK_GRADIENT,
-  };
+  // ✅ Listen for "instant refresh" event from admin settings
+  useEffect(() => {
+    const onUpdate = () => load();
+    window.addEventListener('site-background-updated', onUpdate);
+    return () => window.removeEventListener('site-background-updated', onUpdate);
+  }, [load]);
 
-  // If settings not loaded yet OR disabled OR none -> use old gradient
-  if (!bg || !bg.is_enabled || bg.mode === 'none') {
-    return (
-      <div style={fallbackStyle} className="min-vh-100">
-        {children}
-      </div>
-    );
-  }
+  const style = useMemo(() => {
+    const base = {
+      minHeight: '100vh',
+      backgroundRepeat: 'no-repeat',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+    };
 
-  const style = { ...baseStyle };
+    if (!bg) return { ...base, background: FALLBACK };
 
-  // Gradient mode (DB-driven). If missing values, fallback to old gradient.
-  if (bg.mode === 'gradient') {
-    const angle = bg.gradient_angle ?? 180;
-    const from = bg.gradient_from || null;
-    const to = bg.gradient_to || null;
+    const type = bg.background_type || 'gradient';
 
-    style.background =
-      from && to ? `linear-gradient(${angle}deg, ${from}, ${to})` : OLD_FALLBACK_GRADIENT;
-  }
+    if (type === 'color') {
+      const c = sanitizeCssValue(bg.background_color) || '#0b1220';
+      return { ...base, background: c };
+    }
 
-  // Image mode (DB-driven)
-  if (bg.mode === 'image') {
-    const imageUrl =
-      bg.image_url ||
-      (bg.image_bucket && bg.image_path
-        ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${bg.image_bucket}/${bg.image_path}`
-        : null);
+    if (type === 'gradient') {
+      const css = sanitizeCssValue(bg.gradient_css);
+      return { ...base, background: css || FALLBACK };
+    }
 
-    if (imageUrl) style.backgroundImage = `url(${imageUrl})`;
-    else style.background = OLD_FALLBACK_GRADIENT;
-  }
+    if (type === 'image') {
+      if (!bg.image_path) return { ...base, background: FALLBACK };
 
-  // Pattern mode (if you want to implement later, fallback gracefully for now)
-  if (bg.mode === 'pattern') {
-    style.background = OLD_FALLBACK_GRADIENT;
-  }
+      const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/site/${bg.image_path}`;
+      return {
+        ...base,
+        backgroundImage: `url(${url})`,
+        // prevent stale background from previous type
+        background: undefined,
+        backgroundColor: undefined,
+      };
+    }
 
-  // Optional overlay (useful for images; safe default)
-  const showOverlay = bg.mode === 'image';
-  const overlayStyle = showOverlay
-    ? {
-        background: 'rgba(0,0,0,0.55)',
-        backdropFilter: bg.image_blur_px ? `blur(${bg.image_blur_px}px)` : undefined,
-        minHeight: '100vh',
-      }
-    : null;
+    return { ...base, background: FALLBACK };
+  }, [bg]);
+
+  const overlayStyle = useMemo(() => {
+    if (!bg?.overlay_enabled) return null;
+
+    const overlayColor = sanitizeCssValue(bg.overlay_color) || 'rgba(0,0,0,0.55)';
+    const blurPx = Number(bg.overlay_blur_px || 0);
+
+    return {
+      minHeight: '100vh',
+      background: overlayColor,
+      backdropFilter: blurPx ? `blur(${blurPx}px)` : undefined,
+    };
+  }, [bg]);
 
   return (
     <div style={style} className="min-vh-100">

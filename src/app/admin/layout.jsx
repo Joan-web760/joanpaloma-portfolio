@@ -1,7 +1,7 @@
 import Script from 'next/script';
+
 import AuthGuard from '@/components/admin/AuthGuard';
-import AdminNavbar from '@/components/admin/AdminNavbar';
-// import AdminSidebar from '@/components/admin/AdminSidebar'; // optional
+import AdminShell from '@/components/admin/AdminShell';
 
 export const metadata = {
   title: 'Admin',
@@ -10,8 +10,9 @@ export const metadata = {
 export default function AdminLayout({ children }) {
   return (
     <>
-      {/* ADMIN CDNs */}
-      {/* Bootstrap CSS (ADMIN) - ok to duplicate; browser will usually reuse cache */}
+      {/* ================= ADMIN CDNs ================= */}
+
+      {/* Bootstrap CSS (ADMIN) */}
       <link
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
         rel="stylesheet"
@@ -35,21 +36,9 @@ export default function AdminLayout({ children }) {
         strategy="afterInteractive"
       />
 
+      {/* ================= AUTH + LAYOUT ================= */}
       <AuthGuard>
-        <div className="bg-black text-light min-vh-100">
-          <AdminNavbar />
-
-          <main className="container py-4">
-            {/* optional layout with sidebar */}
-            {/*
-            <div className="row g-4">
-              <div className="col-lg-3"><AdminSidebar /></div>
-              <div className="col-lg-9">{children}</div>
-            </div>
-            */}
-            {children}
-          </main>
-        </div>
+        <AdminShell>{children}</AdminShell>
       </AuthGuard>
     </>
   );

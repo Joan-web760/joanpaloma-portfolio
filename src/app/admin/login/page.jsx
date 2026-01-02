@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import AdminCard from '@/components/admin/AdminCard';
@@ -28,12 +29,11 @@ export default function AdminLoginPage() {
 
       // If already logged in and admin, go to admin
       if (session?.user) {
-        const ok = await isAdminUser();
+        const ok = await isAdminUser(session.user.id);
         if (!alive) return;
 
         if (ok) router.replace(nextUrl);
         else {
-          // Logged in but not allowlisted
           await signOut();
           if (!alive) return;
           setError('Your account is not allowed to access admin.');
@@ -68,7 +68,7 @@ export default function AdminLoginPage() {
     }
 
     // allowlist check
-    const ok = await isAdminUser();
+    const ok = await isAdminUser(data.session.user.id);
 
     if (!ok) {
       await signOut();
@@ -106,6 +106,16 @@ export default function AdminLoginPage() {
           <button className="btn btn-primary w-100 mt-3" disabled={loading}>
             {loading ? 'Signing in...' : 'Sign in'}
           </button>
+
+          <div className="d-flex justify-content-between align-items-center mt-3 small">
+            <span className="opacity-75">No account yet?</span>
+            <Link
+              href={`/admin/register?next=${encodeURIComponent(nextUrl)}`}
+              className="text-decoration-none"
+            >
+              Create account
+            </Link>
+          </div>
         </form>
       </AdminCard>
     </div>

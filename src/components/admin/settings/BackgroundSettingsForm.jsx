@@ -9,177 +9,169 @@ import Select from '@/components/admin/forms/Select';
 import Toggle from '@/components/admin/forms/Toggle';
 import ImageUpload from '@/components/admin/forms/ImageUpload';
 
-const MODE_OPTIONS = [
+const TYPE_OPTIONS = [
   { label: 'Gradient', value: 'gradient' },
+  { label: 'Color', value: 'color' },
   { label: 'Image', value: 'image' },
-  { label: 'Pattern', value: 'pattern' },
-  { label: 'None', value: 'none' },
 ];
 
-const PATTERN_OPTIONS = [
-  { label: 'Dots', value: 'dots' },
-  { label: 'Grid', value: 'grid' },
-  { label: 'Noise', value: 'noise' },
-  { label: 'Diagonal', value: 'diagonal' },
-];
+const sanitizeCssValue = (v) => (v || '').trim().replace(/;+\s*$/, '');
 
 export default function BackgroundSettingsForm({ bg, setBg, onReload }) {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState({ type: '', text: '' });
 
+  const update = (key, value) => setBg((p) => ({ ...(p || { id: true }), [key]: value }));
+
+  const broadcast = () => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('site-background-updated'));
+    }
+  };
+
   const save = async () => {
     setMsg({ type: '', text: '' });
     setBusy(true);
 
-    const patch = {
-      is_enabled: !!bg?.is_enabled,
+    try {
+      const payload = {
+        id: true,
 
-      mode: bg?.mode || 'gradient',
+        background_type: bg?.background_type || 'gradient',
+        background_color: sanitizeCssValue(bg?.background_color) || '#0b1220',
+        gradient_css:
+          sanitizeCssValue(bg?.gradient_css) ||
+          'radial-gradient(1200px circle at 20% 10%, rgba(59,130,246,.25), transparent 45%), radial-gradient(900px circle at 80% 30%, rgba(168,85,247,.20), transparent 40%), linear-gradient(180deg, #0b1220, #070b14)',
+        image_path: bg?.image_path || null,
 
-      gradient_from: bg?.gradient_from || null,
-      gradient_to: bg?.gradient_to || null,
-      gradient_angle: parseInt(bg?.gradient_angle ?? 135, 10),
+        overlay_enabled: !!bg?.overlay_enabled,
+        overlay_color: sanitizeCssValue(bg?.overlay_color) || 'rgba(0,0,0,0.55)',
+        overlay_blur_px: Number.isFinite(Number(bg?.overlay_blur_px)) ? Number(bg.overlay_blur_px) : 0,
+      };
 
-      image_url: bg?.image_url || null,
-      image_bucket: bg?.image_bucket || null,
-      image_path: bg?.image_path || null,
-      image_opacity: Number(bg?.image_opacity ?? 0.22),
-      image_blur_px: parseInt(bg?.image_blur_px ?? 0, 10),
+      const { data, error } = await supabase
+        .from('site_background_settings')
+        .upsert(payload, { onConflict: 'id' })
+        .select('*')
+        .single();
 
-      pattern_name: bg?.pattern_name || null,
-      pattern_opacity: Number(bg?.pattern_opacity ?? 0.18),
-    };
+      if (error) throw error;
 
-    const { data, error } = await supabase
-      .from('background_settings')
-      .update(patch)
-      .eq('id', true)
-      .select('*')
-      .single();
+      setBg(data);
+      setMsg({ type: 'success', text: 'Saved.' });
 
-    setBusy(false);
-
-    if (error) {
-      setMsg({ type: 'danger', text: error.message });
-      return;
+      // ✅ update background immediately without navigation
+      broadcast();
+    } catch (e) {
+      setMsg({ type: 'danger', text: e.message || 'Failed to save.' });
+    } finally {
+      setBusy(false);
     }
-
-    setBg(data);
-    setMsg({ type: 'success', text: 'Saved.' });
   };
 
-  if (!bg) return <div className="opacity-75">Missing background settings row.</div>;
+  const reload = async () => {
+    setMsg({ type: '', text: '' });
+    setBusy(true);
+
+    try {
+      await onReload?.();
+      setMsg({ type: 'success', text: 'Reloaded.' });
+
+      // ✅ also refresh BackgroundWrapper immediately
+      broadcast();
+    } catch (e) {
+      setMsg({ type: 'danger', text: e.message || 'Failed to reload.' });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const effective = bg || {
+    id: true,
+    background_type: 'gradient',
+    background_color: '#0b1220',
+    gradient_css:
+      'radial-gradient(1200px circle at 20% 10%, rgba(59,130,246,.25), transparent 45%), radial-gradient(900px circle at 80% 30%, rgba(168,85,247,.20), transparent 40%), linear-gradient(180deg, #0b1220, #070b14)',
+    image_path: null,
+    overlay_enabled: true,
+    overlay_color: 'rgba(0,0,0,0.55)',
+    overlay_blur_px: 0,
+  };
 
   return (
     <AdminCard title="Background Settings">
       {msg.text ? <div className={`alert alert-${msg.type}`}>{msg.text}</div> : null}
 
-      <Toggle
-        label="Enabled"
-        checked={!!bg.is_enabled}
-        onChange={(v) => setBg((p) => ({ ...p, is_enabled: v }))}
-      />
-
       <Select
-        label="Mode"
-        value={bg.mode || 'gradient'}
-        onChange={(v) => setBg((p) => ({ ...p, mode: v }))}
-        options={MODE_OPTIONS}
+        label="Background Type"
+        value={effective.background_type || 'gradient'}
+        onChange={(v) => update('background_type', v)}
+        options={TYPE_OPTIONS}
       />
 
-      {bg.mode === 'gradient' ? (
-        <>
-          <TextInput
-            label="Gradient From (hex)"
-            value={bg.gradient_from || ''}
-            onChange={(v) => setBg((p) => ({ ...p, gradient_from: v }))}
-            placeholder="#0b1220"
-          />
-          <TextInput
-            label="Gradient To (hex)"
-            value={bg.gradient_to || ''}
-            onChange={(v) => setBg((p) => ({ ...p, gradient_to: v }))}
-            placeholder="#111827"
-          />
-          <TextInput
-            label="Gradient Angle"
-            value={String(bg.gradient_angle ?? 135)}
-            onChange={(v) => setBg((p) => ({ ...p, gradient_angle: parseInt(v || '135', 10) }))}
-            placeholder="135"
-          />
-        </>
+      {effective.background_type === 'color' ? (
+        <TextInput
+          label="Background Color"
+          value={effective.background_color || '#0b1220'}
+          onChange={(v) => update('background_color', v)}
+          placeholder="#0b1220"
+        />
       ) : null}
 
-      {bg.mode === 'image' ? (
-        <>
-          <TextInput
-            label="Image URL (optional)"
-            value={bg.image_url || ''}
-            onChange={(v) =>
-              setBg((p) => ({
-                ...p,
-                image_url: v,
-                image_bucket: null,
-                image_path: null,
-              }))
-            }
-            placeholder="https://..."
-          />
+      {effective.background_type === 'gradient' ? (
+        <TextInput
+          label="Gradient CSS"
+          value={effective.gradient_css || ''}
+          onChange={(v) => update('gradient_css', v)}
+          placeholder="linear-gradient(...) or radial-gradient(...)"
+        />
+      ) : null}
 
+      {effective.background_type === 'image' ? (
+        <>
           <ImageUpload
-            label="Upload Background Image (optional)"
+            label="Upload Background Image"
             bucket="site"
             folder="background"
-            value={bg.image_bucket && bg.image_path ? { bucket: bg.image_bucket, path: bg.image_path } : null}
-            onChange={({ bucket, path }) =>
-              setBg((p) => ({
-                ...p,
-                image_bucket: bucket,
-                image_path: path,
-                image_url: '',
-              }))
-            }
+            value={effective.image_path ? { bucket: 'site', path: effective.image_path } : null}
+            onChange={({ path }) => update('image_path', path)}
           />
 
-          <TextInput
-            label="Image Opacity (0 to 1)"
-            value={String(bg.image_opacity ?? 0.22)}
-            onChange={(v) => setBg((p) => ({ ...p, image_opacity: v }))}
-            placeholder="0.22"
-          />
-
-          <TextInput
-            label="Image Blur (px)"
-            value={String(bg.image_blur_px ?? 0)}
-            onChange={(v) => setBg((p) => ({ ...p, image_blur_px: parseInt(v || '0', 10) }))}
-            placeholder="0"
-          />
+          {/* <div className="small opacity-75">
+            Saved to <code>site_background_settings.image_path</code>
+          </div> */}
         </>
       ) : null}
 
-      {bg.mode === 'pattern' ? (
-        <>
-          <Select
-            label="Pattern"
-            value={bg.pattern_name || 'dots'}
-            onChange={(v) => setBg((p) => ({ ...p, pattern_name: v }))}
-            options={PATTERN_OPTIONS}
-          />
-          <TextInput
-            label="Pattern Opacity (0 to 1)"
-            value={String(bg.pattern_opacity ?? 0.18)}
-            onChange={(v) => setBg((p) => ({ ...p, pattern_opacity: v }))}
-            placeholder="0.18"
-          />
-        </>
-      ) : null}
+      <hr className="border-secondary my-3" />
 
-      <div className="d-flex gap-2 flex-wrap mt-2">
+      <Toggle
+        label="Overlay Enabled"
+        checked={!!effective.overlay_enabled}
+        onChange={(v) => update('overlay_enabled', v)}
+      />
+
+      <TextInput
+        label="Overlay Color"
+        value={effective.overlay_color || 'rgba(0,0,0,0.55)'}
+        onChange={(v) => update('overlay_color', v)}
+        placeholder="rgba(0,0,0,0.55)"
+      />
+
+      <TextInput
+        label="Overlay Blur (px)"
+        value={String(effective.overlay_blur_px ?? 0)}
+        onChange={(v) => update('overlay_blur_px', Number(v) || 0)}
+        placeholder="0"
+      />
+
+      <div className="d-flex gap-2 flex-wrap mt-3">
         <button className="btn btn-primary" onClick={save} disabled={busy}>
           {busy ? 'Saving...' : 'Save'}
         </button>
-        <button className="btn btn-outline-secondary" onClick={onReload} disabled={busy}>
-          Reload
+
+        <button className="btn btn-outline-secondary" onClick={reload} disabled={busy}>
+          {busy ? 'Reloading...' : 'Reload'}
         </button>
       </div>
     </AdminCard>

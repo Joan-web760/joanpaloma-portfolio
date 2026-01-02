@@ -1,3 +1,7 @@
+Here's the tools:
+Chart.js CDN, Bootstrap 5.3.3 CDN, FontAwesome CDN
+
+Next.js Configuration:
 Would you like to use TypeScript? No
 Which linter would you like to use? ESLint
 Would you like to use React Compiler? No
@@ -5,3 +9,457 @@ Would you like to use Tailwind CSS? Yes
 Would you like your code inside a `src/` directory? Yes
 Would you like to use App Router? (recommended) Yes
 Would you like to customize the import alias (`@/*` by default)? No
+
+
+PUBLIC (FRONTEND) ROUTES
+
+GLOBAL (shared)
+- src/app/layout.jsx
+  - IMPORTANT: Load CDN here (PUBLIC):
+    - Bootstrap 5.3.3 CDN
+    - FontAwesome CDN
+    - Chart.js CDN (only if you want charts on public pages; otherwise keep it admin-only)
+  - uses: src/components/background/BackgroundWrapper.jsx
+  - uses: src/components/public/PublicNavbar.jsx
+  - uses: src/components/public/PublicFooter.jsx
+  - uses helpers: src/lib/routes.js, src/lib/image.js
+  - uses: src/lib/supabaseClient.js
+  - reads settings/content: Supabase (no LocalStorage)
+  SQL (needs): YES
+
+- src/app/globals.css
+
+- src/lib/supabaseClient.js
+
+- src/components/background/BackgroundWrapper.jsx
+  - uses: src/lib/supabaseClient.js
+  - reads global background config: Supabase
+  SQL (needs): YES
+
+- src/components/public/PublicNavbar.jsx
+  - uses: src/components/public/CTAButton.jsx
+  - uses helpers: src/lib/routes.js
+  - uses: src/lib/supabaseClient.js
+  - reads nav label + CTA + links (if configurable): Supabase
+  SQL (needs): YES
+
+- src/components/public/PublicFooter.jsx
+  - uses helpers: src/lib/routes.js
+  - uses: src/lib/supabaseClient.js
+  - reads footer + social links: Supabase
+  SQL (needs): YES
+
+- helpers:
+  - src/lib/routes.js
+  - src/lib/image.js
+  - src/lib/format.js
+  - src/lib/slug.js
+
+
+0. TOP NAVIGATION BAR (PUBLIC)
+- src/components/public/PublicNavbar.jsx
+  SQL (needs): YES
+
+
+1. HOME (WITH ABOUT SECTION)
+- src/app/page.jsx
+  - uses: src/components/home/HeroSection.jsx
+  - uses: src/components/home/VideoIntro.jsx
+  - uses: src/components/home/AboutSection.jsx
+  - uses: src/components/home/ListColumns.jsx
+  - uses: src/components/home/CoreServicesSnapshot.jsx
+  - uses: src/components/home/WhyWorkWithMe.jsx
+  - uses: src/components/home/ToolsPreview.jsx
+  - uses: src/components/home/TestimonialPreview.jsx
+  - uses: src/components/home/FinalCTA.jsx
+  - uses UI files (page-scoped set):
+    - src/components/home/HomeSection.jsx
+    - src/components/home/HomeHeader.jsx
+    - src/components/home/HomeCTAButton.jsx
+  - uses: src/lib/supabaseClient.js
+  - reads content: Supabase
+  SQL (needs): YES
+
+
+2. SERVICES
+- src/app/services/page.jsx
+  - uses: src/components/services/ServicesOverview.jsx
+  - uses: src/components/services/PrimaryService.jsx
+  - uses: src/components/services/AdditionalServices.jsx
+  - uses UI files (page-scoped set):
+    - src/components/services/ServicesSection.jsx
+    - src/components/services/ServicesCard.jsx
+    - src/components/services/ServicesCTAButton.jsx
+  - uses: src/lib/supabaseClient.js
+  - reads content: Supabase
+  SQL (needs): YES
+
+
+3. EXPERIENCE (TIMELINE)
+- src/app/experience/page.jsx
+  - uses: src/components/experience/Timeline.jsx
+  - uses: src/components/experience/TimelineItem.jsx
+  - uses UI files (page-scoped set):
+    - src/components/experience/ExperienceSection.jsx
+    - src/components/experience/ExperienceHeader.jsx
+  - uses: src/lib/supabaseClient.js
+  - reads content: Supabase
+  SQL (needs): YES
+
+
+4. PORTFOLIO / WORK SAMPLES
+- src/app/portfolio/page.jsx
+  - uses: src/components/portfolio/PortfolioGrid.jsx
+  - uses: src/components/portfolio/PortfolioCard.jsx
+  - uses: src/components/portfolio/ImageGallery.jsx
+  - uses UI files (page-scoped set):
+    - src/components/portfolio/PortfolioSection.jsx
+    - src/components/portfolio/PortfolioBadge.jsx
+  - helpers: src/lib/image.js
+  - uses: src/lib/supabaseClient.js
+  - reads content: Supabase
+  SQL (needs): YES
+
+
+5. TOOLS & SKILLS
+- src/app/tools/page.jsx
+  - uses: src/components/tools/ToolsGroup.jsx
+  - uses: src/components/tools/ToolsList.jsx
+  - uses UI files (page-scoped set):
+    - src/components/tools/ToolsSection.jsx
+    - src/components/tools/ToolsCard.jsx
+  - uses: src/lib/supabaseClient.js
+  - reads content: Supabase
+  SQL (needs): YES
+
+
+6. TESTIMONIALS
+- src/app/testimonials/page.jsx
+  - uses: src/components/testimonials/TestimonialList.jsx
+  - uses: src/components/testimonials/TestimonialCard.jsx
+  - uses UI files (page-scoped set):
+    - src/components/testimonials/TestimonialsSection.jsx
+    - src/components/testimonials/TestimonialsCard.jsx
+  - uses: src/lib/supabaseClient.js
+  - reads content: Supabase
+  SQL (needs): YES
+
+
+7. PRICING
+- src/app/pricing/page.jsx
+  - uses: src/components/pricing/PricingPlans.jsx
+  - uses: src/components/pricing/PricingCard.jsx
+  - uses UI files (page-scoped set):
+    - src/components/pricing/PricingSection.jsx
+    - src/components/pricing/PricingCardUI.jsx
+    - src/components/pricing/PricingCTAButton.jsx
+  - uses: src/lib/supabaseClient.js
+  - reads content: Supabase
+  SQL (needs): YES
+
+
+8. CONTACT / BOOK A CALL
+- src/app/contact/page.jsx
+  - uses: src/components/contact/ContactForm.jsx
+  - uses: src/components/contact/CalendlyEmbed.jsx
+  - uses UI files (page-scoped set):
+    - src/components/contact/ContactSection.jsx
+    - src/components/contact/ContactHeader.jsx
+    - src/components/contact/ContactCTAButton.jsx
+  - uses: src/lib/supabaseClient.js
+  - reads settings: Supabase
+  - (optional) writes messages: Supabase
+  SQL (needs): YES
+
+
+9. BLOG / RESOURCES (LIST)
+- src/app/blog/page.jsx
+  - uses: src/components/blog/BlogGrid.jsx
+  - uses: src/components/blog/BlogCard.jsx
+  - uses: src/components/blog/BlogMeta.jsx
+  - uses UI files (page-scoped set):
+    - src/components/blog/BlogSection.jsx
+    - src/components/blog/BlogBadge.jsx
+  - helpers: src/lib/format.js, src/lib/slug.js, src/lib/image.js
+  - uses: src/lib/supabaseClient.js
+  - reads content: Supabase
+  SQL (needs): YES
+
+
+9.1 SINGLE BLOG POST
+- src/app/blog/[slug]/page.jsx
+  - uses: src/components/blog/BlogMeta.jsx
+  - uses: src/components/blog/ContentBlocks.jsx
+  - uses: src/components/blog/InlineImage.jsx
+  - uses UI files (page-scoped set):
+    - src/components/blog/BlogPostSection.jsx
+    - src/components/blog/BlogPostCTAButton.jsx
+  - helpers: src/lib/format.js, src/lib/image.js
+  - uses: src/lib/supabaseClient.js
+  - reads content: Supabase
+  SQL (needs): YES
+
+
+10. FAQ
+- src/app/faq/page.jsx
+  - uses: src/components/faq/FAQList.jsx
+  - uses: src/components/faq/FAQItem.jsx
+  - uses UI files (page-scoped set):
+    - src/components/faq/FAQSection.jsx
+    - src/components/faq/FAQCard.jsx
+  - uses: src/lib/supabaseClient.js
+  - reads content: Supabase
+  SQL (needs): YES
+
+
+11. FOOTER (PUBLIC)
+- src/components/public/PublicFooter.jsx
+  SQL (needs): YES
+
+
+
+ADMIN (BACKEND) ROUTES + AUTH
+
+ADMIN SHARED
+- src/app/admin/layout.jsx
+  - IMPORTANT: Load CDN here (ADMIN):
+    - Bootstrap 5.3.3 CDN
+    - FontAwesome CDN
+    - Chart.js CDN (recommended: admin dashboard charts)
+  - uses: src/components/admin/AdminNavbar.jsx
+  - uses: src/components/admin/AuthGuard.jsx
+  - (optional) uses: src/components/admin/AdminSidebar.jsx
+  - uses helpers: src/lib/routes.js
+  - uses: src/lib/supabaseClient.js
+  SQL (needs): YES
+
+- src/lib/supabaseClient.js
+
+- src/lib/auth.js
+  - uses: src/lib/supabaseClient.js
+  SQL (needs): YES
+
+- src/components/admin/AuthGuard.jsx
+  - uses: src/lib/auth.js
+  - uses: src/lib/supabaseClient.js
+  SQL (needs): YES
+
+- src/components/admin/AdminNavbar.jsx
+  - uses helpers: src/lib/routes.js
+  - uses: src/lib/auth.js
+  SQL (needs): YES
+
+- src/components/admin/AdminSidebar.jsx (optional)
+- src/components/admin/AdminPageHeader.jsx
+- src/components/admin/AdminCard.jsx
+- src/components/admin/AdminTable.jsx
+- src/components/admin/AdminModal.jsx
+
+- helpers:
+  - src/lib/routes.js
+  - src/lib/slug.js
+  - src/lib/format.js
+
+
+12. ADMIN LOGIN
+- src/app/admin/login/page.jsx
+  - uses: src/lib/auth.js
+  - uses: src/lib/supabaseClient.js
+  - uses UI: src/components/admin/AdminCard.jsx
+  - uses forms:
+    - src/components/admin/forms/TextInput.jsx
+    - src/components/admin/forms/PasswordInput.jsx
+  SQL (needs): YES
+
+
+13. ADMIN REGISTER (OPTIONAL)
+- src/app/admin/register/page.jsx
+  - uses: src/lib/auth.js
+  - uses: src/lib/supabaseClient.js
+  - uses UI: src/components/admin/AdminCard.jsx
+  - uses forms:
+    - src/components/admin/forms/TextInput.jsx
+    - src/components/admin/forms/PasswordInput.jsx
+  SQL (needs): YES
+
+
+14. ADMIN LOGOUT
+- src/app/admin/logout/page.jsx
+  - uses: src/lib/auth.js
+  - uses: src/lib/supabaseClient.js
+  SQL (needs): NO
+
+
+15. ADMIN DASHBOARD
+- src/app/admin/page.jsx
+  - uses: src/components/admin/dashboard/StatsCards.jsx
+  - uses: src/components/admin/dashboard/ContentStatsChart.jsx
+  - uses UI: src/components/admin/AdminPageHeader.jsx, src/components/admin/AdminCard.jsx
+  - uses: src/lib/supabaseClient.js
+  - reads counts: Supabase
+  SQL (needs): YES
+
+
+16. ADMIN HOME PAGE EDITOR
+- src/app/admin/home/page.jsx
+  - uses: src/components/admin/home/HeroForm.jsx
+  - uses: src/components/admin/home/VideoForm.jsx
+  - uses: src/components/admin/home/AboutForm.jsx
+  - uses: src/components/admin/home/ListsForm.jsx
+  - uses: src/components/admin/home/SnapshotForm.jsx
+  - uses: src/components/admin/home/FinalCTAForm.jsx
+  - uses forms:
+    - src/components/admin/forms/TextInput.jsx
+    - src/components/admin/forms/TextArea.jsx
+    - src/components/admin/forms/Repeater.jsx
+    - src/components/admin/forms/ImageUpload.jsx
+  - uses: src/lib/supabaseClient.js
+  - reads/writes: Supabase
+  SQL (needs): YES
+
+
+17. ADMIN SERVICES
+- src/app/admin/services/page.jsx
+  - uses: src/components/admin/services/ServicesForm.jsx
+  - uses forms:
+    - src/components/admin/forms/TextInput.jsx
+    - src/components/admin/forms/TextArea.jsx
+    - src/components/admin/forms/Repeater.jsx
+  - uses: src/lib/supabaseClient.js
+  - reads/writes: Supabase
+  SQL (needs): YES
+
+
+18. ADMIN EXPERIENCE
+- src/app/admin/experience/page.jsx
+  - uses: src/components/admin/experience/ExperienceForm.jsx
+  - uses forms:
+    - src/components/admin/forms/TextInput.jsx
+    - src/components/admin/forms/TextArea.jsx
+    - src/components/admin/forms/Repeater.jsx
+    - src/components/admin/forms/TagInput.jsx
+  - uses: src/lib/supabaseClient.js
+  - reads/writes: Supabase
+  SQL (needs): YES
+
+
+19. ADMIN PORTFOLIO
+- src/app/admin/portfolio/page.jsx
+  - uses: src/components/admin/portfolio/PortfolioForm.jsx
+  - uses forms:
+    - src/components/admin/forms/TextInput.jsx
+    - src/components/admin/forms/TextArea.jsx
+    - src/components/admin/forms/Select.jsx
+    - src/components/admin/forms/Repeater.jsx
+    - src/components/admin/forms/ImageUpload.jsx
+    - src/components/admin/forms/Toggle.jsx
+  - uses: src/lib/supabaseClient.js
+  - reads/writes: Supabase
+  SQL (needs): YES
+
+
+20. ADMIN TOOLS & SKILLS
+- src/app/admin/tools/page.jsx
+  - uses: src/components/admin/tools/ToolsForm.jsx
+  - uses forms:
+    - src/components/admin/forms/TextInput.jsx
+    - src/components/admin/forms/Repeater.jsx
+  - uses: src/lib/supabaseClient.js
+  - reads/writes: Supabase
+  SQL (needs): YES
+
+
+21. ADMIN TESTIMONIALS
+- src/app/admin/testimonials/page.jsx
+  - uses: src/components/admin/testimonials/TestimonialsForm.jsx
+  - uses forms:
+    - src/components/admin/forms/TextInput.jsx
+    - src/components/admin/forms/TextArea.jsx
+    - src/components/admin/forms/Toggle.jsx
+  - uses: src/lib/supabaseClient.js
+  - reads/writes: Supabase
+  SQL (needs): YES
+
+
+22. ADMIN PRICING
+- src/app/admin/pricing/page.jsx
+  - uses: src/components/admin/pricing/PricingForm.jsx
+  - uses forms:
+    - src/components/admin/forms/TextInput.jsx
+    - src/components/admin/forms/TextArea.jsx
+    - src/components/admin/forms/Repeater.jsx
+  - uses: src/lib/supabaseClient.js
+  - reads/writes: Supabase
+  SQL (needs): YES
+
+
+23. ADMIN BLOGS (LIST)
+- src/app/admin/blogs/page.jsx
+  - uses: src/components/admin/blogs/BlogsList.jsx
+  - uses UI:
+    - src/components/admin/AdminTable.jsx
+    - src/components/admin/AdminModal.jsx
+  - helpers: src/lib/format.js, src/lib/slug.js
+  - uses: src/lib/supabaseClient.js
+  - reads/writes: Supabase
+  SQL (needs): YES
+
+
+23.1 ADMIN BLOG CREATE
+- src/app/admin/blogs/new/page.jsx
+  - uses: src/components/admin/blogs/BlogEditorForm.jsx
+  - uses forms:
+    - src/components/admin/forms/TextInput.jsx
+    - src/components/admin/forms/TextArea.jsx
+    - src/components/admin/forms/Select.jsx
+    - src/components/admin/forms/DateInput.jsx
+    - src/components/admin/forms/ImageUpload.jsx
+    - src/components/admin/forms/Repeater.jsx
+    - src/components/admin/forms/Toggle.jsx
+  - helpers: src/lib/slug.js
+  - uses: src/lib/supabaseClient.js
+  - writes: Supabase
+  SQL (needs): YES
+
+
+23.2 ADMIN BLOG EDIT
+- src/app/admin/blogs/[id]/edit/page.jsx
+  - uses: src/components/admin/blogs/BlogEditorForm.jsx
+  - uses forms:
+    - src/components/admin/forms/TextInput.jsx
+    - src/components/admin/forms/TextArea.jsx
+    - src/components/admin/forms/Select.jsx
+    - src/components/admin/forms/DateInput.jsx
+    - src/components/admin/forms/ImageUpload.jsx
+    - src/components/admin/forms/Repeater.jsx
+    - src/components/admin/forms/Toggle.jsx
+  - helpers: src/lib/slug.js
+  - uses: src/lib/supabaseClient.js
+  - reads/writes: Supabase
+  SQL (needs): YES
+
+
+24. ADMIN FAQ
+- src/app/admin/faq/page.jsx
+  - uses: src/components/admin/faq/FAQForm.jsx
+  - uses forms:
+    - src/components/admin/forms/TextInput.jsx
+    - src/components/admin/forms/TextArea.jsx
+    - src/components/admin/forms/Repeater.jsx
+  - uses: src/lib/supabaseClient.js
+  - reads/writes: Supabase
+  SQL (needs): YES
+
+
+25. ADMIN SETTINGS
+- src/app/admin/settings/page.jsx
+  - uses: src/components/admin/settings/SettingsForm.jsx
+  - uses: src/components/admin/settings/BackgroundSettingsForm.jsx
+  - uses forms:
+    - src/components/admin/forms/TextInput.jsx
+    - src/components/admin/forms/Select.jsx
+    - src/components/admin/forms/Toggle.jsx
+    - src/components/admin/forms/ImageUpload.jsx
+  - uses: src/lib/supabaseClient.js
+  - reads/writes: Supabase
+  SQL (needs): YES

@@ -1,0 +1,631 @@
+GENERAL VIRTUAL ASSISTANT PORTFOLIO – INPUT SAMPLE / CONTENT STRUCTURE
+(WITH COMPLETE ADMIN PANEL + BACKGROUND IMAGE)
+
+==================================================
+PUBLIC (FRONTEND) PAGES
+==================================================
+
+GLOBAL BACKGROUND IMAGE (APPLIES TO ALL PUBLIC PAGES)
+--------------------------------
+Background Image:
+global-background.jpg
+
+Background Overlay:
+Enabled: Yes
+Color: #000000
+Opacity: 0.35
+
+Display:
+Position: Center
+Repeat: No-Repeat
+Size: Cover
+
+
+0. TOP NAVIGATION BAR (WITH BACKGROUND IMAGE)
+--------------------------------
+Logo / Name:
+Joan Paloma
+
+Menu Links:
+Home | Services | Experience | Portfolio | Pricing | Contact
+
+Primary CTA Button:
+Book a Call
+
+(Admin links are NOT visible on the public site)
+
+
+1. HOME (WITH ABOUT SECTION) (WITH BACKGROUND IMAGE)
+--------------------------------
+Hero Section
+Headline:
+General Virtual Assistant Specializing in Administrative Support
+
+Subheadline:
+Helping busy professionals stay organized, responsive, and productive.
+
+Primary CTA Text:
+Book a Free Call
+Primary CTA Link:
+/contact
+
+Secondary CTA Text:
+View Services
+Secondary CTA Link:
+/services
+
+
+Video Introduction
+Video Title:
+Meet Your Virtual Assistant
+
+Video Description:
+Hi, I’m Joan Paloma, a General Virtual Assistant providing reliable administrative support to help business owners manage daily operations and save time.
+
+Video URL:
+https://youtube.com/xxxx
+
+Video Thumbnail:
+home-video-thumbnail.jpg
+Thumbnail Alt Text:
+"Joan Paloma introduction video thumbnail"
+
+
+About Me
+Section Title:
+About Me
+
+Content:
+I’m a detail-oriented General Virtual Assistant with hands-on experience in administrative work. I support entrepreneurs and professionals by handling time-consuming tasks so they can focus on growth and decision-making.
+
+Who I Work With:
+- Small business owners
+- Entrepreneurs
+- Busy professionals
+
+Work Values:
+- Confidentiality
+- Accuracy
+- Clear communication
+- Reliability
+
+
+Core Services Snapshot
+- Administrative Support
+- Email & Calendar Management
+- Data Entry & Research
+- Customer Email Support
+- File & CRM Management
+
+CTA Link:
+/services
+
+
+Why Work With Me
+- Organized and dependable
+- Professional administrative support
+- Detail-focused execution
+- Flexible availability
+
+
+Tools & Skills Preview
+Google Workspace | Notion | Trello | Slack | Canva
+
+
+Testimonials Preview
+“Joan’s administrative support helped streamline my daily workflow and saved me hours each week.”
+
+
+Final CTA
+CTA Headline:
+Need reliable administrative support?
+
+CTA Button Text:
+Book a Call Today
+CTA Button Link:
+/contact
+
+
+2. SERVICES (WITH BACKGROUND IMAGE)
+--------------------------------
+Services Overview:
+I offer flexible virtual assistance services designed to support daily business operations and reduce workload.
+
+Primary Service Title:
+Administrative Support
+
+Primary Service Bullets:
+- Email & inbox management
+- Calendar scheduling & appointment coordination
+- Data entry & spreadsheet management
+- Document preparation & formatting
+- File and folder organization
+
+Primary Service Outcome:
+Keeps your business organized and running smoothly.
+
+Additional Services:
+- Email & Calendar Management
+- Online Research & Data Collection
+- Customer Email Support
+- Social Media Assistance
+- CRM & Task Management
+
+CTA Text:
+Request a Quote
+CTA Link:
+/contact
+
+
+3. EXPERIENCE (TIMELINE) (WITH BACKGROUND IMAGE)
+--------------------------------
+Work Experience
+
+Entry 1:
+Date Range:
+2023 – Present
+Role:
+Administrative Virtual Assistant
+Client:
+Small Business Owner (Confidential)
+Responsibilities:
+- Managed daily administrative tasks
+- Organized schedules, emails, and documents
+- Maintained accurate business records
+Results:
+- Improved workflow efficiency
+- Reduced response delays
+Tools Used:
+Google Workspace, Notion
+
+Entry 2:
+Date Range:
+2021 – 2023
+Role:
+Administrative Assistant
+Company:
+Local Business
+Responsibilities:
+- Data entry and documentation
+- Appointment scheduling and filing
+
+
+4. PORTFOLIO / WORK SAMPLES (WITH BACKGROUND IMAGE)
+--------------------------------
+Portfolio Category:
+Administrative Support
+
+Item 1:
+Title:
+Inbox Management Sample
+Description:
+Example inbox categorization and labeling system.
+Images:
+- inbox-sample-1.jpg (Alt: "Inbox labeling sample")
+- inbox-sample-2.jpg (Alt: "Inbox categories sample")
+
+Item 2:
+Title:
+Spreadsheet Management Sample
+Description:
+Data entry and tracking spreadsheet for administrative tasks.
+Images:
+- spreadsheet-sample-1.jpg (Alt: "Spreadsheet tracker sample")
+
+Item 3:
+Title:
+Task Management Board
+Description:
+Weekly administrative workflow using Notion or Trello.
+Images:
+- task-board-sample-1.jpg (Alt: "Task board workflow sample")
+
+Note:
+Some samples are mock projects due to client confidentiality.
+
+
+5. TOOLS & SKILLS (WITH BACKGROUND IMAGE)
+--------------------------------
+Productivity Tools:
+- Google Docs
+- Google Sheets
+- Google Drive
+- Notion
+- Trello
+
+Communication Tools:
+- Slack
+- Zoom
+- Email
+
+Admin & CRM Tools:
+- Airtable
+- HubSpot (basic)
+
+
+6. TESTIMONIALS (WITH BACKGROUND IMAGE)
+--------------------------------
+Testimonial 1:
+“Joan is reliable, organized, and very easy to work with.”
+— Business Owner
+
+Testimonial 2:
+“Excellent administrative support with fast communication.”
+— Entrepreneur
+
+
+7. PRICING (WITH BACKGROUND IMAGE)
+--------------------------------
+Pricing Options
+
+Plan:
+Hourly Support
+Description:
+Flexible administrative assistance for short-term needs.
+
+Plan:
+Monthly Retainer
+Description:
+Ongoing administrative support with priority availability.
+
+Plan:
+Custom Package
+Description:
+Tailored services based on your business needs.
+
+CTA:
+Let’s Discuss Your Needs
+Link:
+/contact
+
+
+8. CONTACT / BOOK A CALL (WITH BACKGROUND IMAGE)
+--------------------------------
+Contact Form Fields:
+- Name
+- Email
+- Business Type
+- Message
+
+Booking Link:
+https://calendly.com/xxxx
+
+Time Zone:
+GMT+X
+
+Response Time:
+Within 24 hours
+
+
+9. BLOG / RESOURCES (WITH BACKGROUND IMAGE)
+--------------------------------
+Blog Listing Page
+Page Title:
+Blog & Resources
+
+Intro Text:
+Insights, tips, and guides on administrative support, productivity, and working with a Virtual Assistant.
+
+Blog Card Structure:
+- Featured Image
+- Blog Title
+- Short Excerpt
+- Publish Date
+- Category
+- Read More Button
+
+Single Blog Post Fields:
+- Title
+- Featured Image
+- Image Alt Text
+- Author
+- Publish Date
+- Category
+- Content Blocks (text, headings, images)
+- CTA at end of post
+
+
+10. FAQ (WITH BACKGROUND IMAGE)
+--------------------------------
+Q: What services do you offer?
+A: Administrative support, email management, data entry, research, and more.
+
+Q: Do you sign NDAs?
+A: Yes, confidentiality is guaranteed.
+
+Q: What time zone do you work in?
+A: GMT+X with flexible working hours.
+
+Q: How do payments work?
+A: Hourly, monthly, or custom packages depending on the agreement.
+
+
+11. FOOTER (WITH BACKGROUND IMAGE)
+--------------------------------
+Social Links:
+- Facebook
+- LinkedIn
+- OnlineJobs
+- Instagram
+- Email
+
+Footer Text:
+© 2025 Joan Paloma. All rights reserved.
+
+Legal Links:
+Privacy Policy | Terms of Service
+
+
+==================================================
+ADMIN (BACKEND) PAGES – AUTH REQUIRED
+==================================================
+
+ADMIN ROUTES:
+- /admin/login
+- /admin/register (optional)
+- /admin/logout
+- /admin
+- /admin/home
+- /admin/services
+- /admin/experience
+- /admin/portfolio
+- /admin/tools
+- /admin/testimonials
+- /admin/pricing
+- /admin/blogs
+- /admin/faq
+- /admin/settings
+
+
+12. ADMIN LOGIN
+--------------------------------
+Fields:
+- Email
+- Password
+Actions:
+- Login
+
+
+13. ADMIN REGISTER (OPTIONAL)
+--------------------------------
+Fields:
+- Full Name
+- Email
+- Password
+- Confirm Password
+Note:
+Disable after first admin account is created.
+
+
+14. ADMIN LOGOUT
+--------------------------------
+Action:
+- Destroy session/token
+- Redirect to /admin/login
+
+
+15. ADMIN DASHBOARD (/admin)
+--------------------------------
+Stats:
+- Total Blog Posts
+- Total Portfolio Items
+- Total Testimonials
+- Last Content Update
+
+Quick Actions:
+- Edit Home Page
+- Create Blog Post
+- Add Portfolio Item
+- Manage Services
+- Settings (Background Image)
+
+
+16. ADMIN HOME PAGE EDITOR (/admin/home)
+--------------------------------
+Hero Section Fields:
+- Headline
+- Subheadline
+- Primary CTA Text
+- Primary CTA Link
+- Secondary CTA Text
+- Secondary CTA Link
+
+Video Section Fields:
+- Video Title
+- Video Description
+- Video URL
+- Video Thumbnail (upload)
+- Thumbnail Alt Text
+
+About Section Fields:
+- Section Title
+- About Content
+
+Who I Work With:
+- Repeatable audience text fields
+
+Work Values:
+- Repeatable value text fields
+
+Core Services Snapshot:
+- Repeatable service titles
+- Services Page Link
+
+Why Work With Me:
+- Repeatable bullet points
+
+Tools Preview:
+- Tool list (tag input)
+
+Testimonial Preview:
+- Testimonial text
+- Source text
+
+Final CTA:
+- CTA Headline
+- CTA Button Text
+- CTA Button Link
+
+Actions:
+- Save Changes
+- Preview Home Page
+
+
+17. ADMIN SERVICES (/admin/services)
+--------------------------------
+Fields:
+- Services Overview
+- Primary Service Title
+- Primary Service Bullets (repeatable)
+- Primary Service Outcome
+- Additional Services (repeatable)
+- Display Order
+Actions:
+- Save Changes
+
+
+18. ADMIN EXPERIENCE (/admin/experience)
+--------------------------------
+Fields (repeatable):
+- Date Range
+- Role Title
+- Client/Company
+- Responsibilities (bullets)
+- Results (bullets)
+- Tools Used (tags)
+Actions:
+- Add Entry
+- Save Timeline
+
+
+19. ADMIN PORTFOLIO (/admin/portfolio)
+--------------------------------
+Fields (repeatable):
+- Title
+- Category
+- Description
+- Images (multiple upload)
+- Image Alt Text (per image)
+- External Link (optional)
+- Visibility (Public/Private)
+Actions:
+- Add Item
+- Save Changes
+
+
+20. ADMIN TOOLS & SKILLS (/admin/tools)
+--------------------------------
+Fields:
+- Productivity Tools (repeatable)
+- Communication Tools (repeatable)
+- Admin & CRM Tools (repeatable)
+Actions:
+- Save Changes
+
+
+21. ADMIN TESTIMONIALS (/admin/testimonials)
+--------------------------------
+Fields:
+- Quote
+- Client Name
+- Client Role/Type
+- Source Link
+- Visibility
+Actions:
+- Add Testimonial
+- Save Changes
+
+
+22. ADMIN PRICING (/admin/pricing)
+--------------------------------
+Fields (repeatable):
+- Plan Name
+- Description
+- Inclusions (bullets)
+- Price Display
+- CTA Text
+- Display Order
+Actions:
+- Save Pricing
+
+
+23. ADMIN BLOGS (/admin/blogs)
+--------------------------------
+List View:
+- Featured Image
+- Title
+- Category
+- Status
+- Publish Date
+- Actions
+
+Create/Edit Fields:
+- Title
+- Slug
+- Category
+- Status
+- Publish Date
+- Featured Image (upload)
+- Featured Image Alt Text
+- Excerpt
+- Content Blocks (text, image, heading)
+- CTA Text
+- CTA Link
+Actions:
+- Save Draft
+- Publish
+- Preview
+
+
+24. ADMIN FAQ (/admin/faq)
+--------------------------------
+Fields (repeatable):
+- Question
+- Answer
+- Display Order
+Actions:
+- Add FAQ
+- Save Changes
+
+
+25. ADMIN SETTINGS (/admin/settings)
+--------------------------------
+Core Settings:
+- Site Name
+- Public Contact Email
+- Calendly Link
+- Time Zone
+- Social Links
+- Footer Text
+- Home Meta Title
+- Home Meta Description
+- Open Graph Image
+
+BACKGROUND IMAGE SETTINGS (APPLIES TO ALL FRONTEND PAGES)
+- Background Image (upload)
+- Overlay Enabled (toggle)
+- Overlay Color (hex)
+- Overlay Opacity (0.00 - 1.00)
+- Background Position (dropdown)
+- Background Repeat (dropdown)
+- Background Size (dropdown)
+
+Actions:
+- Save Settings
+- Preview Public Site
+
+
+Here's the tools:
+Chart.js CDN, Bootstrap 5.3.3 CDN, FontAwesome CDN, Supabase.
+
+Next.js Configuration:
+Would you like to use TypeScript? No
+Which linter would you like to use? ESLint
+Would you like to use React Compiler? No
+Would you like to use Tailwind CSS? Yes
+Would you like your code inside a `src/` directory? Yes
+Would you like to use App Router? (recommended) Yes
+Would you like to customize the import alias (`@/*` by default)? No
+
+
+No API Connection.

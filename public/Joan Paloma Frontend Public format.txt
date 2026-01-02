@@ -1,0 +1,337 @@
+GENERAL VIRTUAL ASSISTANT PORTFOLIO – INPUT SAMPLE / CONTENT STRUCTURE
+
+0. TOP NAVIGATION BAR
+--------------------------------
+Logo / Name:
+Joan Paloma
+
+Menu Links:
+Home | Services | Experience | Portfolio | Pricing | Contact
+
+Primary CTA Button:
+Book a Call
+
+
+1. HOME (WITH ABOUT SECTION)
+--------------------------------
+Hero Section
+Headline:
+General Virtual Assistant Specializing in Administrative Support
+
+Subheadline:
+Helping busy professionals stay organized, responsive, and productive.
+
+Primary CTA:
+Book a Free Call
+
+Secondary CTA:
+View Services
+
+
+Video Introduction
+Video Title:
+Meet Your Virtual Assistant
+
+Video Description:
+Hi, I’m Joan Paloma, a General Virtual Assistant providing reliable administrative support to help business owners manage daily operations and save time.
+
+
+About Me
+Section Title:
+About Me
+
+Content:
+I’m a detail-oriented General Virtual Assistant with hands-on experience in administrative work. I support entrepreneurs and professionals by handling time-consuming tasks so they can focus on growth and decision-making.
+
+Who I Work With:
+- Small business owners
+- Entrepreneurs
+- Busy professionals
+
+Work Values:
+- Confidentiality
+- Accuracy
+- Clear communication
+- Reliability
+
+
+Core Services Snapshot
+- Administrative Support
+- Email & Calendar Management
+- Data Entry & Research
+- Customer Email Support
+- File & CRM Management
+
+CTA Link:
+View All Services
+
+
+Why Work With Me
+- Organized and dependable
+- Professional administrative support
+- Detail-focused execution
+- Flexible availability
+
+
+Tools & Skills Preview
+Google Workspace | Notion | Trello | Slack | Canva
+
+CTA Link:
+See Tools & Skills
+
+
+Testimonials Preview
+“Joan’s administrative support helped streamline my daily workflow and saved me hours each week.”
+
+CTA Link:
+Read More Testimonials
+
+
+Final CTA
+Need reliable administrative support?
+Book a Call Today
+
+
+2. SERVICES
+--------------------------------
+Services Overview:
+I offer flexible virtual assistance services designed to support daily business operations.
+
+
+Administrative Support (Primary Service)
+- Email & inbox management
+- Calendar scheduling & appointment coordination
+- Data entry & spreadsheet management
+- Document preparation & formatting
+- File and folder organization
+
+Outcome:
+Keeps your business organized and running smoothly.
+
+
+Additional Services
+- Email & Calendar Management
+- Online Research & Data Collection
+- Customer Email Support
+- Social Media Assistance
+- CRM & Task Management
+
+CTA:
+Request a Quote
+
+
+3. EXPERIENCE (TIMELINE)
+--------------------------------
+Work Experience
+
+2023 – Present
+Role:
+Administrative Virtual Assistant
+Client:
+Small Business Owner (Confidential)
+
+Responsibilities:
+- Managed daily administrative tasks
+- Organized schedules, emails, and documents
+- Maintained accurate business records
+
+Results:
+- Improved workflow efficiency
+- Reduced response delays
+
+Tools Used:
+Google Workspace | Notion
+
+
+2021 – 2023
+Role:
+Administrative Assistant
+Company:
+Local Business
+
+Responsibilities:
+- Data entry and documentation
+- Appointment scheduling and filing
+
+
+4. PORTFOLIO / WORK SAMPLES
+--------------------------------
+Administrative Support Samples
+
+Sample 1:
+Inbox Management Sample
+Description:
+Example inbox categorization and labeling system.
+
+Sample 2:
+Spreadsheet Management Sample
+Description:
+Data entry and tracking spreadsheet for admin tasks.
+
+Sample 3:
+Task Management Board
+Description:
+Weekly administrative workflow using Notion or Trello.
+
+Note:
+Some samples are mock projects due to client confidentiality.
+
+
+5. TOOLS & SKILLS
+--------------------------------
+Productivity Tools
+- Google Docs, Sheets, Drive
+- Notion
+- Trello
+
+Communication
+- Slack
+- Zoom
+- Email
+
+Admin & CRM
+- Airtable
+- HubSpot (basic)
+
+
+6. TESTIMONIALS
+--------------------------------
+“Joan is reliable, organized, and very easy to work with.”
+— Business Owner
+
+“Excellent administrative support with fast communication.”
+— Entrepreneur
+
+
+7. PRICING
+--------------------------------
+Pricing Options
+
+Hourly Support
+- Flexible administrative assistance
+- Ideal for short-term needs
+
+Monthly Retainer
+- Ongoing administrative support
+- Priority availability
+
+Custom Package
+- Tailored services based on business needs
+
+CTA:
+Let’s Discuss Your Needs
+
+
+8. CONTACT / BOOK A CALL
+--------------------------------
+Get in Touch
+
+Contact Form Fields:
+- Name
+- Email
+- Business Type
+- Message
+
+Book a Call:
+[Calendly Link]
+
+Time Zone:
+GMT+X
+
+Response Time:
+Within 24 hours
+
+
+9. BLOG / RESOURCES
+--------------------------------
+Blog Listing Page Structure
+
+Blog Page Title:
+Blog & Resources
+
+Intro Text:
+Insights, tips, and guides on administrative support, productivity, and working with a Virtual Assistant.
+
+Blog Card Format (Repeating):
+- Featured Image (landscape)
+- Blog Title
+- Short Excerpt (2–3 lines)
+- Publish Date
+- Read More button
+
+
+SINGLE BLOG POST FORMAT
+--------------------------------
+Blog Title:
+How a Virtual Assistant Can Help Your Business Stay Organized
+
+Featured Image:
+[Hero Image – related to productivity or admin work]
+
+Meta Info:
+- Author: Joan Paloma
+- Publish Date: Month Day, Year
+- Category: Administrative Support / Productivity
+
+Intro Paragraph:
+A short introduction explaining the problem or topic being discussed.
+
+Inline Image Section (Optional):
+[Insert Image – workflow, checklist, workspace, etc.]
+Image Caption (Optional)
+
+Content Sections:
+Heading 1:
+Explanation paragraph
+
+Heading 2:
+Explanation paragraph
+
+Bullet List (Optional):
+- Key point one
+- Key point two
+- Key point three
+
+Another Inline Image (Optional):
+[Insert Image]
+Caption (Optional)
+
+Conclusion:
+Summary of key takeaways.
+
+CTA at End of Blog:
+Need help managing admin tasks?
+Book a Free Call
+
+
+10. FAQ
+--------------------------------
+Q: What services do you offer?
+A: Administrative support, email management, data entry, research, and more.
+
+Q: Do you sign NDAs?
+A: Yes, confidentiality is guaranteed.
+
+Q: What time zone do you work in?
+A: GMT+X with flexible working hours.
+
+Q: How do payments work?
+A: Hourly, monthly, or custom packages depending on the agreement.
+
+
+11. FOOTER
+--------------------------------
+Social Links:
+- Facebook
+- LinkedIn
+- OnlineJobs
+- Instagram
+- Email
+
+Footer Text:
+© 2025 Joan Paloma. All rights reserved.
+
+Legal Links:
+Privacy Policy | Terms of Service
+
+

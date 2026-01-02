@@ -13,6 +13,9 @@ export default function BackgroundWrapper({ children }) {
   const pathname = usePathname();
   const [bg, setBg] = useState(null);
 
+  // used for cache-busting background image URLs
+  const [bgVer, setBgVer] = useState(0);
+
   const load = useCallback(async () => {
     const { data, error } = await supabase
       .from('site_background_settings')
@@ -33,9 +36,13 @@ export default function BackgroundWrapper({ children }) {
     load();
   }, [load, pathname]);
 
-  // ✅ Listen for "instant refresh" event from admin settings
+  // Listen for instant refresh event from admin settings
   useEffect(() => {
-    const onUpdate = () => load();
+    const onUpdate = () => {
+      setBgVer((v) => v + 1); // bust image cache
+      load();
+    };
+
     window.addEventListener('site-background-updated', onUpdate);
     return () => window.removeEventListener('site-background-updated', onUpdate);
   }, [load]);
@@ -52,31 +59,37 @@ export default function BackgroundWrapper({ children }) {
 
     const type = bg.background_type || 'gradient';
 
+    // COLOR
     if (type === 'color') {
       const c = sanitizeCssValue(bg.background_color) || '#0b1220';
-      return { ...base, background: c };
+      return { ...base, background: c, backgroundImage: undefined };
     }
 
+    // GRADIENT
     if (type === 'gradient') {
       const css = sanitizeCssValue(bg.gradient_css);
-      return { ...base, background: css || FALLBACK };
+      return { ...base, background: css || FALLBACK, backgroundImage: undefined };
     }
 
+    // IMAGE
     if (type === 'image') {
-      if (!bg.image_path) return { ...base, background: FALLBACK };
+      if (!bg.image_path) return { ...base, background: FALLBACK, backgroundImage: undefined };
 
-      const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/site/${bg.image_path}`;
+      // safest way: let supabase client build the public URL
+      const { data } = supabase.storage.from('site').getPublicUrl(bg.image_path);
+      const url = data?.publicUrl ? `${data.publicUrl}?v=${bgVer}` : null;
+
+      if (!url) return { ...base, background: FALLBACK, backgroundImage: undefined };
+
       return {
         ...base,
+        background: undefined, // remove previous gradient/color
         backgroundImage: `url(${url})`,
-        // prevent stale background from previous type
-        background: undefined,
-        backgroundColor: undefined,
       };
     }
 
     return { ...base, background: FALLBACK };
-  }, [bg]);
+  }, [bg, bgVer]);
 
   const overlayStyle = useMemo(() => {
     if (!bg?.overlay_enabled) return null;

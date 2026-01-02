@@ -29,25 +29,31 @@ export default function BackgroundSettingsForm({ bg, setBg, onReload }) {
     }
   };
 
-  const save = async () => {
+  const buildPayload = (overrides = {}) => {
+    const next = { ...(bg || {}), ...overrides };
+
+    return {
+      id: true,
+
+      background_type: next.background_type || 'gradient',
+      background_color: sanitizeCssValue(next.background_color) || '#0b1220',
+      gradient_css:
+        sanitizeCssValue(next.gradient_css) ||
+        'radial-gradient(1200px circle at 20% 10%, rgba(59,130,246,.25), transparent 45%), radial-gradient(900px circle at 80% 30%, rgba(168,85,247,.20), transparent 40%), linear-gradient(180deg, #0b1220, #070b14)',
+      image_path: next.image_path || null,
+
+      overlay_enabled: !!next.overlay_enabled,
+      overlay_color: sanitizeCssValue(next.overlay_color) || 'rgba(0,0,0,0.55)',
+      overlay_blur_px: Number.isFinite(Number(next.overlay_blur_px)) ? Number(next.overlay_blur_px) : 0,
+    };
+  };
+
+  const persist = async (overrides = {}, successText = 'Saved.') => {
     setMsg({ type: '', text: '' });
     setBusy(true);
 
     try {
-      const payload = {
-        id: true,
-
-        background_type: bg?.background_type || 'gradient',
-        background_color: sanitizeCssValue(bg?.background_color) || '#0b1220',
-        gradient_css:
-          sanitizeCssValue(bg?.gradient_css) ||
-          'radial-gradient(1200px circle at 20% 10%, rgba(59,130,246,.25), transparent 45%), radial-gradient(900px circle at 80% 30%, rgba(168,85,247,.20), transparent 40%), linear-gradient(180deg, #0b1220, #070b14)',
-        image_path: bg?.image_path || null,
-
-        overlay_enabled: !!bg?.overlay_enabled,
-        overlay_color: sanitizeCssValue(bg?.overlay_color) || 'rgba(0,0,0,0.55)',
-        overlay_blur_px: Number.isFinite(Number(bg?.overlay_blur_px)) ? Number(bg.overlay_blur_px) : 0,
-      };
+      const payload = buildPayload(overrides);
 
       const { data, error } = await supabase
         .from('site_background_settings')
@@ -58,15 +64,19 @@ export default function BackgroundSettingsForm({ bg, setBg, onReload }) {
       if (error) throw error;
 
       setBg(data);
-      setMsg({ type: 'success', text: 'Saved.' });
+      setMsg({ type: 'success', text: successText });
 
-      // ✅ update background immediately without navigation
+      // ✅ apply instantly everywhere
       broadcast();
     } catch (e) {
-      setMsg({ type: 'danger', text: e.message || 'Failed to save.' });
+      setMsg({ type: 'danger', text: e.message || 'Failed.' });
     } finally {
       setBusy(false);
     }
+  };
+
+  const save = async () => {
+    await persist({}, 'Saved.');
   };
 
   const reload = async () => {
@@ -86,6 +96,7 @@ export default function BackgroundSettingsForm({ bg, setBg, onReload }) {
     }
   };
 
+  // bg can be null if row doesn't exist yet — allow editing anyway
   const effective = bg || {
     id: true,
     background_type: 'gradient',
@@ -134,12 +145,18 @@ export default function BackgroundSettingsForm({ bg, setBg, onReload }) {
             bucket="site"
             folder="background"
             value={effective.image_path ? { bucket: 'site', path: effective.image_path } : null}
-            onChange={({ path }) => update('image_path', path)}
-          />
+            onChange={async ({ path }) => {
+              // ✅ update local form immediately
+              setBg((p) => ({
+                ...(p || { id: true }),
+                background_type: 'image',
+                image_path: path,
+              }));
 
-          {/* <div className="small opacity-75">
-            Saved to <code>site_background_settings.image_path</code>
-          </div> */}
+              // ✅ auto-save + apply instantly
+              await persist({ background_type: 'image', image_path: path }, 'Image uploaded & applied.');
+            }}
+          />
         </>
       ) : null}
 

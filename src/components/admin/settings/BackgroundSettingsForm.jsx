@@ -15,18 +15,48 @@ const TYPE_OPTIONS = [
   { label: 'Image', value: 'image' },
 ];
 
+const IMAGE_REPEAT_OPTIONS = [
+  { label: 'No repeat', value: 'no-repeat' },
+  { label: 'Repeat', value: 'repeat' },
+  { label: 'Repeat X', value: 'repeat-x' },
+  { label: 'Repeat Y', value: 'repeat-y' },
+];
+
+const IMAGE_SIZE_OPTIONS = [
+  { label: 'Cover', value: 'cover' },
+  { label: 'Contain', value: 'contain' },
+  { label: 'Auto', value: 'auto' },
+];
+
+const IMAGE_POSITION_OPTIONS = [
+  { label: 'Center', value: 'center' },
+  { label: 'Top', value: 'top' },
+  { label: 'Bottom', value: 'bottom' },
+  { label: 'Left', value: 'left' },
+  { label: 'Right', value: 'right' },
+  { label: 'Top Left', value: 'top left' },
+  { label: 'Top Right', value: 'top right' },
+  { label: 'Bottom Left', value: 'bottom left' },
+  { label: 'Bottom Right', value: 'bottom right' },
+];
+
+const IMAGE_ATTACHMENT_OPTIONS = [
+  { label: 'Scroll (default)', value: 'scroll' },
+  { label: 'Fixed', value: 'fixed' },
+  { label: 'Local', value: 'local' },
+];
+
 const sanitizeCssValue = (v) => (v || '').trim().replace(/;+\s*$/, '');
 
 export default function BackgroundSettingsForm({ bg, setBg, onReload }) {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState({ type: '', text: '' });
 
+  // local update only (no DB)
   const update = (key, value) => setBg((p) => ({ ...(p || { id: true }), [key]: value }));
 
   const broadcast = () => {
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new Event('site-background-updated'));
-    }
+    if (typeof window !== 'undefined') window.dispatchEvent(new Event('site-background-updated'));
   };
 
   const buildPayload = (overrides = {}) => {
@@ -40,7 +70,14 @@ export default function BackgroundSettingsForm({ bg, setBg, onReload }) {
       gradient_css:
         sanitizeCssValue(next.gradient_css) ||
         'radial-gradient(1200px circle at 20% 10%, rgba(59,130,246,.25), transparent 45%), radial-gradient(900px circle at 80% 30%, rgba(168,85,247,.20), transparent 40%), linear-gradient(180deg, #0b1220, #070b14)',
+
       image_path: next.image_path || null,
+
+      // image behavior settings
+      image_repeat: next.image_repeat || 'no-repeat',
+      image_size: next.image_size || 'cover',
+      image_position: next.image_position || 'center',
+      image_attachment: next.image_attachment || 'scroll',
 
       overlay_enabled: !!next.overlay_enabled,
       overlay_color: sanitizeCssValue(next.overlay_color) || 'rgba(0,0,0,0.55)',
@@ -65,8 +102,6 @@ export default function BackgroundSettingsForm({ bg, setBg, onReload }) {
 
       setBg(data);
       setMsg({ type: 'success', text: successText });
-
-      // ✅ apply instantly everywhere
       broadcast();
     } catch (e) {
       setMsg({ type: 'danger', text: e.message || 'Failed.' });
@@ -75,9 +110,15 @@ export default function BackgroundSettingsForm({ bg, setBg, onReload }) {
     }
   };
 
-  const save = async () => {
-    await persist({}, 'Saved.');
+  // ✅ helper: update local + persist DB immediately
+  const updateAndPersist = async (key, value, successText = 'Saved.') => {
+    // update UI instantly
+    setBg((p) => ({ ...(p || { id: true }), [key]: value }));
+    // persist DB + apply everywhere
+    await persist({ [key]: value }, successText);
   };
+
+  const save = async () => persist({}, 'Saved.');
 
   const reload = async () => {
     setMsg({ type: '', text: '' });
@@ -86,8 +127,6 @@ export default function BackgroundSettingsForm({ bg, setBg, onReload }) {
     try {
       await onReload?.();
       setMsg({ type: 'success', text: 'Reloaded.' });
-
-      // ✅ also refresh BackgroundWrapper immediately
       broadcast();
     } catch (e) {
       setMsg({ type: 'danger', text: e.message || 'Failed to reload.' });
@@ -96,7 +135,6 @@ export default function BackgroundSettingsForm({ bg, setBg, onReload }) {
     }
   };
 
-  // bg can be null if row doesn't exist yet — allow editing anyway
   const effective = bg || {
     id: true,
     background_type: 'gradient',
@@ -104,6 +142,12 @@ export default function BackgroundSettingsForm({ bg, setBg, onReload }) {
     gradient_css:
       'radial-gradient(1200px circle at 20% 10%, rgba(59,130,246,.25), transparent 45%), radial-gradient(900px circle at 80% 30%, rgba(168,85,247,.20), transparent 40%), linear-gradient(180deg, #0b1220, #070b14)',
     image_path: null,
+
+    image_repeat: 'no-repeat',
+    image_size: 'cover',
+    image_position: 'center',
+    image_attachment: 'scroll',
+
     overlay_enabled: true,
     overlay_color: 'rgba(0,0,0,0.55)',
     overlay_blur_px: 0,
@@ -146,16 +190,45 @@ export default function BackgroundSettingsForm({ bg, setBg, onReload }) {
             folder="background"
             value={effective.image_path ? { bucket: 'site', path: effective.image_path } : null}
             onChange={async ({ path }) => {
-              // ✅ update local form immediately
+              // instant UI
               setBg((p) => ({
                 ...(p || { id: true }),
                 background_type: 'image',
                 image_path: path,
               }));
 
-              // ✅ auto-save + apply instantly
+              // persist image_path
               await persist({ background_type: 'image', image_path: path }, 'Image uploaded & applied.');
             }}
+          />
+
+          {/* ✅ These now SAVE immediately */}
+          <Select
+            label="Image Repeat"
+            value={effective.image_repeat || 'no-repeat'}
+            onChange={(v) => updateAndPersist('image_repeat', v, 'Image repeat saved.')}
+            options={IMAGE_REPEAT_OPTIONS}
+          />
+
+          <Select
+            label="Image Size"
+            value={effective.image_size || 'cover'}
+            onChange={(v) => updateAndPersist('image_size', v, 'Image size saved.')}
+            options={IMAGE_SIZE_OPTIONS}
+          />
+
+          <Select
+            label="Image Position"
+            value={effective.image_position || 'center'}
+            onChange={(v) => updateAndPersist('image_position', v, 'Image position saved.')}
+            options={IMAGE_POSITION_OPTIONS}
+          />
+
+          <Select
+            label="Image Attachment"
+            value={effective.image_attachment || 'scroll'}
+            onChange={(v) => updateAndPersist('image_attachment', v, 'Image attachment saved.')}
+            options={IMAGE_ATTACHMENT_OPTIONS}
           />
         </>
       ) : null}

@@ -4,16 +4,15 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 
-const FALLBACK =
+const FALLBACK_GRADIENT =
   'radial-gradient(1200px circle at 20% 10%, rgba(59,130,246,.25), transparent 45%), radial-gradient(900px circle at 80% 30%, rgba(168,85,247,.20), transparent 40%), linear-gradient(180deg, #0b1220, #070b14)';
 
 const sanitizeCssValue = (v) => (v || '').trim().replace(/;+\s*$/, '');
+const pick = (v, allowed, fallback) => (allowed.includes(v) ? v : fallback);
 
 export default function BackgroundWrapper({ children }) {
   const pathname = usePathname();
   const [bg, setBg] = useState(null);
-
-  // used for cache-busting background image URLs
   const [bgVer, setBgVer] = useState(0);
 
   const load = useCallback(async () => {
@@ -31,15 +30,13 @@ export default function BackgroundWrapper({ children }) {
     setBg(data || null);
   }, []);
 
-  // Load on route change (existing behavior)
   useEffect(() => {
     load();
   }, [load, pathname]);
 
-  // Listen for instant refresh event from admin settings
   useEffect(() => {
     const onUpdate = () => {
-      setBgVer((v) => v + 1); // bust image cache
+      setBgVer((v) => v + 1);
       load();
     };
 
@@ -50,45 +47,71 @@ export default function BackgroundWrapper({ children }) {
   const style = useMemo(() => {
     const base = {
       minHeight: '100vh',
+      backgroundColor: '#0b1220',
+      backgroundImage: FALLBACK_GRADIENT,
       backgroundRepeat: 'no-repeat',
       backgroundSize: 'cover',
       backgroundPosition: 'center',
+      backgroundAttachment: 'scroll', // ✅ default
     };
 
-    if (!bg) return { ...base, background: FALLBACK };
+    if (!bg) return base;
 
     const type = bg.background_type || 'gradient';
 
-    // COLOR
     if (type === 'color') {
       const c = sanitizeCssValue(bg.background_color) || '#0b1220';
-      return { ...base, background: c, backgroundImage: undefined };
+      return { ...base, backgroundColor: c, backgroundImage: 'none', backgroundAttachment: 'scroll' };
     }
 
-    // GRADIENT
     if (type === 'gradient') {
-      const css = sanitizeCssValue(bg.gradient_css);
-      return { ...base, background: css || FALLBACK, backgroundImage: undefined };
+      const css = sanitizeCssValue(bg.gradient_css) || FALLBACK_GRADIENT;
+      return { ...base, backgroundColor: '#0b1220', backgroundImage: css, backgroundAttachment: 'scroll' };
     }
 
-    // IMAGE
     if (type === 'image') {
-      if (!bg.image_path) return { ...base, background: FALLBACK, backgroundImage: undefined };
+      if (!bg.image_path) return base;
 
-      // safest way: let supabase client build the public URL
       const { data } = supabase.storage.from('site').getPublicUrl(bg.image_path);
       const url = data?.publicUrl ? `${data.publicUrl}?v=${bgVer}` : null;
+      if (!url) return base;
 
-      if (!url) return { ...base, background: FALLBACK, backgroundImage: undefined };
+      const repeat = pick(bg.image_repeat, ['no-repeat', 'repeat', 'repeat-x', 'repeat-y'], 'no-repeat');
+      const size = pick(bg.image_size, ['cover', 'contain', 'auto'], 'cover');
+
+      const positionRaw = (bg.image_position || '').trim();
+      const positionAllowed = [
+        'center',
+        'top',
+        'bottom',
+        'left',
+        'right',
+        'top left',
+        'top right',
+        'bottom left',
+        'bottom right',
+        'left top',
+        'right top',
+        'left bottom',
+        'right bottom',
+      ];
+      const position = positionAllowed.includes(positionRaw) ? positionRaw : 'center';
+
+      // ✅ NEW
+      const attachment = pick(bg.image_attachment, ['scroll', 'fixed', 'local'], 'scroll');
 
       return {
         ...base,
-        background: undefined, // remove previous gradient/color
+        backgroundColor: '#0b1220',
         backgroundImage: `url(${url})`,
+        backgroundRepeat: repeat,
+        backgroundSize: size,
+        backgroundPosition: position,
+        backgroundAttachment: attachment,
       };
     }
 
-    return { ...base, background: FALLBACK };
+    return base;
   }, [bg, bgVer]);
 
   const overlayStyle = useMemo(() => {
@@ -99,7 +122,7 @@ export default function BackgroundWrapper({ children }) {
 
     return {
       minHeight: '100vh',
-      background: overlayColor,
+      backgroundColor: overlayColor,
       backdropFilter: blurPx ? `blur(${blurPx}px)` : undefined,
     };
   }, [bg]);

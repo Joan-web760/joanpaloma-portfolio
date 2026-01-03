@@ -6,3 +6,20 @@
 html, body {
   height: 100%;
 }
+
+/* Admin Navbar polish */
+.navbar .nav-link {
+  transition: opacity 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+
+.navbar .nav-link:hover {
+  opacity: 0.9;
+}
+
+.dropdown-menu {
+  min-width: 240px;
+}
+
+.dropdown-item.active {
+  font-weight: 600;
+}

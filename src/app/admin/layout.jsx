@@ -10,8 +10,6 @@ export const metadata = {
 export default function AdminLayout({ children }) {
   return (
     <>
-      {/* ================= ADMIN CDNs ================= */}
-
       {/* Bootstrap CSS (ADMIN) */}
       <link
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
@@ -30,13 +28,12 @@ export default function AdminLayout({ children }) {
         strategy="afterInteractive"
       />
 
-      {/* Bootstrap JS bundle (ADMIN) */}
+      {/* Bootstrap JS bundle (ADMIN) - required for dropdown */}
       <Script
         src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         strategy="afterInteractive"
       />
 
-      {/* ================= AUTH + LAYOUT ================= */}
       <AuthGuard>
         <AdminShell>{children}</AdminShell>
       </AuthGuard>

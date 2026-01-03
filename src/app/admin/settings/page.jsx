@@ -8,7 +8,7 @@ import SettingsForm from '@/components/admin/settings/SettingsForm';
 import BackgroundSettingsForm from '@/components/admin/settings/BackgroundSettingsForm';
 
 export default function AdminSettingsPage() {
-  // Combine navbar + footer into a single object for SettingsForm
+  // Combine navbar + footer + socials into a single object for SettingsForm
   const [site, setSite] = useState(null);
 
   // Background table maps 1:1
@@ -21,27 +21,29 @@ export default function AdminSettingsPage() {
     setLoading(true);
     setMsg({ type: '', text: '' });
 
-    const [navRes, footerRes, bgRes] = await Promise.all([
+    const [navRes, footerRes, socialsRes, bgRes] = await Promise.all([
       supabase.from('site_navbar_settings').select('*').eq('id', true).maybeSingle(),
       supabase.from('site_footer_settings').select('*').eq('id', true).maybeSingle(),
+      supabase
+        .from('site_footer_social_links')
+        .select('*')
+        .order('sort_order', { ascending: true })
+        .limit(10),
       supabase.from('site_background_settings').select('*').eq('id', true).maybeSingle(),
     ]);
 
-    const err = navRes.error || footerRes.error || bgRes.error;
+    const err = navRes.error || footerRes.error || socialsRes.error || bgRes.error;
     if (err) setMsg({ type: 'danger', text: err.message });
 
     const mergedSite = {
-      // keep single-row pattern consistent for your forms
       id: true,
-
-      // navbar settings
       ...(navRes.data || {}),
-
-      // footer settings (names won't collide with navbar based on your schema)
       ...(footerRes.data || {}),
+      social_links: socialsRes.data || [],
     };
 
-    // If both are missing, keep it null so your form can show "missing row"
+    // If navbar + footer are both missing, keep null so SettingsForm can show the warning.
+    // (Social links alone shouldn't count as "site settings exist".)
     const hasAnySiteData = !!(navRes.data || footerRes.data);
     setSite(hasAnySiteData ? mergedSite : null);
 
@@ -52,6 +54,7 @@ export default function AdminSettingsPage() {
 
   useEffect(() => {
     load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (loading) return <div className="py-5 text-center opacity-75">Loading...</div>;
@@ -62,7 +65,6 @@ export default function AdminSettingsPage() {
 
       {msg.text ? <div className={`alert alert-${msg.type}`}>{msg.text}</div> : null}
 
-      {/* Helpful hints if rows are missing */}
       <div className="row g-3">
         <div className="col-lg-6">
           {!site ? (
@@ -72,7 +74,7 @@ export default function AdminSettingsPage() {
                 <code>site_navbar_settings</code> (id=true) and <code>site_footer_settings</code> (id=true)
               </div>
               <div className="small opacity-75 mt-2">
-                You can still save from the form if it uses <code>upsert</code>.
+                You can still save from the form because it uses <code>upsert</code>.
               </div>
             </div>
           ) : null}

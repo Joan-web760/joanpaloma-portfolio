@@ -11,7 +11,7 @@ export default function AdminShell({ children }) {
   const hideNav = HIDE_NAV_ROUTES.includes(pathname);
 
   return (
-    <div className="bg-black bg-opacity-75 text-light min-vh-100 d-flex flex-column">
+    <div className="text-light min-vh-100 d-flex flex-column">
       {!hideNav && <AdminNavbar />}
 
       <main className="container py-4 flex-grow-1">

@@ -23,6 +23,8 @@ export default function BackgroundWrapper({ children }) {
       .maybeSingle();
 
     if (error) {
+      // eslint-disable-next-line no-console
+      console.warn('Background settings load error:', error.message);
       setBg(null);
       return;
     }
@@ -44,7 +46,7 @@ export default function BackgroundWrapper({ children }) {
     return () => window.removeEventListener('site-background-updated', onUpdate);
   }, [load]);
 
-  const style = useMemo(() => {
+  const bgStyle = useMemo(() => {
     const base = {
       minHeight: '100vh',
       backgroundColor: '#0b1220',
@@ -52,7 +54,7 @@ export default function BackgroundWrapper({ children }) {
       backgroundRepeat: 'no-repeat',
       backgroundSize: 'cover',
       backgroundPosition: 'center',
-      backgroundAttachment: 'scroll', // ✅ default
+      backgroundAttachment: 'scroll',
     };
 
     if (!bg) return base;
@@ -97,7 +99,6 @@ export default function BackgroundWrapper({ children }) {
       ];
       const position = positionAllowed.includes(positionRaw) ? positionRaw : 'center';
 
-      // ✅ NEW
       const attachment = pick(bg.image_attachment, ['scroll', 'fixed', 'local'], 'scroll');
 
       return {
@@ -121,15 +122,29 @@ export default function BackgroundWrapper({ children }) {
     const blurPx = Number(bg.overlay_blur_px || 0);
 
     return {
-      minHeight: '100vh',
+      position: 'absolute',
+      inset: 0,
       backgroundColor: overlayColor,
       backdropFilter: blurPx ? `blur(${blurPx}px)` : undefined,
+      pointerEvents: 'none', // IMPORTANT: never block clicks
+      zIndex: 0, // behind content
     };
   }, [bg]);
 
   return (
-    <div style={style} className="min-vh-100">
-      {overlayStyle ? <div style={overlayStyle}>{children}</div> : children}
+    <div
+      className="min-vh-100"
+      style={{
+        ...bgStyle,
+        position: 'relative',
+        isolation: 'isolate', // IMPORTANT: makes z-index predictable
+      }}
+    >
+      {/* Overlay layer */}
+      {overlayStyle ? <div style={overlayStyle} /> : null}
+
+      {/* Content layer */}
+      <div style={{ position: 'relative', zIndex: 1 }}>{children}</div>
     </div>
   );
 }

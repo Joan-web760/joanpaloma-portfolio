@@ -23,3 +23,17 @@ html, body {
 .dropdown-item.active {
   font-weight: 600;
 }
+
+/* ================================
+   FIX: Tailwind .collapse conflicts with Bootstrap .collapse
+   Tailwind sets: .collapse { visibility: collapse; }
+   Bootstrap expects visibility: visible and toggles display.
+================================ */
+.navbar .collapse {
+  visibility: visible !important;
+}
+
+/* Optional: enforce Bootstrap collapse behavior */
+.navbar .collapse:not(.show) {
+  display: none;
+}

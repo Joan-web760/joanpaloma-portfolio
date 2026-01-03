@@ -1,9 +1,7 @@
 import './globals.css';
 import Script from 'next/script';
 
-import BackgroundWrapper from '@/components/background/BackgroundWrapper';
-import PublicNavbar from '@/components/public/PublicNavbar';
-import PublicFooter from '@/components/public/PublicFooter';
+import PublicShell from '@/components/public/PublicShell';
 
 export const metadata = {
   title: 'Portfolio',
@@ -14,7 +12,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-        {/* Bootstrap 5.3.3 CSS (PUBLIC) */}
+        {/* Bootstrap 5.3.3 CSS (GLOBAL) */}
         <link
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
           rel="stylesheet"
@@ -22,7 +20,7 @@ export default function RootLayout({ children }) {
           crossOrigin="anonymous"
         />
 
-        {/* FontAwesome (PUBLIC) */}
+        {/* FontAwesome (GLOBAL) */}
         <link
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
@@ -31,27 +29,15 @@ export default function RootLayout({ children }) {
       </head>
 
       <body className="text-light" style={{ background: 'transparent' }}>
-        <BackgroundWrapper>
-          <PublicNavbar />
-          <main className="container py-4">{children}</main>
-          <PublicFooter />
-        </BackgroundWrapper>
+        <PublicShell>{children}</PublicShell>
 
-        {/* Bootstrap JS bundle (PUBLIC) */}
+        {/* Bootstrap JS bundle (GLOBAL) */}
         <Script
           src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
           integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
           crossOrigin="anonymous"
           strategy="afterInteractive"
         />
-
-        {/* Chart.js (PUBLIC) - keep ONLY if you render charts on public pages */}
-        {/*
-        <Script
-          src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"
-          strategy="afterInteractive"
-        />
-        */}
       </body>
     </html>
   );

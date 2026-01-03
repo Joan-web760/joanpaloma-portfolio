@@ -118,7 +118,7 @@ export default function SettingsForm({ site, setSite, onReload }) {
 
       <div className="fw-semibold mt-3 mb-2">Social Links (2 slots)</div>
 
-      <div className="card bg-black border border-secondary mb-2">
+      <div className="card bg-dark text-light border border-secondary mb-2">
         <div className="card-body">
           <TextInput label="Label" value={s1.label || ''} onChange={(v) => setSocial(0, { label: v })} />
           <TextInput label="Href" value={s1.href || ''} onChange={(v) => setSocial(0, { href: v })} />
@@ -126,7 +126,7 @@ export default function SettingsForm({ site, setSite, onReload }) {
         </div>
       </div>
 
-      <div className="card bg-black border border-secondary mb-2">
+      <div className="card bg-dark text-light border border-secondary mb-2">
         <div className="card-body">
           <TextInput label="Label" value={s2.label || ''} onChange={(v) => setSocial(1, { label: v })} />
           <TextInput label="Href" value={s2.href || ''} onChange={(v) => setSocial(1, { href: v })} />

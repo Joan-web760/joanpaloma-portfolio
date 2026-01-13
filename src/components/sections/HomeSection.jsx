@@ -13,7 +13,30 @@ function getPublicUrl(bucket, path) {
   return data?.publicUrl || "";
 }
 
-function isProbablyYoutubeOrEmbed(url) {
+function toYoutubeEmbed(url) {
+  if (!url) return "";
+  try {
+    const u = new URL(url);
+
+    // youtu.be/<id>
+    if (u.hostname.includes("youtu.be")) {
+      const id = u.pathname.replace("/", "");
+      return id ? `https://www.youtube.com/embed/${id}` : url;
+    }
+
+    // youtube.com/watch?v=<id>
+    if (u.hostname.includes("youtube.com") && u.pathname === "/watch") {
+      const id = u.searchParams.get("v");
+      return id ? `https://www.youtube.com/embed/${id}` : url;
+    }
+
+    return url;
+  } catch {
+    return url;
+  }
+}
+
+function isEmbedUrl(url) {
   if (!url) return false;
   return /youtube\.com|youtu\.be|vimeo\.com|\/embed\//i.test(url);
 }
@@ -23,20 +46,14 @@ export default function HomeSection() {
   const [row, setRow] = useState(null);
 
   const heroUrl = useMemo(() => getPublicUrl(MEDIA_BUCKET, row?.hero_image_path), [row?.hero_image_path]);
+  const profileUrl = useMemo(() => getPublicUrl(MEDIA_BUCKET, row?.profile_image_path), [row?.profile_image_path]);
 
-  const profileUrl = useMemo(
-    () => getPublicUrl(MEDIA_BUCKET, row?.profile_image_path),
-    [row?.profile_image_path]
-  );
-
-  // NEW: video file stored in Supabase Storage (recommended)
   const introVideoFileUrl = useMemo(
     () => getPublicUrl(MEDIA_BUCKET, row?.intro_video_path),
     [row?.intro_video_path]
   );
 
-  // Existing: iframe URL (youtube embed link, etc.)
-  const introVideoUrl = row?.intro_video_url || "";
+  const introVideoEmbedUrl = useMemo(() => toYoutubeEmbed(row?.intro_video_url || ""), [row?.intro_video_url]);
 
   useEffect(() => {
     let alive = true;
@@ -79,24 +96,16 @@ export default function HomeSection() {
     );
   }
 
-  // If not published yet, show nothing (public)
   if (!row) return null;
 
   const badges = Array.isArray(row.badges) ? row.badges : [];
 
   const heroStyle = heroUrl
-    ? {
-        backgroundImage: `url(${heroUrl})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }
+    ? { backgroundImage: `url(${heroUrl})`, backgroundSize: "cover", backgroundPosition: "center" }
     : undefined;
 
-  // Decide video source priority:
-  // 1) Uploaded file (intro_video_path)
-  // 2) URL embed (intro_video_url)
   const hasFileVideo = !!introVideoFileUrl;
-  const hasEmbedVideo = !!introVideoUrl;
+  const hasEmbedVideo = !!introVideoEmbedUrl;
 
   return (
     <SectionBackground sectionKey="home" className="py-0">
@@ -132,11 +141,8 @@ export default function HomeSection() {
             <div className="col-12 col-lg-5">
               <div className="card border-0 shadow-sm">
                 <div className="card-body">
-                  {profileUrl ? (
-                    <img src={profileUrl} alt="Profile" className="img-fluid rounded mb-3" />
-                  ) : null}
+                  {profileUrl ? <img src={profileUrl} alt="Profile" className="img-fluid rounded mb-3" /> : null}
 
-                  {/* VIDEO: Storage file */}
                   {hasFileVideo ? (
                     <div className="ratio ratio-16x9">
                       <video
@@ -145,25 +151,20 @@ export default function HomeSection() {
                         controls
                         playsInline
                         preload="metadata"
-                      >
-                        Sorry, your browser doesn’t support embedded videos.
-                      </video>
+                      />
                     </div>
                   ) : hasEmbedVideo ? (
-                    // VIDEO: URL embed fallback
-                    isProbablyYoutubeOrEmbed(introVideoUrl) ? (
+                    isEmbedUrl(introVideoEmbedUrl) ? (
                       <div className="ratio ratio-16x9">
                         <iframe
-                          src={introVideoUrl}
+                          src={introVideoEmbedUrl}
                           title="Intro Video"
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                           allowFullScreen
                         />
                       </div>
                     ) : (
-                      <div className="text-muted small">
-                        Intro video URL is set but doesn’t look like an embed URL.
-                      </div>
+                      <div className="text-muted small">Intro video URL doesn’t look like an embed URL.</div>
                     )
                   ) : (
                     <div className="text-muted small">No intro video configured.</div>

@@ -1,8 +1,8 @@
-// src/middleware.js
+// src/proxy.js
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 
-export async function middleware(req) {
+export async function proxy(req) {
   const { pathname, searchParams } = req.nextUrl;
 
   // Only guard /admin routes (allow auth pages)
@@ -35,7 +35,5 @@ export async function middleware(req) {
 }
 
 export const config = {
-  matcher: [
-    "/admin/:path*",
-  ],
+  matcher: ["/admin/:path*"],
 };

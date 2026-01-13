@@ -1,11 +1,19 @@
 // src/app/admin/login/page.jsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 
 export default function AdminLoginPage() {
+  return (
+    <Suspense fallback={<LoginSkeleton />}>
+      <AdminLoginInner />
+    </Suspense>
+  );
+}
+
+function AdminLoginInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -31,7 +39,6 @@ export default function AdminLoginPage() {
     let alive = true;
 
     (async () => {
-      // Prefer getUser() to validate auth
       const { data } = await supabase.auth.getUser();
       if (!alive) return;
       if (data?.user) router.replace(nextUrl);
@@ -71,21 +78,19 @@ export default function AdminLoginPage() {
       password,
     });
 
+    setLoading(false);
+
     if (authErr) {
-      setLoading(false);
       setError(authErr.message || "Login failed.");
       return;
     }
 
-    // Ensure cookies/local session sync
     if (data?.session) {
-      setLoading(false);
       router.replace(nextUrl);
       router.refresh();
       return;
     }
 
-    setLoading(false);
     setError("Login failed. No session returned.");
   };
 
@@ -226,6 +231,20 @@ export default function AdminLoginPage() {
 
         <div className="text-center mt-3 small text-muted">
           Tip: Disable <code>/admin/register</code> after initial setup.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LoginSkeleton() {
+  return (
+    <div className="min-vh-100 d-flex align-items-center bg-light">
+      <div className="container" style={{ maxWidth: 520 }}>
+        <div className="card shadow-sm border-0">
+          <div className="card-body p-4 p-md-5">
+            <div className="text-muted">Loading...</div>
+          </div>
         </div>
       </div>
     </div>

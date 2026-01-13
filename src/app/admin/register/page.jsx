@@ -1,11 +1,19 @@
 // src/app/admin/register/page.jsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 
 export default function AdminRegisterPage() {
+  return (
+    <Suspense fallback={<RegisterSkeleton />}>
+      <AdminRegisterInner />
+    </Suspense>
+  );
+}
+
+function AdminRegisterInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -35,11 +43,13 @@ export default function AdminRegisterPage() {
 
   useEffect(() => {
     let alive = true;
+
     (async () => {
       const { data } = await supabase.auth.getUser();
       if (!alive) return;
       if (data?.user) router.replace(nextUrl);
     })();
+
     return () => {
       alive = false;
     };
@@ -56,6 +66,7 @@ export default function AdminRegisterPage() {
     if (!password) return "Password is required.";
     if (password.length < 8) return "Password must be at least 8 characters.";
     if (confirmPassword !== password) return "Passwords do not match.";
+
     return "";
   };
 
@@ -91,6 +102,7 @@ export default function AdminRegisterPage() {
       return;
     }
 
+    // If email confirmations are ON, session can be null
     if (data?.session) {
       setNotice("Account created. Redirecting...");
       router.replace(nextUrl);
@@ -160,7 +172,9 @@ export default function AdminRegisterPage() {
                   onChange={(e) => setInviteCode(e.target.value)}
                   disabled={disabled}
                 />
-                <div className="form-text">If you enable invite-only mode with SQL, this becomes required.</div>
+                <div className="form-text">
+                  If you enable invite-only mode with SQL, this becomes required.
+                </div>
               </div>
 
               <div>
@@ -196,6 +210,7 @@ export default function AdminRegisterPage() {
                     )}
                   </button>
                 </label>
+
                 <input
                   className="form-control"
                   type={showPass ? "text" : "password"}
@@ -227,6 +242,7 @@ export default function AdminRegisterPage() {
                     )}
                   </button>
                 </label>
+
                 <input
                   className="form-control"
                   type={showConfirm ? "text" : "password"}
@@ -267,6 +283,20 @@ export default function AdminRegisterPage() {
 
         <div className="text-center mt-3 small text-muted">
           Disable this route after setup using <code>NEXT_PUBLIC_DISABLE_ADMIN_REGISTER=true</code>.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RegisterSkeleton() {
+  return (
+    <div className="min-vh-100 d-flex align-items-center bg-light">
+      <div className="container" style={{ maxWidth: 560 }}>
+        <div className="card shadow-sm border-0">
+          <div className="card-body p-4 p-md-5">
+            <div className="text-muted">Loading...</div>
+          </div>
         </div>
       </div>
     </div>

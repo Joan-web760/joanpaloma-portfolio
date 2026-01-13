@@ -1,6 +1,7 @@
+// src/app/admin/services/page.jsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 
@@ -9,6 +10,7 @@ const emptyService = { title: "", description: "", bulletsText: "", is_published
 
 export default function AdminServicesPage() {
   const router = useRouter();
+  const mountedRef = useRef(true);
 
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -18,22 +20,28 @@ export default function AdminServicesPage() {
   const [categories, setCategories] = useState([]);
   const [items, setItems] = useState([]);
 
+  // React-controlled accordion (fix)
+  const [openCatId, setOpenCatId] = useState(null);
+
   // Create forms
   const [newCat, setNewCat] = useState(emptyCategory);
   const [newItem, setNewItem] = useState({ ...emptyService, category_id: "" });
 
+  const toKey = (v) => String(v ?? "");
+
   const itemsByCategory = useMemo(() => {
     const map = {};
-    for (const c of categories) map[c.id] = [];
+    for (const c of categories) map[toKey(c.id)] = [];
     for (const it of items) {
-      if (!map[it.category_id]) map[it.category_id] = [];
-      map[it.category_id].push(it);
+      const k = toKey(it.category_id);
+      if (!map[k]) map[k] = [];
+      map[k].push(it);
     }
     return map;
   }, [categories, items]);
 
   useEffect(() => {
-    let alive = true;
+    mountedRef.current = true;
 
     (async () => {
       setLoading(true);
@@ -46,45 +54,58 @@ export default function AdminServicesPage() {
         return;
       }
 
-      await reloadAll(alive);
+      await reloadAll();
+      if (mountedRef.current) setLoading(false);
     })();
 
     return () => {
-      alive = false;
+      mountedRef.current = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 
-  const reloadAll = async (alive = true) => {
-    const { data: catData, error: catErr } = await supabase
-      .from("service_categories")
-      .select("*")
-      .order("sort_order", { ascending: true })
-      .order("created_at", { ascending: true });
+  const reloadAll = async () => {
+    const [catRes, itemRes] = await Promise.all([
+      supabase
+        .from("service_categories")
+        .select("*")
+        .order("sort_order", { ascending: true })
+        .order("created_at", { ascending: true }),
+      supabase
+        .from("service_items")
+        .select("*")
+        .order("sort_order", { ascending: true })
+        .order("created_at", { ascending: true }),
+    ]);
 
-    if (!alive) return;
-    if (catErr) {
-      setError(catErr.message || "Failed to load categories.");
-      setLoading(false);
+    if (!mountedRef.current) return;
+
+    if (catRes.error) {
+      setError(catRes.error.message || "Failed to load categories.");
       return;
     }
 
-    const { data: itemData, error: itemErr } = await supabase
-      .from("service_items")
-      .select("*")
-      .order("sort_order", { ascending: true })
-      .order("created_at", { ascending: true });
-
-    if (!alive) return;
-    if (itemErr) {
-      setError(itemErr.message || "Failed to load services.");
-      setLoading(false);
+    if (itemRes.error) {
+      setError(itemRes.error.message || "Failed to load services.");
       return;
     }
 
-    setCategories(catData || []);
-    setItems(itemData || []);
-    setLoading(false);
+    const nextCats = catRes.data || [];
+    const nextItems = itemRes.data || [];
+
+    setCategories(nextCats);
+    setItems(nextItems);
+
+    // keep accordion state valid
+    if (openCatId) {
+      const exists = nextCats.some((c) => toKey(c.id) === toKey(openCatId));
+      if (!exists) setOpenCatId(null);
+    }
+
+    // if no category is open, optionally open the first one
+    if (!openCatId && nextCats.length) {
+      setOpenCatId(nextCats[0].id);
+    }
   };
 
   const toBulletsArray = (text) =>
@@ -101,7 +122,8 @@ export default function AdminServicesPage() {
 
   const toast = (msg) => {
     setNotice(msg);
-    setTimeout(() => setNotice(""), 2500);
+    window.clearTimeout(toast._t);
+    toast._t = window.setTimeout(() => setNotice(""), 2500);
   };
 
   // ---------- CATEGORY CRUD ----------
@@ -128,9 +150,16 @@ export default function AdminServicesPage() {
         .single();
 
       if (insErr) throw insErr;
+      if (!mountedRef.current) return;
 
-      setCategories((prev) => [...prev, data].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)));
+      setCategories((prev) =>
+        [...prev, data].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+      );
       setNewCat(emptyCategory);
+
+      // open newly created category
+      setOpenCatId(data.id);
+
       toast("Category created.");
     } catch (e) {
       setError(e.message || "Create category failed.");
@@ -153,8 +182,14 @@ export default function AdminServicesPage() {
         .single();
 
       if (updErr) throw updErr;
+      if (!mountedRef.current) return;
 
-      setCategories((prev) => prev.map((c) => (c.id === id ? data : c)).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)));
+      setCategories((prev) =>
+        prev
+          .map((c) => (c.id === id ? data : c))
+          .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+      );
+
       toast("Category updated.");
     } catch (e) {
       setError(e.message || "Update category failed.");
@@ -173,9 +208,14 @@ export default function AdminServicesPage() {
     try {
       const { error: delErr } = await supabase.from("service_categories").delete().eq("id", id);
       if (delErr) throw delErr;
+      if (!mountedRef.current) return;
 
       setCategories((prev) => prev.filter((c) => c.id !== id));
-      setItems((prev) => prev.filter((it) => it.category_id !== id));
+      setItems((prev) => prev.filter((it) => toKey(it.category_id) !== toKey(id)));
+
+      // close accordion if the deleted one is open
+      setOpenCatId((prev) => (toKey(prev) === toKey(id) ? null : prev));
+
       toast("Category deleted.");
     } catch (e) {
       setError(e.message || "Delete category failed.");
@@ -208,7 +248,7 @@ export default function AdminServicesPage() {
       if (!newItem.category_id) throw new Error("Select a category first.");
       if (!newItem.title.trim()) throw new Error("Service title is required.");
 
-      const list = items.filter((it) => it.category_id === newItem.category_id);
+      const list = items.filter((it) => toKey(it.category_id) === toKey(newItem.category_id));
       const maxOrder = list.length ? Math.max(...list.map((i) => i.sort_order || 0)) : 0;
 
       const payload = {
@@ -227,8 +267,15 @@ export default function AdminServicesPage() {
         .single();
 
       if (insErr) throw insErr;
+      if (!mountedRef.current) return;
 
-      setItems((prev) => [...prev, data].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)));
+      setItems((prev) =>
+        [...prev, data].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+      );
+
+      // open the category we just added to
+      setOpenCatId(newItem.category_id);
+
       setNewItem({ ...emptyService, category_id: newItem.category_id });
       toast("Service created.");
     } catch (e) {
@@ -252,8 +299,13 @@ export default function AdminServicesPage() {
         .single();
 
       if (updErr) throw updErr;
+      if (!mountedRef.current) return;
 
-      setItems((prev) => prev.map((i) => (i.id === id ? data : i)).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)));
+      setItems((prev) =>
+        prev
+          .map((i) => (i.id === id ? data : i))
+          .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+      );
       toast("Service updated.");
     } catch (e) {
       setError(e.message || "Update service failed.");
@@ -272,6 +324,7 @@ export default function AdminServicesPage() {
     try {
       const { error: delErr } = await supabase.from("service_items").delete().eq("id", id);
       if (delErr) throw delErr;
+      if (!mountedRef.current) return;
 
       setItems((prev) => prev.filter((i) => i.id !== id));
       toast("Service deleted.");
@@ -287,7 +340,7 @@ export default function AdminServicesPage() {
     if (!it) return;
 
     const list = items
-      .filter((x) => x.category_id === it.category_id)
+      .filter((x) => toKey(x.category_id) === toKey(it.category_id))
       .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
 
     const idx = list.findIndex((x) => x.id === id);
@@ -382,7 +435,9 @@ export default function AdminServicesPage() {
                     disabled={busy}
                     id="newCatPub"
                   />
-                  <label className="form-check-label" htmlFor="newCatPub">Pub</label>
+                  <label className="form-check-label" htmlFor="newCatPub">
+                    Pub
+                  </label>
                 </div>
               </div>
               <div className="col-6 col-md-1 d-grid">
@@ -409,7 +464,9 @@ export default function AdminServicesPage() {
                 >
                   <option value="">Select...</option>
                   {categories.map((c) => (
-                    <option key={c.id} value={c.id}>{c.title}</option>
+                    <option key={toKey(c.id)} value={toKey(c.id)}>
+                      {c.title}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -444,7 +501,9 @@ export default function AdminServicesPage() {
                     disabled={busy}
                     id="newItemPub"
                   />
-                  <label className="form-check-label" htmlFor="newItemPub">Pub</label>
+                  <label className="form-check-label" htmlFor="newItemPub">
+                    Pub
+                  </label>
                 </div>
               </div>
 
@@ -468,7 +527,7 @@ export default function AdminServicesPage() {
           </div>
         </div>
 
-        {/* Listing */}
+        {/* Listing (React-controlled accordion) */}
         <div className="card border-0 shadow-sm">
           <div className="card-body">
             <h2 className="h6 mb-3">Catalog</h2>
@@ -476,17 +535,23 @@ export default function AdminServicesPage() {
             {categories.length === 0 ? (
               <div className="text-muted">No categories yet.</div>
             ) : (
-              <div className="accordion" id="servicesAccordion">
-                {categories.map((c, idx) => {
-                  const list = (itemsByCategory[c.id] || []).slice().sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+              <div className="accordion">
+                {categories.map((c) => {
+                  const key = toKey(c.id);
+                  const isOpen = toKey(openCatId) === key;
+
+                  const list = (itemsByCategory[key] || [])
+                    .slice()
+                    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+
                   return (
-                    <div className="accordion-item" key={c.id}>
+                    <div className="accordion-item" key={key}>
                       <h2 className="accordion-header">
                         <button
-                          className={`accordion-button ${idx === 0 ? "" : "collapsed"}`}
                           type="button"
-                          data-bs-toggle="collapse"
-                          data-bs-target={`#cat_${c.id}`}
+                          className={`accordion-button ${isOpen ? "" : "collapsed"}`}
+                          onClick={() => setOpenCatId(isOpen ? null : c.id)}
+                          aria-expanded={isOpen ? "true" : "false"}
                         >
                           <div className="d-flex flex-wrap gap-2 align-items-center w-100">
                             <span className="fw-semibold">{c.title}</span>
@@ -500,156 +565,190 @@ export default function AdminServicesPage() {
                         </button>
                       </h2>
 
-                      <div id={`cat_${c.id}`} className={`accordion-collapse collapse ${idx === 0 ? "show" : ""}`} data-bs-parent="#servicesAccordion">
-                        <div className="accordion-body">
-                          <div className="row g-2 align-items-end mb-3">
-                            <div className="col-12 col-md-4">
-                              <label className="form-label">Title</label>
-                              <input
-                                className="form-control"
-                                defaultValue={c.title}
-                                onBlur={(e) => {
-                                  const v = e.target.value.trim();
-                                  if (v && v !== c.title) updateCategory(c.id, { title: v });
-                                }}
-                                disabled={busy}
-                              />
-                            </div>
-                            <div className="col-12 col-md-6">
-                              <label className="form-label">Description</label>
-                              <input
-                                className="form-control"
-                                defaultValue={c.description || ""}
-                                onBlur={(e) => {
-                                  const v = e.target.value.trim();
-                                  if (v !== (c.description || "")) updateCategory(c.id, { description: v || null });
-                                }}
-                                disabled={busy}
-                              />
-                            </div>
-                            <div className="col-6 col-md-1">
-                              <div className="form-check mt-4">
+                      <div className={`accordion-collapse ${isOpen ? "show" : "collapse"}`}>
+                        {isOpen ? (
+                          <div className="accordion-body">
+                            {/* category editor */}
+                            <div className="row g-2 align-items-end mb-3">
+                              <div className="col-12 col-md-4">
+                                <label className="form-label">Title</label>
                                 <input
-                                  className="form-check-input"
-                                  type="checkbox"
-                                  defaultChecked={!!c.is_published}
-                                  onChange={(e) => updateCategory(c.id, { is_published: e.target.checked })}
+                                  className="form-control"
+                                  defaultValue={c.title}
+                                  onBlur={(e) => {
+                                    const v = e.target.value.trim();
+                                    if (v && v !== c.title) updateCategory(c.id, { title: v });
+                                  }}
                                   disabled={busy}
-                                  id={`catPub_${c.id}`}
                                 />
-                                <label className="form-check-label" htmlFor={`catPub_${c.id}`}>Pub</label>
+                              </div>
+
+                              <div className="col-12 col-md-6">
+                                <label className="form-label">Description</label>
+                                <input
+                                  className="form-control"
+                                  defaultValue={c.description || ""}
+                                  onBlur={(e) => {
+                                    const v = e.target.value.trim();
+                                    if (v !== (c.description || "")) updateCategory(c.id, { description: v || null });
+                                  }}
+                                  disabled={busy}
+                                />
+                              </div>
+
+                              <div className="col-6 col-md-1">
+                                <div className="form-check mt-4">
+                                  <input
+                                    className="form-check-input"
+                                    type="checkbox"
+                                    defaultChecked={!!c.is_published}
+                                    onChange={(e) => updateCategory(c.id, { is_published: e.target.checked })}
+                                    disabled={busy}
+                                    id={`catPub_${key}`}
+                                  />
+                                  <label className="form-check-label" htmlFor={`catPub_${key}`}>
+                                    Pub
+                                  </label>
+                                </div>
+                              </div>
+
+                              <div className="col-6 col-md-1 d-grid">
+                                <button
+                                  className="btn btn-outline-danger"
+                                  onClick={() => deleteCategory(c.id)}
+                                  disabled={busy}
+                                >
+                                  <i className="fa-solid fa-trash"></i>
+                                </button>
                               </div>
                             </div>
-                            <div className="col-6 col-md-1 d-grid">
-                              <button className="e btn btn-outline-danger" onClick={() => deleteCategory(c.id)} disabled={busy}>
-                                <i className="fa-solid fa-trash"></i>
+
+                            <div className="d-flex gap-2 mb-3">
+                              <button
+                                className="btn btn-sm btn-outline-secondary"
+                                onClick={() => moveCategory(c.id, "up")}
+                                disabled={busy}
+                              >
+                                <i className="fa-solid fa-arrow-up me-2"></i>Move up
+                              </button>
+                              <button
+                                className="btn btn-sm btn-outline-secondary"
+                                onClick={() => moveCategory(c.id, "down")}
+                                disabled={busy}
+                              >
+                                <i className="fa-solid fa-arrow-down me-2"></i>Move down
                               </button>
                             </div>
-                          </div>
 
-                          <div className="d-flex gap-2 mb-3">
-                            <button className="btn btn-sm btn-outline-secondary" onClick={() => moveCategory(c.id, "up")} disabled={busy}>
-                              <i className="fa-solid fa-arrow-up me-2"></i>Move up
-                            </button>
-                            <button className="btn btn-sm btn-outline-secondary" onClick={() => moveCategory(c.id, "down")} disabled={busy}>
-                              <i className="fa-solid fa-arrow-down me-2"></i>Move down
-                            </button>
-                          </div>
+                            <hr />
 
-                          <hr />
-
-                          {list.length === 0 ? (
-                            <div className="text-muted">No services in this category yet.</div>
-                          ) : (
-                            <div className="vstack gap-2">
-                              {list.map((it) => (
-                                <div className="border rounded p-3 bg-white" key={it.id}>
-                                  <div className="d-flex flex-wrap gap-2 align-items-center justify-content-between">
-                                    <div className="fw-semibold">{it.title}</div>
-                                    <div className="d-flex gap-2 align-items-center">
-                                      {it.is_published ? (
-                                        <span className="badge text-bg-success">Published</span>
-                                      ) : (
-                                        <span className="badge text-bg-secondary">Hidden</span>
-                                      )}
-                                      <span className="text-muted small">Order: {it.sort_order}</span>
+                            {list.length === 0 ? (
+                              <div className="text-muted">No services in this category yet.</div>
+                            ) : (
+                              <div className="vstack gap-2">
+                                {list.map((it) => (
+                                  <div className="border rounded p-3 bg-white" key={toKey(it.id)}>
+                                    <div className="d-flex flex-wrap gap-2 align-items-center justify-content-between">
+                                      <div className="fw-semibold">{it.title}</div>
+                                      <div className="d-flex gap-2 align-items-center">
+                                        {it.is_published ? (
+                                          <span className="badge text-bg-success">Published</span>
+                                        ) : (
+                                          <span className="badge text-bg-secondary">Hidden</span>
+                                        )}
+                                        <span className="text-muted small">Order: {it.sort_order}</span>
+                                      </div>
                                     </div>
-                                  </div>
 
-                                  <div className="row g-2 mt-2">
-                                    <div className="col-12 col-md-4">
-                                      <label className="form-label">Title</label>
-                                      <input
-                                        className="form-control"
-                                        defaultValue={it.title}
-                                        onBlur={(e) => {
-                                          const v = e.target.value.trim();
-                                          if (v && v !== it.title) updateService(it.id, { title: v });
-                                        }}
-                                        disabled={busy}
-                                      />
-                                    </div>
-                                    <div className="col-12 col-md-5">
-                                      <label className="form-label">Description</label>
-                                      <input
-                                        className="form-control"
-                                        defaultValue={it.description || ""}
-                                        onBlur={(e) => {
-                                          const v = e.target.value.trim();
-                                          if (v !== (it.description || "")) updateService(it.id, { description: v || null });
-                                        }}
-                                        disabled={busy}
-                                      />
-                                    </div>
-                                    <div className="col-6 col-md-1">
-                                      <div className="form-check mt-4">
+                                    <div className="row g-2 mt-2">
+                                      <div className="col-12 col-md-4">
+                                        <label className="form-label">Title</label>
                                         <input
-                                          className="form-check-input"
-                                          type="checkbox"
-                                          defaultChecked={!!it.is_published}
-                                          onChange={(e) => updateService(it.id, { is_published: e.target.checked })}
+                                          className="form-control"
+                                          defaultValue={it.title}
+                                          onBlur={(e) => {
+                                            const v = e.target.value.trim();
+                                            if (v && v !== it.title) updateService(it.id, { title: v });
+                                          }}
                                           disabled={busy}
-                                          id={`itPub_${it.id}`}
                                         />
-                                        <label className="form-check-label" htmlFor={`itPub_${it.id}`}>Pub</label>
                                       </div>
-                                    </div>
-                                    <div className="col-6 col-md-2 d-grid">
-                                      <button className="btn btn-outline-danger mt-md-4" onClick={() => deleteService(it.id)} disabled={busy}>
-                                        <i className="fa-solid fa-trash me-2"></i>Delete
-                                      </button>
-                                    </div>
 
-                                    <div className="col-12">
-                                      <label className="form-label">Bullets (one per line)</label>
-                                      <textarea
-                                        className="form-control"
-                                        rows="3"
-                                        defaultValue={fromBulletsArray(it.bullets)}
-                                        onBlur={(e) => {
-                                          const v = e.target.value;
-                                          updateService(it.id, { bullets: toBulletsArray(v) });
-                                        }}
-                                        disabled={busy}
-                                      />
-                                    </div>
+                                      <div className="col-12 col-md-5">
+                                        <label className="form-label">Description</label>
+                                        <input
+                                          className="form-control"
+                                          defaultValue={it.description || ""}
+                                          onBlur={(e) => {
+                                            const v = e.target.value.trim();
+                                            if (v !== (it.description || "")) updateService(it.id, { description: v || null });
+                                          }}
+                                          disabled={busy}
+                                        />
+                                      </div>
 
-                                    <div className="col-12">
-                                      <div className="d-flex gap-2">
-                                        <button className="btn btn-sm btn-outline-secondary" onClick={() => moveService(it.id, "up")} disabled={busy}>
-                                          <i className="fa-solid fa-arrow-up me-2"></i>Move up
+                                      <div className="col-6 col-md-1">
+                                        <div className="form-check mt-4">
+                                          <input
+                                            className="form-check-input"
+                                            type="checkbox"
+                                            defaultChecked={!!it.is_published}
+                                            onChange={(e) => updateService(it.id, { is_published: e.target.checked })}
+                                            disabled={busy}
+                                            id={`itPub_${toKey(it.id)}`}
+                                          />
+                                          <label className="form-check-label" htmlFor={`itPub_${toKey(it.id)}`}>
+                                            Pub
+                                          </label>
+                                        </div>
+                                      </div>
+
+                                      <div className="col-6 col-md-2 d-grid">
+                                        <button
+                                          className="btn btn-outline-danger mt-md-4"
+                                          onClick={() => deleteService(it.id)}
+                                          disabled={busy}
+                                        >
+                                          <i className="fa-solid fa-trash me-2"></i>Delete
                                         </button>
-                                        <button className="btn btn-sm btn-outline-secondary" onClick={() => moveService(it.id, "down")} disabled={busy}>
-                                          <i className="fa-solid fa-arrow-down me-2"></i>Move down
-                                        </button>
+                                      </div>
+
+                                      <div className="col-12">
+                                        <label className="form-label">Bullets (one per line)</label>
+                                        <textarea
+                                          className="form-control"
+                                          rows="3"
+                                          defaultValue={fromBulletsArray(it.bullets)}
+                                          onBlur={(e) => updateService(it.id, { bullets: toBulletsArray(e.target.value) })}
+                                          disabled={busy}
+                                        />
+                                      </div>
+
+                                      <div className="col-12">
+                                        <div className="d-flex gap-2">
+                                          <button
+                                            className="btn btn-sm btn-outline-secondary"
+                                            onClick={() => moveService(it.id, "up")}
+                                            disabled={busy}
+                                          >
+                                            <i className="fa-solid fa-arrow-up me-2"></i>Move up
+                                          </button>
+                                          <button
+                                            className="btn btn-sm btn-outline-secondary"
+                                            onClick={() => moveService(it.id, "down")}
+                                            disabled={busy}
+                                          >
+                                            <i className="fa-solid fa-arrow-down me-2"></i>Move down
+                                          </button>
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ) : null}
                       </div>
                     </div>
                   );

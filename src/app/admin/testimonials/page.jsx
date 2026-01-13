@@ -1,0 +1,527 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase-browser";
+
+const emptyForm = {
+  quote: "",
+  name: "",
+  role: "",
+  company: "",
+  rating: 5,
+  avatar_path: null,
+  is_featured: false,
+  is_published: true,
+};
+
+export default function AdminTestimonialsPage() {
+  const router = useRouter();
+
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+
+  const [items, setItems] = useState([]);
+  const [form, setForm] = useState(emptyForm);
+
+  useEffect(() => {
+    let alive = true;
+
+    (async () => {
+      setLoading(true);
+
+      const { data: userRes } = await supabase.auth.getUser();
+      if (!userRes?.user) {
+        router.replace("/admin/login?next=/admin/testimonials");
+        return;
+      }
+
+      const { data, error: dbErr } = await supabase
+        .from("testimonial_items")
+        .select("*")
+        .order("is_featured", { ascending: false })
+        .order("sort_order", { ascending: true })
+        .order("created_at", { ascending: true });
+
+      if (!alive) return;
+
+      if (dbErr) {
+        setError(dbErr.message || "Failed to load testimonials.");
+        setLoading(false);
+        return;
+      }
+
+      setItems(data || []);
+      setLoading(false);
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, [router]);
+
+  const toast = (msg) => {
+    setNotice(msg);
+    setTimeout(() => setNotice(""), 2000);
+  };
+
+  const publicUrl = (path) => {
+    if (!path) return "";
+    return supabase.storage.from("portfolio-media").getPublicUrl(path).data.publicUrl;
+  };
+
+  const uploadAvatar = async (file) => {
+    const ext = file.name.split(".").pop()?.toLowerCase() || "png";
+    const safeExt = ["png", "jpg", "jpeg", "webp"].includes(ext) ? ext : "png";
+    const filename = `avatar_${crypto.randomUUID()}.${safeExt}`;
+    const path = `testimonials/avatars/${filename}`;
+
+    const { error: upErr } = await supabase.storage
+      .from("portfolio-media")
+      .upload(path, file, { upsert: false });
+
+    if (upErr) throw upErr;
+
+    return path;
+  };
+
+  const createItem = async () => {
+    setBusy(true);
+    setError("");
+    setNotice("");
+
+    try {
+      if (!form.quote.trim()) throw new Error("Quote is required.");
+      if (!form.name.trim()) throw new Error("Name is required.");
+
+      const rating = Number(form.rating);
+      if (Number.isNaN(rating) || rating < 1 || rating > 5) throw new Error("Rating must be 1–5.");
+
+      const maxOrder = items.length ? Math.max(...items.map((x) => x.sort_order || 0)) : 0;
+
+      const payload = {
+        quote: form.quote.trim(),
+        name: form.name.trim(),
+        role: form.role.trim() || null,
+        company: form.company.trim() || null,
+        rating,
+        avatar_path: form.avatar_path || null,
+        is_featured: !!form.is_featured,
+        is_published: !!form.is_published,
+        sort_order: maxOrder + 10,
+      };
+
+      const { data, error: insErr } = await supabase
+        .from("testimonial_items")
+        .insert([payload])
+        .select("*")
+        .single();
+
+      if (insErr) throw insErr;
+
+      setItems((prev) =>
+        [...prev, data].sort((a, b) => {
+          // featured first
+          if (a.is_featured !== b.is_featured) return a.is_featured ? -1 : 1;
+          return (a.sort_order || 0) - (b.sort_order || 0);
+        })
+      );
+
+      setForm(emptyForm);
+      toast("Testimonial added.");
+    } catch (e) {
+      setError(e.message || "Create failed.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const updateItem = async (id, patch) => {
+    setBusy(true);
+    setError("");
+    setNotice("");
+
+    try {
+      const { data, error: updErr } = await supabase
+        .from("testimonial_items")
+        .update(patch)
+        .eq("id", id)
+        .select("*")
+        .single();
+
+      if (updErr) throw updErr;
+
+      setItems((prev) =>
+        prev
+          .map((x) => (x.id === id ? data : x))
+          .sort((a, b) => {
+            if (a.is_featured !== b.is_featured) return a.is_featured ? -1 : 1;
+            return (a.sort_order || 0) - (b.sort_order || 0);
+          })
+      );
+
+      toast("Updated.");
+    } catch (e) {
+      setError(e.message || "Update failed.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const deleteItem = async (id) => {
+    if (!confirm("Delete this testimonial?")) return;
+
+    setBusy(true);
+    setError("");
+    setNotice("");
+
+    try {
+      const { error: delErr } = await supabase.from("testimonial_items").delete().eq("id", id);
+      if (delErr) throw delErr;
+
+      setItems((prev) => prev.filter((x) => x.id !== id));
+      toast("Deleted.");
+    } catch (e) {
+      setError(e.message || "Delete failed.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const moveItem = async (id, dir) => {
+    const idx = items.findIndex((x) => x.id === id);
+    const swapWith = dir === "up" ? idx - 1 : idx + 1;
+    if (idx < 0 || swapWith < 0 || swapWith >= items.length) return;
+
+    const a = items[idx];
+    const b = items[swapWith];
+
+    await Promise.all([
+      updateItem(a.id, { sort_order: b.sort_order }),
+      updateItem(b.id, { sort_order: a.sort_order }),
+    ]);
+  };
+
+  const openPreview = () => window.open("/#testimonials", "_blank");
+
+  if (loading) {
+    return (
+      <div className="container py-5">
+        <div className="d-flex align-items-center gap-2 text-muted">
+          <span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
+          Loading Testimonials editor...
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-light min-vh-100">
+      <div className="container py-4">
+        <div className="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
+          <div>
+            <h1 className="h5 mb-1">Testimonials</h1>
+            <div className="small text-muted">Social proof with ratings, featured picks, avatars, ordering.</div>
+          </div>
+
+          <div className="d-flex gap-2">
+            <button className="btn btn-outline-dark" onClick={openPreview}>
+              <i className="fa-solid fa-eye me-2"></i>Preview
+            </button>
+            <button className="btn btn-outline-primary" onClick={() => router.push("/admin")}>
+              <i className="fa-solid fa-arrow-left me-2"></i>Dashboard
+            </button>
+          </div>
+        </div>
+
+        {error ? (
+          <div className="alert alert-danger py-2">
+            <i className="fa-solid fa-triangle-exclamation me-2"></i>
+            {error}
+          </div>
+        ) : null}
+
+        {notice ? (
+          <div className="alert alert-success py-2">
+            <i className="fa-solid fa-circle-check me-2"></i>
+            {notice}
+          </div>
+        ) : null}
+
+        {/* Add */}
+        <div className="card border-0 shadow-sm mb-3">
+          <div className="card-body">
+            <h2 className="h6 mb-3">Add Testimonial</h2>
+
+            <div className="row g-2">
+              <div className="col-12">
+                <label className="form-label">Quote *</label>
+                <textarea className="form-control" rows="3" value={form.quote} onChange={(e) => setForm((p) => ({ ...p, quote: e.target.value }))} disabled={busy} />
+              </div>
+
+              <div className="col-12 col-md-4">
+                <label className="form-label">Name *</label>
+                <input className="form-control" value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} disabled={busy} />
+              </div>
+
+              <div className="col-12 col-md-4">
+                <label className="form-label">Role</label>
+                <input className="form-control" value={form.role} onChange={(e) => setForm((p) => ({ ...p, role: e.target.value }))} disabled={busy} />
+              </div>
+
+              <div className="col-12 col-md-4">
+                <label className="form-label">Company</label>
+                <input className="form-control" value={form.company} onChange={(e) => setForm((p) => ({ ...p, company: e.target.value }))} disabled={busy} />
+              </div>
+
+              <div className="col-12 col-md-3">
+                <label className="form-label">Rating</label>
+                <select className="form-select" value={form.rating} onChange={(e) => setForm((p) => ({ ...p, rating: Number(e.target.value) }))} disabled={busy}>
+                  {[5,4,3,2,1].map((n) => (
+                    <option key={n} value={n}>{n}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="col-12 col-md-5">
+                <label className="form-label">Avatar (optional)</label>
+                <input
+                  className="form-control"
+                  type="file"
+                  accept="image/*"
+                  disabled={busy}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+
+                    setBusy(true);
+                    setError("");
+                    setNotice("");
+
+                    try {
+                      const path = await uploadAvatar(file);
+                      setForm((p) => ({ ...p, avatar_path: path }));
+                      toast("Avatar uploaded (will save on Add).");
+                    } catch (err) {
+                      setError(err.message || "Upload failed.");
+                    } finally {
+                      setBusy(false);
+                      e.target.value = "";
+                    }
+                  }}
+                />
+                {form.avatar_path ? (
+                  <div className="small text-muted mt-1">
+                    Path: <code>{form.avatar_path}</code>
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="col-12 col-md-4 d-flex align-items-end justify-content-between">
+                <div className="d-flex gap-3">
+                  <div className="form-check">
+                    <input className="form-check-input" type="checkbox" checked={!!form.is_featured} onChange={(e) => setForm((p) => ({ ...p, is_featured: e.target.checked }))} disabled={busy} id="newFeat" />
+                    <label className="form-check-label" htmlFor="newFeat">Featured</label>
+                  </div>
+
+                  <div className="form-check">
+                    <input className="form-check-input" type="checkbox" checked={!!form.is_published} onChange={(e) => setForm((p) => ({ ...p, is_published: e.target.checked }))} disabled={busy} id="newPub" />
+                    <label className="form-check-label" htmlFor="newPub">Published</label>
+                  </div>
+                </div>
+
+                <button className="btn btn-primary" onClick={createItem} disabled={busy}>
+                  <i className="fa-solid fa-plus me-2"></i>Add
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* List */}
+        <div className="card border-0 shadow-sm">
+          <div className="card-body">
+            <h2 className="h6 mb-3">Items</h2>
+
+            {!items.length ? <div className="text-muted">No testimonials yet.</div> : null}
+
+            <div className="vstack gap-2">
+              {items.map((it) => {
+                const img = it.avatar_path ? publicUrl(it.avatar_path) : "";
+                const meta = [it.role, it.company].filter(Boolean).join(" • ");
+
+                return (
+                  <div key={it.id} className="border rounded bg-white p-3">
+                    <div className="d-flex flex-wrap gap-2 align-items-start justify-content-between">
+                      <div className="d-flex gap-3 align-items-start">
+                        <div className="rounded-circle border bg-light overflow-hidden d-flex align-items-center justify-content-center" style={{ width: 56, height: 56 }}>
+                          {img ? (
+                            <img src={img} alt={it.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          ) : (
+                            <i className="fa-solid fa-user text-muted"></i>
+                          )}
+                        </div>
+
+                        <div>
+                          <div className="fw-semibold">
+                            {it.name}
+                            {it.is_featured ? <span className="badge text-bg-warning ms-2">Featured</span> : null}
+                            {it.is_published ? <span className="badge text-bg-success ms-2">Published</span> : <span className="badge text-bg-secondary ms-2">Hidden</span>}
+                          </div>
+                          <div className="text-muted small">{meta || "—"}</div>
+                          <div className="text-muted small">Order: {it.sort_order}</div>
+                        </div>
+                      </div>
+
+                      <div className="d-flex gap-2">
+                        <button className="btn btn-sm btn-outline-secondary" onClick={() => moveItem(it.id, "up")} disabled={busy}>
+                          <i className="fa-solid fa-arrow-up"></i>
+                        </button>
+                        <button className="btn btn-sm btn-outline-secondary" onClick={() => moveItem(it.id, "down")} disabled={busy}>
+                          <i className="fa-solid fa-arrow-down"></i>
+                        </button>
+                        <button className="btn btn-sm btn-outline-danger" onClick={() => deleteItem(it.id)} disabled={busy}>
+                          <i className="fa-solid fa-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="row g-2 mt-2">
+                      <div className="col-12">
+                        <label className="form-label">Quote</label>
+                        <textarea
+                          className="form-control"
+                          rows="3"
+                          defaultValue={it.quote}
+                          onBlur={(e) => {
+                            const v = e.target.value.trim();
+                            if (v && v !== it.quote) updateItem(it.id, { quote: v });
+                          }}
+                          disabled={busy}
+                        />
+                      </div>
+
+                      <div className="col-12 col-md-3">
+                        <label className="form-label">Name</label>
+                        <input
+                          className="form-control"
+                          defaultValue={it.name}
+                          onBlur={(e) => {
+                            const v = e.target.value.trim();
+                            if (v && v !== it.name) updateItem(it.id, { name: v });
+                          }}
+                          disabled={busy}
+                        />
+                      </div>
+
+                      <div className="col-12 col-md-3">
+                        <label className="form-label">Role</label>
+                        <input
+                          className="form-control"
+                          defaultValue={it.role || ""}
+                          onBlur={(e) => updateItem(it.id, { role: e.target.value.trim() || null })}
+                          disabled={busy}
+                        />
+                      </div>
+
+                      <div className="col-12 col-md-3">
+                        <label className="form-label">Company</label>
+                        <input
+                          className="form-control"
+                          defaultValue={it.company || ""}
+                          onBlur={(e) => updateItem(it.id, { company: e.target.value.trim() || null })}
+                          disabled={busy}
+                        />
+                      </div>
+
+                      <div className="col-12 col-md-3">
+                        <label className="form-label">Rating</label>
+                        <select
+                          className="form-select"
+                          defaultValue={it.rating || 5}
+                          onChange={(e) => updateItem(it.id, { rating: Number(e.target.value) })}
+                          disabled={busy}
+                        >
+                          {[5,4,3,2,1].map((n) => (
+                            <option key={n} value={n}>{n}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="col-12 col-md-6">
+                        <label className="form-label">Replace Avatar</label>
+                        <input
+                          className="form-control"
+                          type="file"
+                          accept="image/*"
+                          disabled={busy}
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+
+                            setBusy(true);
+                            setError("");
+                            setNotice("");
+
+                            try {
+                              const path = await uploadAvatar(file);
+
+                              // Optional: remove old avatar
+                              if (it.avatar_path) {
+                                await supabase.storage.from("portfolio-media").remove([it.avatar_path]);
+                              }
+
+                              await updateItem(it.id, { avatar_path: path });
+                            } catch (err) {
+                              setError(err.message || "Replace failed.");
+                            } finally {
+                              setBusy(false);
+                              e.target.value = "";
+                            }
+                          }}
+                        />
+                      </div>
+
+                      <div className="col-12 col-md-6 d-flex align-items-end">
+                        <div className="d-flex gap-3">
+                          <div className="form-check">
+                            <input
+                              className="form-check-input"
+                              type="checkbox"
+                              defaultChecked={!!it.is_featured}
+                              onChange={(e) => updateItem(it.id, { is_featured: e.target.checked })}
+                              disabled={busy}
+                              id={`feat_${it.id}`}
+                            />
+                            <label className="form-check-label" htmlFor={`feat_${it.id}`}>Featured</label>
+                          </div>
+
+                          <div className="form-check">
+                            <input
+                              className="form-check-input"
+                              type="checkbox"
+                              defaultChecked={!!it.is_published}
+                              onChange={(e) => updateItem(it.id, { is_published: e.target.checked })}
+                              disabled={busy}
+                              id={`pub_${it.id}`}
+                            />
+                            <label className="form-check-label" htmlFor={`pub_${it.id}`}>Published</label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}

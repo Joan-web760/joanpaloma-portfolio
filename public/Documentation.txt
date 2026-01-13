@@ -1,0 +1,165 @@
+Stack: Next.js, JSX, Bootstrap 5.3.3 (CDN), Chart.js (CDN), FontAwesome (CDN), Supabase, Open Sans Font Family.
+
+Next.js Setup
+Use these options when creating the project:
+- Would you like to use TypeScript? -> No
+- Would you like to use ESLint? -> Yes
+- Would you like to use Tailwind CSS? -> No
+- Would you like your code inside a src/ directory? -> Yes
+- Would you like to use App Router? (recommended) -> Yes
+- Would you like to use Turbopack? (recommended) -> Yes
+- Would you like to customize the import alias (@/* by default)? -> No
+
+
+0️⃣ Admin Auth — Login (Admin Only)
+| Area | Frontend (Public) | Admin Panel | Supabase (DB/Storage) |
+|---|---|---|---|
+| Page / Route | N/A | /admin/login | DB: users (Supabase Auth) |
+| Purpose | — | Secure admin-only access to prevent unauthorized edits to portfolio content | Auth session + RLS-protected access |
+| Content | — | Email + password form, validation errors, forgot password, redirect back to intended admin page | No storage bucket needed |
+| Data / State | — | Admin session token/cookie, last login timestamp (optional) | — |
+| Actions | — | Sign in, show/hide password, reset password request | — |
+
+
+0️⃣ Admin Auth — Register (Admin Only)
+| Area | Frontend (Public) | Admin Panel | Supabase (DB/Storage) |
+|---|---|---|---|
+| Page / Route | N/A | /admin/register (or disable after setup) | DB: users (Supabase Auth) |
+| Purpose | — | Create the admin account (typically only once) so you can manage your portfolio safely; optionally restricted to invite-only mode | Auth signup + optional invite-only logic |
+| Content | — | Name, email, password, confirm password (+ optional invite code) | No storage bucket needed |
+| Data / State | — | Creates Admin user record, initializes default section content (optional) | — |
+| Actions | — | Create account, redirect to /admin or /admin/login | — |
+
+
+0️⃣ Admin — Dashboard (Overview)
+| Area | Frontend (Public) | Admin Panel | Supabase (DB/Storage) |
+|---|---|---|---|
+| Page / Route | N/A | /admin | Reads from all section tables |
+| Purpose | — | Control center: content status, last updated, shortcuts to editors, preview | Uses updated_at + is_published flags |
+| Content | — | Completion checklist, publish status per section, quick edit buttons, preview public site | — |
+| Actions | — | Navigate editors, publish/unpublish | Updates tables only |
+
+
+1️⃣ Home — Hero & Intro
+| Area | Frontend (Public) | Admin Panel | Supabase (DB/Storage) |
+|---|---|---|---|
+| Section / Route | /#home | /admin/home | DB: section_home |
+| Purpose | First impression + conversion via CTA + intro video | Edit conversion-critical top-fold content | Storage: portfolio-media (hero image optional) |
+| Content | Headline, subheadline, CTAs, intro video, profile image, badges | Edit text/CTAs/video URL/upload image | hero_image_path, intro_video_url |
+| Actions | View/CTA click | Save draft, publish, preview section | Updates row (1→1) |
+
+
+2️⃣ About — Personal Background
+| Area | Frontend (Public) | Admin Panel | Supabase (DB/Storage) |
+|---|---|---|---|
+| Section / Route | /#about | /admin/about | DB: section_about |
+| Purpose | Trust building via story, values, work style | Maintain bio + values without code changes | Storage: portfolio-media (about image optional) |
+| Content | Short/long bio, values list, optional extended video | Rich text + values repeater + video URL | values_json, about_image_path |
+| Actions | Read | Save/publish | Updates row (1→1) |
+
+
+3️⃣ Services — VA Offerings
+| Area | Frontend (Public) | Admin Panel | Supabase (DB/Storage) |
+|---|---|---|---|
+| Section / Route | /#services | /admin/services | DB: service_categories, service_items |
+| Purpose | Show offerings clearly so clients self-qualify fast | Manage services like a catalog: add/edit/reorder anytime | Optional icons in Storage |
+| Content | Category blocks + service cards + bullets | CRUD categories/services, bullets, sort order | Storage: portfolio-media (service icons if needed) |
+| Actions | Browse | Add/edit/delete/reorder | 1→many |
+
+
+4️⃣ Skills
+| Area | Frontend (Public) | Admin Panel | Supabase (DB/Storage) |
+|---|---|---|---|
+| Section / Route | /#skills | /admin/skills | DB: skill_items |
+| Purpose | Communicate competence quickly (tools + strengths) | Keep skills structured by type + level | Storage usually not needed |
+| Content | Skill groups + proficiency bars/badges | CRUD skills, type selector, % level, reorder | — |
+| Actions | View | Add/edit/delete/reorder | 1→many |
+
+
+5️⃣ Work Experience
+| Area | Frontend (Public) | Admin Panel | Supabase (DB/Storage) |
+|---|---|---|---|
+| Section / Route | /#experience | /admin/experience | DB: experience_items |
+| Purpose | Prove credibility with roles, tasks, measurable results | Maintain timeline entries with achievements + tools | Storage optional |
+| Content | Timeline cards (role/client/dates/responsibilities/results) | CRUD experience items, tags, achievements | — |
+| Actions | Read | Add/edit/delete/reorder | 1→many |
+
+
+6️⃣ Portfolio — Work Samples
+| Area | Frontend (Public) | Admin Panel | Supabase (DB/Storage) |
+|---|---|---|---|
+| Section / Route | /#portfolio | /admin/portfolio | DB: portfolio_items, portfolio_media |
+| Purpose | Proof of work via screenshots/links + results | Manage gallery uploads + details + featured items | Storage: portfolio-media |
+| Content | Gallery cards, images, links, results metrics | Multi-upload media, tags, featured toggle | file_path in bucket |
+| Actions | View | CRUD + feature + reorder | 1→many |
+
+
+7️⃣ Certifications
+| Area | Frontend (Public) | Admin Panel | Supabase (DB/Storage) |
+|---|---|---|---|
+| Section / Route | /#certifications | /admin/certifications | DB: certification_items |
+| Purpose | Boost trust with verified learning/proof | Add/edit certificates with proof images/links | Storage: portfolio-media (cert images) |
+| Content | Title, provider, date, verification link, image | CRUD + upload certificate image | certificate_image_path |
+| Actions | View | CRUD + reorder | 1→many |
+
+
+8️⃣ Resume / CV
+| Area | Frontend (Public) | Admin Panel | Supabase (DB/Storage) |
+|---|---|---|---|
+| Section / Route | /#resume | /admin/resume | DB: section_resume |
+| Purpose | Let clients download your CV quickly | Upload/replace CV + keep summary updated | Storage: portfolio-docs |
+| Content | Summary + Download CV button | PDF upload + button label + summary editor | cv_file_path in bucket |
+| Actions | Download | Upload/replace/publish | 1→1 |
+
+
+9️⃣ Blog
+| Area | Frontend (Public) | Admin Panel | Supabase (DB/Storage) |
+|---|---|---|---|
+| Section / Route | /#blog | /admin/blog | DB: blog_posts |
+| Purpose | Authority building + SEO + better client quality | Manage posts with drafts/publish and consistent formatting | Storage: portfolio-media (covers) |
+| Content | Post cards: title, excerpt, cover, date | CRUD posts, slug, cover upload, publish toggle | cover_image_path |
+| Actions | Read | Create/edit/delete/publish | 1→many |
+
+
+🔟 Testimonials
+| Area | Frontend (Public) | Admin Panel | Supabase (DB/Storage) |
+|---|---|---|---|
+| Section / Route | /#testimonials | /admin/testimonials | DB: testimonial_items |
+| Purpose | Social proof to increase conversions | Manage quotes, ratings, featured picks | Storage: portfolio-media (avatars) |
+| Content | Quote, name, role/company, rating, avatar | CRUD + featured toggle + upload avatar | avatar_path |
+| Actions | View | CRUD + reorder | 1→many |
+
+
+1️⃣1️⃣ Pricing & Packages
+| Area | Frontend (Public) | Admin Panel | Supabase (DB/Storage) |
+|---|---|---|---|
+| Section / Route | /#pricing | /admin/pricing | DB: package_items |
+| Purpose | Set expectations + qualify leads + show inclusions | Manage packages + featured + add-ons | Storage not required |
+| Content | Package cards: price, billing type, inclusions | CRUD packages, bullet repeater, featured toggle | — |
+| Actions | View | CRUD + reorder | 1→many |
+
+
+1️⃣2️⃣ Contact
+| Area | Frontend (Public) | Admin Panel | Supabase (DB/Storage) |
+|---|---|---|---|
+| Section / Route | /#contact | /admin/contact | DB: section_contact_settings |
+| Purpose | Convert visitors into leads via form + booking + socials | Configure recipient email, booking link, availability | Storage not required |
+| Content | Form, email/socials, Calendly, hours/timezone | Settings editor + test form | — |
+| Actions | Submit | Save settings | 1→1 |
+
+
+1️⃣3️⃣ Global Site Settings + Section Background Images (NEW)
+| Area | Frontend (Public) | Admin Panel | Supabase (DB/Storage) |
+|---|---|---|---|
+| Scope / Route | Entire one-page + every section background | /admin/settings (includes backgrounds manager) | DB: site_settings, section_backgrounds |
+| Purpose | Branding + SEO consistency AND background image control per section without code changes | Upload & assign background images per section; control display behavior | Storage: portfolio-backgrounds |
+| Content | Logo, favicon, site title, meta, footer + per-section backgrounds applied to #home/#about/#services/etc. | Background uploader per section (home/about/services/skills/...), overlay opacity, position, repeat, size | section_key, bg_image_path, overlay_opacity, position, repeat, size |
+| Actions | Applied globally | Upload/replace/remove per section + preview | Updates settings rows |
+
+Suggested section keys for section_backgrounds.section_key:
+- home, about, services, skills, experience, portfolio, certifications, resume, blog, testimonials, pricing, contact
+
+Recommended Supabase Storage Buckets:
+- portfolio-backgrounds: all section background images
+- portfolio-media: images for portfolio, avatars, certificates, blog covers, hero images
+- portfolio-docs: resume/CV PDFs and other documents

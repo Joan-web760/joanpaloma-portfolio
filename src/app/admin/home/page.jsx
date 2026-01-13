@@ -5,6 +5,13 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 
 const DEFAULT_BADGES = ["Next.js", "Supabase", "Bootstrap", "React"];
+const MEDIA_BUCKET = "portfolio-media";
+
+// simple safe filename
+function safeExt(fileName) {
+  const ext = fileName.split(".").pop()?.toLowerCase() || "";
+  return ext.replace(/[^a-z0-9]/g, "");
+}
 
 export default function AdminHomeEditorPage() {
   const router = useRouter();
@@ -31,15 +38,24 @@ export default function AdminHomeEditorPage() {
   const [heroImagePath, setHeroImagePath] = useState(null);
   const [profileImagePath, setProfileImagePath] = useState(null);
 
+  // NEW: uploaded video path
+  const [introVideoPath, setIntroVideoPath] = useState(null);
+
   const heroUrl = useMemo(() => {
     if (!heroImagePath) return "";
-    return supabase.storage.from("portfolio-media").getPublicUrl(heroImagePath).data.publicUrl;
+    return supabase.storage.from(MEDIA_BUCKET).getPublicUrl(heroImagePath).data.publicUrl;
   }, [heroImagePath]);
 
   const profileUrl = useMemo(() => {
     if (!profileImagePath) return "";
-    return supabase.storage.from("portfolio-media").getPublicUrl(profileImagePath).data.publicUrl;
+    return supabase.storage.from(MEDIA_BUCKET).getPublicUrl(profileImagePath).data.publicUrl;
   }, [profileImagePath]);
+
+  // NEW: video preview
+  const introVideoFileUrl = useMemo(() => {
+    if (!introVideoPath) return "";
+    return supabase.storage.from(MEDIA_BUCKET).getPublicUrl(introVideoPath).data.publicUrl;
+  }, [introVideoPath]);
 
   useEffect(() => {
     let alive = true;
@@ -56,11 +72,7 @@ export default function AdminHomeEditorPage() {
       }
 
       // Load singleton row
-      const { data, error: dbErr } = await supabase
-        .from("section_home")
-        .select("*")
-        .eq("id", 1)
-        .maybeSingle();
+      const { data, error: dbErr } = await supabase.from("section_home").select("*").eq("id", 1).maybeSingle();
 
       if (!alive) return;
 
@@ -70,7 +82,7 @@ export default function AdminHomeEditorPage() {
         return;
       }
 
-      // If row missing (shouldn't happen due to seed), create it
+      // If row missing, create it
       let r = data;
       if (!r) {
         const { data: inserted, error: insErr } = await supabase
@@ -103,6 +115,9 @@ export default function AdminHomeEditorPage() {
       setHeroImagePath(r.hero_image_path || null);
       setProfileImagePath(r.profile_image_path || null);
 
+      // NEW: load stored video path
+      setIntroVideoPath(r.intro_video_path || null);
+
       setIsPublished(!!r.is_published);
 
       setLoading(false);
@@ -114,25 +129,53 @@ export default function AdminHomeEditorPage() {
   }, [router]);
 
   const parseBadges = () => {
-    const parts = (badgesText || "")
+    return (badgesText || "")
       .split(",")
       .map((s) => s.trim())
       .filter(Boolean);
-    return parts;
   };
 
   const uploadImage = async (file, folder) => {
     if (!file) return null;
 
-    const ext = file.name.split(".").pop()?.toLowerCase() || "png";
-    const safeExt = ["png", "jpg", "jpeg", "webp"].includes(ext) ? ext : "png";
+    const ext = safeExt(file.name) || "png";
+    const imgExt = ["png", "jpg", "jpeg", "webp"].includes(ext) ? ext : "png";
 
-    const filename = `${crypto.randomUUID()}.${safeExt}`;
+    const filename = `${crypto.randomUUID()}.${imgExt}`;
     const path = `home/${folder}/${filename}`;
 
-    const { error: upErr } = await supabase.storage
-      .from("portfolio-media")
-      .upload(path, file, { upsert: false });
+    const { error: upErr } = await supabase.storage.from(MEDIA_BUCKET).upload(path, file, { upsert: false });
+    if (upErr) throw upErr;
+
+    return path;
+  };
+
+  // NEW: upload video
+  const uploadVideo = async (file) => {
+    if (!file) return null;
+
+    // basic validation
+    if (!file.type?.startsWith("video/")) {
+      throw new Error("Please select a valid video file.");
+    }
+
+    // optional size limit (change if you want)
+    const maxMB = 50;
+    if (file.size > maxMB * 1024 * 1024) {
+      throw new Error(`Video too large. Max ${maxMB}MB.`);
+    }
+
+    const ext = safeExt(file.name) || "mp4";
+    const vidExt = ["mp4", "webm", "mov", "m4v"].includes(ext) ? ext : "mp4";
+
+    const filename = `${crypto.randomUUID()}.${vidExt}`;
+    const path = `home/intro/${filename}`;
+
+    const { error: upErr } = await supabase.storage.from(MEDIA_BUCKET).upload(path, file, {
+      upsert: false,
+      contentType: file.type || "video/mp4",
+      cacheControl: "3600",
+    });
 
     if (upErr) throw upErr;
 
@@ -153,10 +196,15 @@ export default function AdminHomeEditorPage() {
         secondary_cta_label: secondaryCtaLabel || "",
         secondary_cta_url: secondaryCtaUrl || "",
         intro_video_url: introVideoUrl || null,
+
+        // NEW: persist uploaded video path
+        intro_video_path: introVideoPath || null,
+
         badges: parseBadges(),
         hero_image_path: heroImagePath,
         profile_image_path: profileImagePath,
         is_published: publishAfterSave ? true : isPublished,
+        updated_at: new Date().toISOString(),
       };
 
       const { data, error: updErr } = await supabase
@@ -188,7 +236,7 @@ export default function AdminHomeEditorPage() {
 
       const { data, error: updErr } = await supabase
         .from("section_home")
-        .update({ is_published: next })
+        .update({ is_published: next, updated_at: new Date().toISOString() })
         .eq("id", 1)
         .select("*")
         .single();
@@ -245,9 +293,28 @@ export default function AdminHomeEditorPage() {
     }
   };
 
-  const openPreview = () => {
-    window.open("/#home", "_blank");
+  // NEW: video file handler
+  const onIntroVideoFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setSaving(true);
+    setError("");
+    setNotice("");
+
+    try {
+      const path = await uploadVideo(file);
+      setIntroVideoPath(path);
+      setNotice("Intro video uploaded. Click Save to persist.");
+    } catch (err) {
+      setError(err.message || "Video upload failed.");
+    } finally {
+      setSaving(false);
+      e.target.value = "";
+    }
   };
+
+  const openPreview = () => window.open("/#home", "_blank");
 
   if (loading) {
     return (
@@ -333,12 +400,7 @@ export default function AdminHomeEditorPage() {
 
                 <div className="mb-3">
                   <label className="form-label">Subheadline</label>
-                  <textarea
-                    className="form-control"
-                    rows="3"
-                    value={subheadline}
-                    onChange={(e) => setSubheadline(e.target.value)}
-                  />
+                  <textarea className="form-control" rows="3" value={subheadline} onChange={(e) => setSubheadline(e.target.value)} />
                 </div>
 
                 <div className="row g-2">
@@ -381,6 +443,9 @@ export default function AdminHomeEditorPage() {
                     value={introVideoUrl}
                     onChange={(e) => setIntroVideoUrl(e.target.value)}
                   />
+                  <div className="form-text">
+                    If you upload a video file, the uploaded video will be used first (intro_video_path).
+                  </div>
                 </div>
 
                 <div className="mt-3 form-check">
@@ -421,7 +486,7 @@ export default function AdminHomeEditorPage() {
 
                 <hr />
 
-                <div>
+                <div className="mb-3">
                   <label className="form-label">Profile Image</label>
                   <input className="form-control" type="file" accept="image/*" onChange={onProfileFile} disabled={saving} />
                   {profileUrl ? (
@@ -434,6 +499,47 @@ export default function AdminHomeEditorPage() {
                   ) : (
                     <div className="small text-muted mt-2">No profile image uploaded.</div>
                   )}
+                </div>
+
+                <hr />
+
+                {/* NEW: Intro Video Upload */}
+                <div>
+                  <label className="form-label">Intro Video (Upload)</label>
+                  <input
+                    className="form-control"
+                    type="file"
+                    accept="video/mp4,video/webm,video/*"
+                    onChange={onIntroVideoFile}
+                    disabled={saving}
+                  />
+
+                  {introVideoFileUrl ? (
+                    <div className="mt-2">
+                      <div className="ratio ratio-16x9">
+                        <video src={introVideoFileUrl} controls playsInline preload="metadata" />
+                      </div>
+                      <div className="small text-muted mt-2">
+                        Path: <code>{introVideoPath}</code>
+                      </div>
+
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-danger mt-2"
+                        disabled={saving}
+                        onClick={() => {
+                          setIntroVideoPath(null);
+                          setNotice("Intro video cleared. Click Save to persist.");
+                        }}
+                      >
+                        <i className="fa-solid fa-trash me-2"></i>Remove Video (clears DB field)
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="small text-muted mt-2">No intro video uploaded.</div>
+                  )}
+
+                  <div className="form-text mt-2">Max 50MB (adjust in code). Recommended: mp4 (H.264).</div>
                 </div>
               </div>
             </div>
@@ -451,8 +557,11 @@ export default function AdminHomeEditorPage() {
                 </div>
               </div>
             </div>
-
           </div>
+        </div>
+
+        <div className="small text-muted mt-3">
+          Storage bucket: <code>{MEDIA_BUCKET}</code> — intro videos are uploaded to <code>home/intro/</code>.
         </div>
       </div>
     </div>

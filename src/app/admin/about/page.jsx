@@ -5,6 +5,12 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 
 const DEFAULT_VALUES = ["Clear communication", "Reliable delivery", "Ownership mindset"];
+const MEDIA_BUCKET = "portfolio-media";
+
+function safeExt(fileName) {
+  const ext = fileName.split(".").pop()?.toLowerCase() || "";
+  return ext.replace(/[^a-z0-9]/g, "");
+}
 
 export default function AdminAboutEditorPage() {
   const router = useRouter();
@@ -20,14 +26,25 @@ export default function AdminAboutEditorPage() {
   const [shortBio, setShortBio] = useState("");
   const [longBio, setLongBio] = useState("");
   const [valuesText, setValuesText] = useState("");
+
   const [extendedVideoUrl, setExtendedVideoUrl] = useState("");
+
+  // NEW: uploaded video path
+  const [extendedVideoPath, setExtendedVideoPath] = useState(null);
+
   const [aboutImagePath, setAboutImagePath] = useState(null);
   const [isPublished, setIsPublished] = useState(false);
 
   const aboutImageUrl = useMemo(() => {
     if (!aboutImagePath) return "";
-    return supabase.storage.from("portfolio-media").getPublicUrl(aboutImagePath).data.publicUrl;
+    return supabase.storage.from(MEDIA_BUCKET).getPublicUrl(aboutImagePath).data.publicUrl;
   }, [aboutImagePath]);
+
+  // NEW: video preview URL
+  const extendedVideoFileUrl = useMemo(() => {
+    if (!extendedVideoPath) return "";
+    return supabase.storage.from(MEDIA_BUCKET).getPublicUrl(extendedVideoPath).data.publicUrl;
+  }, [extendedVideoPath]);
 
   useEffect(() => {
     let alive = true;
@@ -79,13 +96,16 @@ export default function AdminAboutEditorPage() {
       setLongBio(r.long_bio || "");
 
       const valuesArr = Array.isArray(r.values_json) ? r.values_json : [];
-      // Support either array of strings or array of objects like {text:"..."}
       const normalized = valuesArr
         .map((v) => (typeof v === "string" ? v : v?.text))
         .filter(Boolean);
       setValuesText(normalized.join("\n"));
 
       setExtendedVideoUrl(r.extended_video_url || "");
+
+      // NEW: load uploaded video path
+      setExtendedVideoPath(r.extended_video_path || null);
+
       setAboutImagePath(r.about_image_path || null);
       setIsPublished(!!r.is_published);
 
@@ -98,28 +118,52 @@ export default function AdminAboutEditorPage() {
   }, [router]);
 
   const parseValues = () => {
-    // one per line
-    const lines = (valuesText || "")
+    return (valuesText || "")
       .split("\n")
       .map((s) => s.trim())
       .filter(Boolean);
-
-    // store as array of strings
-    return lines;
   };
 
   const uploadImage = async (file) => {
     if (!file) return null;
 
     const ext = file.name.split(".").pop()?.toLowerCase() || "png";
-    const safeExt = ["png", "jpg", "jpeg", "webp"].includes(ext) ? ext : "png";
+    const safe = ["png", "jpg", "jpeg", "webp"].includes(ext) ? ext : "png";
 
-    const filename = `${crypto.randomUUID()}.${safeExt}`;
+    const filename = `${crypto.randomUUID()}.${safe}`;
     const path = `about/image/${filename}`;
 
-    const { error: upErr } = await supabase.storage
-      .from("portfolio-media")
-      .upload(path, file, { upsert: false });
+    const { error: upErr } = await supabase.storage.from(MEDIA_BUCKET).upload(path, file, { upsert: false });
+    if (upErr) throw upErr;
+
+    return path;
+  };
+
+  // NEW: upload video
+  const uploadVideo = async (file) => {
+    if (!file) return null;
+
+    if (!file.type?.startsWith("video/")) {
+      throw new Error("Please select a valid video file.");
+    }
+
+    // optional size limit
+    const maxMB = 50;
+    if (file.size > maxMB * 1024 * 1024) {
+      throw new Error(`Video too large. Max ${maxMB}MB.`);
+    }
+
+    const ext = safeExt(file.name) || "mp4";
+    const vidExt = ["mp4", "webm", "mov", "m4v"].includes(ext) ? ext : "mp4";
+
+    const filename = `${crypto.randomUUID()}.${vidExt}`;
+    const path = `about/video/${filename}`;
+
+    const { error: upErr } = await supabase.storage.from(MEDIA_BUCKET).upload(path, file, {
+      upsert: false,
+      contentType: file.type || "video/mp4",
+      cacheControl: "3600",
+    });
 
     if (upErr) throw upErr;
 
@@ -137,8 +181,13 @@ export default function AdminAboutEditorPage() {
         long_bio: longBio || "",
         values_json: parseValues(),
         extended_video_url: extendedVideoUrl || null,
+
+        // NEW: persist uploaded video path
+        extended_video_path: extendedVideoPath || null,
+
         about_image_path: aboutImagePath,
         is_published: publishAfterSave ? true : isPublished,
+        updated_at: new Date().toISOString(),
       };
 
       const { data, error: updErr } = await supabase
@@ -170,7 +219,7 @@ export default function AdminAboutEditorPage() {
 
       const { data, error: updErr } = await supabase
         .from("section_about")
-        .update({ is_published: next })
+        .update({ is_published: next, updated_at: new Date().toISOString() })
         .eq("id", 1)
         .select("*")
         .single();
@@ -201,6 +250,27 @@ export default function AdminAboutEditorPage() {
       setNotice("About image uploaded. Click Save to persist.");
     } catch (err) {
       setError(err.message || "Upload failed.");
+    } finally {
+      setSaving(false);
+      e.target.value = "";
+    }
+  };
+
+  // NEW: about video file handler
+  const onAboutVideoFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setSaving(true);
+    setError("");
+    setNotice("");
+
+    try {
+      const path = await uploadVideo(file);
+      setExtendedVideoPath(path);
+      setNotice("About video uploaded. Click Save to persist.");
+    } catch (err) {
+      setError(err.message || "Video upload failed.");
     } finally {
       setSaving(false);
       e.target.value = "";
@@ -288,22 +358,12 @@ export default function AdminAboutEditorPage() {
 
                 <div className="mb-3">
                   <label className="form-label">Short Bio</label>
-                  <textarea
-                    className="form-control"
-                    rows="3"
-                    value={shortBio}
-                    onChange={(e) => setShortBio(e.target.value)}
-                  />
+                  <textarea className="form-control" rows="3" value={shortBio} onChange={(e) => setShortBio(e.target.value)} />
                 </div>
 
                 <div className="mb-3">
                   <label className="form-label">Long Bio</label>
-                  <textarea
-                    className="form-control"
-                    rows="8"
-                    value={longBio}
-                    onChange={(e) => setLongBio(e.target.value)}
-                  />
+                  <textarea className="form-control" rows="8" value={longBio} onChange={(e) => setLongBio(e.target.value)} />
                 </div>
 
                 <div className="mb-3">
@@ -328,6 +388,9 @@ export default function AdminAboutEditorPage() {
                     value={extendedVideoUrl}
                     onChange={(e) => setExtendedVideoUrl(e.target.value)}
                   />
+                  <div className="form-text">
+                    If you upload a video file, the uploaded video will be used first (extended_video_path).
+                  </div>
                 </div>
 
                 <div className="form-check">
@@ -366,6 +429,47 @@ export default function AdminAboutEditorPage() {
                     <div className="small text-muted mt-2">No about image uploaded.</div>
                   )}
                 </div>
+
+                <hr />
+
+                {/* NEW: About Video Upload */}
+                <div>
+                  <label className="form-label">Extended Video (Upload)</label>
+                  <input
+                    className="form-control"
+                    type="file"
+                    accept="video/mp4,video/webm,video/*"
+                    onChange={onAboutVideoFile}
+                    disabled={saving}
+                  />
+
+                  {extendedVideoFileUrl ? (
+                    <div className="mt-2">
+                      <div className="ratio ratio-16x9">
+                        <video src={extendedVideoFileUrl} controls playsInline preload="metadata" />
+                      </div>
+                      <div className="small text-muted mt-2">
+                        Path: <code>{extendedVideoPath}</code>
+                      </div>
+
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-danger mt-2"
+                        disabled={saving}
+                        onClick={() => {
+                          setExtendedVideoPath(null);
+                          setNotice("Extended video cleared. Click Save to persist.");
+                        }}
+                      >
+                        <i className="fa-solid fa-trash me-2"></i>Remove Video (clears DB field)
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="small text-muted mt-2">No extended video uploaded.</div>
+                  )}
+
+                  <div className="form-text mt-2">Max 50MB (adjust in code). Recommended: mp4 (H.264).</div>
+                </div>
               </div>
             </div>
 
@@ -384,6 +488,10 @@ export default function AdminAboutEditorPage() {
             </div>
 
           </div>
+        </div>
+
+        <div className="small text-muted mt-3">
+          Storage bucket: <code>{MEDIA_BUCKET}</code> — about videos are uploaded to <code>about/video/</code>.
         </div>
       </div>
     </div>

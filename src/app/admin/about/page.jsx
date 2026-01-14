@@ -410,6 +410,21 @@ export default function AdminAboutEditorPage() {
           </div>
 
           <div className="col-12 col-lg-4">
+
+            <div className="card border-0 shadow-sm mb-3">
+              <div className="card-body">
+                <h2 className="h6 mb-2">Quick Links</h2>
+                <div className="d-grid gap-2">
+                  <button className="btn btn-outline-primary" onClick={() => router.push("/admin")}>
+                    <i className="fa-solid fa-arrow-left me-2"></i>Back to Dashboard
+                  </button>
+                  <button className="btn btn-outline-dark" onClick={openPreview}>
+                    <i className="fa-solid fa-eye me-2"></i>Preview #about
+                  </button>
+                </div>
+              </div>
+            </div>
+
             <div className="card border-0 shadow-sm mb-3">
               <div className="card-body">
                 <h2 className="h6 mb-3">Media</h2>
@@ -469,20 +484,6 @@ export default function AdminAboutEditorPage() {
                   )}
 
                   <div className="form-text mt-2">Max 50MB (adjust in code). Recommended: mp4 (H.264).</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="card border-0 shadow-sm">
-              <div className="card-body">
-                <h2 className="h6 mb-2">Quick Links</h2>
-                <div className="d-grid gap-2">
-                  <button className="btn btn-outline-primary" onClick={() => router.push("/admin")}>
-                    <i className="fa-solid fa-arrow-left me-2"></i>Back to Dashboard
-                  </button>
-                  <button className="btn btn-outline-dark" onClick={openPreview}>
-                    <i className="fa-solid fa-eye me-2"></i>Preview #about
-                  </button>
                 </div>
               </div>
             </div>

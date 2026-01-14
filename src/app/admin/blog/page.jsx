@@ -35,6 +35,9 @@ export default function AdminBlogPage() {
   const [posts, setPosts] = useState([]);
   const [form, setForm] = useState(emptyForm);
 
+  // if user edits title after initial slug generation, keep slug synced unless explicitly locked
+  const [slugLocked, setSlugLocked] = useState(false);
+
   const coverUrl = useMemo(() => {
     if (!form.cover_image_path) return "";
     return supabase.storage.from("portfolio-media").getPublicUrl(form.cover_image_path).data.publicUrl;
@@ -92,11 +95,9 @@ export default function AdminBlogPage() {
     const filename = `blog_${crypto.randomUUID()}.${safeExt}`;
     const path = `blog/covers/${filename}`;
 
-    const { error: upErr } = await supabase.storage
-      .from("portfolio-media")
-      .upload(path, file, { upsert: false });
-
+    const { error: upErr } = await supabase.storage.from("portfolio-media").upload(path, file, { upsert: false });
     if (upErr) throw upErr;
+
     return path;
   };
 
@@ -109,7 +110,8 @@ export default function AdminBlogPage() {
       const title = form.title.trim();
       if (!title) throw new Error("Title is required.");
 
-      const slug = slugify(form.slug || title);
+      // auto slug from title (user never types slug)
+      const slug = slugify(title);
       if (!slug) throw new Error("Slug is required.");
 
       const payload = {
@@ -122,19 +124,14 @@ export default function AdminBlogPage() {
         published_at: form.is_published ? new Date().toISOString() : null,
       };
 
-      const { data, error: insErr } = await supabase
-        .from("blog_posts")
-        .insert([payload])
-        .select("*")
-        .single();
-
+      const { data, error: insErr } = await supabase.from("blog_posts").insert([payload]).select("*").single();
       if (insErr) throw insErr;
 
       setPosts((prev) => [data, ...prev]);
       setForm(emptyForm);
+      setSlugLocked(false);
       toast("Post created.");
     } catch (e) {
-      // slug unique will throw here too
       setError(e.message || "Create failed.");
     } finally {
       setBusy(false);
@@ -147,21 +144,10 @@ export default function AdminBlogPage() {
     setNotice("");
 
     try {
-      // handle publish timestamp
-      if (patch.is_published === true) {
-        patch.published_at = new Date().toISOString();
-      }
-      if (patch.is_published === false) {
-        patch.published_at = null;
-      }
+      if (patch.is_published === true) patch.published_at = new Date().toISOString();
+      if (patch.is_published === false) patch.published_at = null;
 
-      const { data, error: updErr } = await supabase
-        .from("blog_posts")
-        .update(patch)
-        .eq("id", id)
-        .select("*")
-        .single();
-
+      const { data, error: updErr } = await supabase.from("blog_posts").update(patch).eq("id", id).select("*").single();
       if (updErr) throw updErr;
 
       setPosts((prev) => prev.map((p) => (p.id === id ? data : p)));
@@ -252,25 +238,47 @@ export default function AdminBlogPage() {
                   value={form.title}
                   onChange={(e) => {
                     const title = e.target.value;
-                    setForm((p) => ({
-                      ...p,
-                      title,
-                      slug: p.slug ? p.slug : slugify(title),
-                    }));
+
+                    setForm((p) => {
+                      const next = { ...p, title };
+
+                      // auto-fill slug from title, and keep syncing unless user explicitly "locks"
+                      if (!slugLocked) next.slug = slugify(title);
+
+                      return next;
+                    });
                   }}
                   disabled={busy}
                 />
               </div>
 
               <div className="col-12 col-md-6">
-                <label className="form-label">Slug (unique)</label>
-                <input
-                  className="form-control"
-                  value={form.slug}
-                  onChange={(e) => setForm((p) => ({ ...p, slug: slugify(e.target.value) }))}
-                  disabled={busy}
-                />
-                <div className="form-text">Format: lowercase, numbers, hyphens only.</div>
+                <label className="form-label">Slug (auto)</label>
+                <input className="form-control" value={form.slug} disabled readOnly />
+                <div className="form-text">Auto-generated from Title (lowercase, numbers, hyphens).</div>
+
+                {/* optional: let admin unlock + regenerate if you want; remove this block if you want fully forced */}
+                <div className="d-flex gap-2 mt-2">
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline-secondary"
+                    disabled={busy}
+                    onClick={() => setSlugLocked((v) => !v)}
+                  >
+                    {slugLocked ? "Unlock slug sync" : "Lock slug"}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline-secondary"
+                    disabled={busy}
+                    onClick={() => {
+                      setSlugLocked(false);
+                      setForm((p) => ({ ...p, slug: slugify(p.title) }));
+                    }}
+                  >
+                    Regenerate
+                  </button>
+                </div>
               </div>
 
               <div className="col-12">
@@ -341,7 +349,9 @@ export default function AdminBlogPage() {
                     disabled={busy}
                     id="newBlogPub"
                   />
-                  <label className="form-check-label" htmlFor="newBlogPub">Publish now</label>
+                  <label className="form-check-label" htmlFor="newBlogPub">
+                    Publish now
+                  </label>
                 </div>
 
                 <button className="btn btn-primary" onClick={createPost} disabled={busy}>
@@ -368,11 +378,19 @@ export default function AdminBlogPage() {
                       <div>
                         <div className="fw-semibold">
                           {p.title}{" "}
-                          {p.is_published ? <span className="badge text-bg-success ms-2">Published</span> : <span className="badge text-bg-secondary ms-2">Draft</span>}
+                          {p.is_published ? (
+                            <span className="badge text-bg-success ms-2">Published</span>
+                          ) : (
+                            <span className="badge text-bg-secondary ms-2">Draft</span>
+                          )}
                         </div>
                         <div className="text-muted small">
-                          <span className="me-2"><code>{p.slug}</code></span>
-                          {p.published_at ? `• Published: ${new Date(p.published_at).toLocaleString()}` : `• Created: ${new Date(p.created_at).toLocaleString()}`}
+                          <span className="me-2">
+                            <code>{p.slug}</code>
+                          </span>
+                          {p.published_at
+                            ? `• Published: ${new Date(p.published_at).toLocaleString()}`
+                            : `• Created: ${new Date(p.created_at).toLocaleString()}`}
                         </div>
                       </div>
 
@@ -394,7 +412,10 @@ export default function AdminBlogPage() {
                           defaultValue={p.title}
                           onBlur={(e) => {
                             const v = e.target.value.trim();
-                            if (v && v !== p.title) updatePost(p.id, { title: v });
+                            if (!v || v === p.title) return;
+
+                            // also auto-update slug when title changes (no manual slug input)
+                            updatePost(p.id, { title: v, slug: slugify(v) });
                           }}
                           disabled={busy}
                         />
@@ -402,15 +423,8 @@ export default function AdminBlogPage() {
 
                       <div className="col-12 col-md-4">
                         <label className="form-label">Slug</label>
-                        <input
-                          className="form-control"
-                          defaultValue={p.slug}
-                          onBlur={(e) => {
-                            const v = slugify(e.target.value);
-                            if (v && v !== p.slug) updatePost(p.id, { slug: v });
-                          }}
-                          disabled={busy}
-                        />
+                        <input className="form-control" value={p.slug} disabled readOnly />
+                        <div className="form-text">Auto-generated from Title.</div>
                       </div>
 
                       <div className="col-12">
@@ -481,19 +495,18 @@ export default function AdminBlogPage() {
                             disabled={busy}
                             id={`pub_${p.id}`}
                           />
-                          <label className="form-check-label" htmlFor={`pub_${p.id}`}>Published</label>
+                          <label className="form-check-label" htmlFor={`pub_${p.id}`}>
+                            Published
+                          </label>
                         </div>
                       </div>
                     </div>
-
                   </div>
                 );
               })}
             </div>
-
           </div>
         </div>
-
       </div>
     </div>
   );

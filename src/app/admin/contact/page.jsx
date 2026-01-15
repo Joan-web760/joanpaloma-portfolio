@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 
@@ -15,23 +15,34 @@ const defaultSocials = {
 
 export default function AdminContactPage() {
   const router = useRouter();
+  const mountedRef = useRef(true);
 
   const [loading, setLoading] = useState(true);
+
+  // busy = only for async actions (save, reload inbox, send test, delete)
   const [busy, setBusy] = useState(false);
+
+  // staged edits
+  const [draft, setDraft] = useState(null);
+  const [dirty, setDirty] = useState(false);
 
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
   const [settings, setSettings] = useState(null);
-  const socials = useMemo(() => ({ ...defaultSocials, ...(settings?.socials || {}) }), [settings]);
-
   const [inbox, setInbox] = useState([]);
 
   // test form
   const [test, setTest] = useState({ name: "", email: "", subject: "", message: "" });
 
+  const draftSocials = useMemo(() => {
+    const base = settings?.socials || {};
+    const fromDraft = draft?.socials || {};
+    return { ...defaultSocials, ...base, ...fromDraft };
+  }, [settings?.socials, draft?.socials]);
+
   useEffect(() => {
-    let alive = true;
+    mountedRef.current = true;
 
     (async () => {
       setLoading(true);
@@ -54,7 +65,7 @@ export default function AdminContactPage() {
         .order("created_at", { ascending: false })
         .limit(25);
 
-      if (!alive) return;
+      if (!mountedRef.current) return;
 
       if (sErr) {
         setError(sErr.message || "Failed to load contact settings.");
@@ -63,22 +74,53 @@ export default function AdminContactPage() {
       }
 
       setSettings(s || null);
+      setDraft(s ? { ...s } : null); // init draft from DB
+      setDirty(false);
+
       setInbox(m || []);
       setLoading(false);
     })();
 
     return () => {
-      alive = false;
+      mountedRef.current = false;
     };
   }, [router]);
 
   const toast = (msg) => {
     setNotice(msg);
-    setTimeout(() => setNotice(""), 2000);
+    setTimeout(() => {
+      if (mountedRef.current) setNotice("");
+    }, 2000);
   };
 
-  const saveSettings = async (patch) => {
-    if (!settings?.id) return;
+  const markDirty = (nextDraft) => {
+    setDraft(nextDraft);
+    setDirty(true);
+  };
+
+  const normalizeSettingsPatch = (d) => {
+    if (!settings?.id || !d) return null;
+
+    // Only fields you actually edit here
+    return {
+      heading: (d.heading || "").trim() || null,
+      subheading: (d.subheading || "").trim() || null,
+      recipient_email: (d.recipient_email || "").trim() || null,
+      booking_url: (d.booking_url || "").trim() || null,
+      public_email: (d.public_email || "").trim() || null,
+      phone: (d.phone || "").trim() || null,
+      hours_text: (d.hours_text || "").trim() || null,
+      timezone: (d.timezone || "").trim() || null,
+      socials: d.socials || { ...defaultSocials },
+      is_published: !!d.is_published,
+    };
+  };
+
+  const saveAll = async () => {
+    if (!settings?.id || !draft) return;
+
+    const patch = normalizeSettingsPatch(draft);
+    if (!patch) return;
 
     setBusy(true);
     setError("");
@@ -95,6 +137,9 @@ export default function AdminContactPage() {
       if (updErr) throw updErr;
 
       setSettings(data);
+      setDraft({ ...data }); // re-sync draft to saved server state
+      setDirty(false);
+
       toast("Saved.");
     } catch (e) {
       setError(e.message || "Save failed.");
@@ -103,14 +148,33 @@ export default function AdminContactPage() {
     }
   };
 
-  const reloadInbox = async () => {
-    const { data } = await supabase
-      .from("contact_messages")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(25);
+  const discardChanges = () => {
+    if (!settings) return;
+    setDraft({ ...settings });
+    setDirty(false);
+    toast("Discarded changes.");
+  };
 
-    setInbox(data || []);
+  const reloadInbox = async () => {
+    setBusy(true);
+    setError("");
+    setNotice("");
+
+    try {
+      const { data, error: rErr } = await supabase
+        .from("contact_messages")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(25);
+
+      if (rErr) throw rErr;
+      setInbox(data || []);
+      toast("Inbox refreshed.");
+    } catch (e) {
+      setError(e.message || "Failed to refresh inbox.");
+    } finally {
+      setBusy(false);
+    }
   };
 
   const submitTest = async () => {
@@ -123,14 +187,16 @@ export default function AdminContactPage() {
       if (!test.email.trim()) throw new Error("Email is required.");
       if (!test.message.trim()) throw new Error("Message is required.");
 
-      const { error: insErr } = await supabase.from("contact_messages").insert([{
-        name: test.name.trim(),
-        email: test.email.trim(),
-        subject: test.subject.trim() || null,
-        message: test.message.trim(),
-        page_url: "/admin/contact (test)",
-        user_agent: navigator.userAgent,
-      }]);
+      const { error: insErr } = await supabase.from("contact_messages").insert([
+        {
+          name: test.name.trim(),
+          email: test.email.trim(),
+          subject: test.subject.trim() || null,
+          message: test.message.trim(),
+          page_url: "/admin/contact (test)",
+          user_agent: navigator.userAgent,
+        },
+      ]);
 
       if (insErr) throw insErr;
 
@@ -177,7 +243,7 @@ export default function AdminContactPage() {
     );
   }
 
-  if (!settings) {
+  if (!settings || !draft) {
     return (
       <div className="container py-5">
         <div className="alert alert-danger">No row found in section_contact_settings. Re-run the seed SQL.</div>
@@ -194,11 +260,30 @@ export default function AdminContactPage() {
             <div className="small text-muted">Edit contact settings and review incoming messages.</div>
           </div>
 
-          <div className="d-flex gap-2">
-            <button className="btn btn-outline-dark" onClick={openPreview}>
+          <div className="d-flex gap-2 flex-wrap">
+            {/* NEW: Save / Discard */}
+            <button className="btn btn-primary" onClick={saveAll} disabled={busy || !dirty}>
+              {busy ? (
+                <>
+                  <span className="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <i className="fa-solid fa-floppy-disk me-2"></i>
+                  Save Changes
+                </>
+              )}
+            </button>
+
+            <button className="btn btn-outline-secondary" onClick={discardChanges} disabled={busy || !dirty}>
+              <i className="fa-solid fa-rotate-left me-2"></i>Discard
+            </button>
+
+            <button className="btn btn-outline-dark" onClick={openPreview} disabled={busy}>
               <i className="fa-solid fa-eye me-2"></i>Preview
             </button>
-            <button className="btn btn-outline-primary" onClick={() => router.push("/admin")}>
+            <button className="btn btn-outline-primary" onClick={() => router.push("/admin")} disabled={busy}>
               <i className="fa-solid fa-arrow-left me-2"></i>Dashboard
             </button>
           </div>
@@ -218,6 +303,13 @@ export default function AdminContactPage() {
           </div>
         ) : null}
 
+        {dirty ? (
+          <div className="alert alert-warning py-2">
+            <i className="fa-solid fa-pen-to-square me-2"></i>
+            You have unsaved changes.
+          </div>
+        ) : null}
+
         <div className="row g-3">
           {/* Settings */}
           <div className="col-12 col-lg-6">
@@ -228,43 +320,84 @@ export default function AdminContactPage() {
                 <div className="row g-2">
                   <div className="col-12">
                     <label className="form-label">Heading</label>
-                    <input className="form-control" defaultValue={settings.heading || ""} onBlur={(e) => saveSettings({ heading: e.target.value.trim() || null })} disabled={busy} />
+                    <input
+                      className="form-control"
+                      value={draft.heading || ""}
+                      onChange={(e) => markDirty({ ...draft, heading: e.target.value })}
+                      disabled={busy}
+                    />
                   </div>
 
                   <div className="col-12">
                     <label className="form-label">Subheading</label>
-                    <textarea className="form-control" rows="2" defaultValue={settings.subheading || ""} onBlur={(e) => saveSettings({ subheading: e.target.value.trim() || null })} disabled={busy} />
+                    <textarea
+                      className="form-control"
+                      rows="2"
+                      value={draft.subheading || ""}
+                      onChange={(e) => markDirty({ ...draft, subheading: e.target.value })}
+                      disabled={busy}
+                    />
                   </div>
 
                   <div className="col-12 col-md-6">
                     <label className="form-label">Recipient Email (admin)</label>
-                    <input className="form-control" defaultValue={settings.recipient_email || ""} onBlur={(e) => saveSettings({ recipient_email: e.target.value.trim() || null })} disabled={busy} />
+                    <input
+                      className="form-control"
+                      value={draft.recipient_email || ""}
+                      onChange={(e) => markDirty({ ...draft, recipient_email: e.target.value })}
+                      disabled={busy}
+                    />
                     <div className="form-text">Display / reference only (no sending without API).</div>
                   </div>
 
                   <div className="col-12 col-md-6">
                     <label className="form-label">Booking URL (Calendly)</label>
-                    <input className="form-control" defaultValue={settings.booking_url || ""} onBlur={(e) => saveSettings({ booking_url: e.target.value.trim() || null })} disabled={busy} />
+                    <input
+                      className="form-control"
+                      value={draft.booking_url || ""}
+                      onChange={(e) => markDirty({ ...draft, booking_url: e.target.value })}
+                      disabled={busy}
+                    />
                   </div>
 
                   <div className="col-12 col-md-6">
                     <label className="form-label">Public Email</label>
-                    <input className="form-control" defaultValue={settings.public_email || ""} onBlur={(e) => saveSettings({ public_email: e.target.value.trim() || null })} disabled={busy} />
+                    <input
+                      className="form-control"
+                      value={draft.public_email || ""}
+                      onChange={(e) => markDirty({ ...draft, public_email: e.target.value })}
+                      disabled={busy}
+                    />
                   </div>
 
                   <div className="col-12 col-md-6">
                     <label className="form-label">Phone</label>
-                    <input className="form-control" defaultValue={settings.phone || ""} onBlur={(e) => saveSettings({ phone: e.target.value.trim() || null })} disabled={busy} />
+                    <input
+                      className="form-control"
+                      value={draft.phone || ""}
+                      onChange={(e) => markDirty({ ...draft, phone: e.target.value })}
+                      disabled={busy}
+                    />
                   </div>
 
                   <div className="col-12 col-md-6">
                     <label className="form-label">Hours</label>
-                    <input className="form-control" defaultValue={settings.hours_text || ""} onBlur={(e) => saveSettings({ hours_text: e.target.value.trim() || null })} disabled={busy} />
+                    <input
+                      className="form-control"
+                      value={draft.hours_text || ""}
+                      onChange={(e) => markDirty({ ...draft, hours_text: e.target.value })}
+                      disabled={busy}
+                    />
                   </div>
 
                   <div className="col-12 col-md-6">
                     <label className="form-label">Timezone</label>
-                    <input className="form-control" defaultValue={settings.timezone || ""} onBlur={(e) => saveSettings({ timezone: e.target.value.trim() || null })} disabled={busy} />
+                    <input
+                      className="form-control"
+                      value={draft.timezone || ""}
+                      onChange={(e) => markDirty({ ...draft, timezone: e.target.value })}
+                      disabled={busy}
+                    />
                   </div>
 
                   <div className="col-12">
@@ -275,10 +408,10 @@ export default function AdminContactPage() {
                           <label className="form-label text-capitalize">{key}</label>
                           <input
                             className="form-control"
-                            defaultValue={socials[key] || ""}
-                            onBlur={(e) => {
-                              const next = { ...socials, [key]: e.target.value.trim() || "" };
-                              saveSettings({ socials: next });
+                            value={draftSocials[key] || ""}
+                            onChange={(e) => {
+                              const nextSocials = { ...draftSocials, [key]: e.target.value };
+                              markDirty({ ...draft, socials: nextSocials });
                             }}
                             disabled={busy}
                           />
@@ -292,20 +425,30 @@ export default function AdminContactPage() {
                       <input
                         className="form-check-input"
                         type="checkbox"
-                        defaultChecked={!!settings.is_published}
-                        onChange={(e) => saveSettings({ is_published: e.target.checked })}
+                        checked={!!draft.is_published}
+                        onChange={(e) => markDirty({ ...draft, is_published: e.target.checked })}
                         disabled={busy}
                         id="contactPub"
                       />
-                      <label className="form-check-label" htmlFor="contactPub">Published</label>
+                      <label className="form-check-label" htmlFor="contactPub">
+                        Published
+                      </label>
                     </div>
 
                     <button className="btn btn-outline-secondary" onClick={reloadInbox} disabled={busy}>
-                      <i className="fa-solid fa-rotate me-2"></i>Refresh Inbox
+                      {busy ? (
+                        <>
+                          <span className="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+                          Refreshing...
+                        </>
+                      ) : (
+                        <>
+                          <i className="fa-solid fa-rotate me-2"></i>Refresh Inbox
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>
-
               </div>
             </div>
           </div>
@@ -319,27 +462,57 @@ export default function AdminContactPage() {
                 <div className="row g-2">
                   <div className="col-12 col-md-6">
                     <label className="form-label">Name *</label>
-                    <input className="form-control" value={test.name} onChange={(e) => setTest((p) => ({ ...p, name: e.target.value }))} disabled={busy} />
+                    <input
+                      className="form-control"
+                      value={test.name}
+                      onChange={(e) => setTest((p) => ({ ...p, name: e.target.value }))}
+                      disabled={busy}
+                    />
                   </div>
 
                   <div className="col-12 col-md-6">
                     <label className="form-label">Email *</label>
-                    <input className="form-control" value={test.email} onChange={(e) => setTest((p) => ({ ...p, email: e.target.value }))} disabled={busy} />
+                    <input
+                      className="form-control"
+                      value={test.email}
+                      onChange={(e) => setTest((p) => ({ ...p, email: e.target.value }))}
+                      disabled={busy}
+                    />
                   </div>
 
                   <div className="col-12">
                     <label className="form-label">Subject</label>
-                    <input className="form-control" value={test.subject} onChange={(e) => setTest((p) => ({ ...p, subject: e.target.value }))} disabled={busy} />
+                    <input
+                      className="form-control"
+                      value={test.subject}
+                      onChange={(e) => setTest((p) => ({ ...p, subject: e.target.value }))}
+                      disabled={busy}
+                    />
                   </div>
 
                   <div className="col-12">
                     <label className="form-label">Message *</label>
-                    <textarea className="form-control" rows="4" value={test.message} onChange={(e) => setTest((p) => ({ ...p, message: e.target.value }))} disabled={busy} />
+                    <textarea
+                      className="form-control"
+                      rows="4"
+                      value={test.message}
+                      onChange={(e) => setTest((p) => ({ ...p, message: e.target.value }))}
+                      disabled={busy}
+                    />
                   </div>
 
                   <div className="col-12 d-flex justify-content-end">
                     <button className="btn btn-primary" onClick={submitTest} disabled={busy}>
-                      <i className="fa-solid fa-paper-plane me-2"></i>Send Test
+                      {busy ? (
+                        <>
+                          <span className="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+                          Sending...
+                        </>
+                      ) : (
+                        <>
+                          <i className="fa-solid fa-paper-plane me-2"></i>Send Test
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>
@@ -357,9 +530,15 @@ export default function AdminContactPage() {
                     <div key={m.id} className="border rounded p-3 bg-white">
                       <div className="d-flex justify-content-between gap-2">
                         <div>
-                          <div className="fw-semibold">{m.name} <span className="text-muted small">({m.email})</span></div>
+                          <div className="fw-semibold">
+                            {m.name} <span className="text-muted small">({m.email})</span>
+                          </div>
                           <div className="text-muted small">{new Date(m.created_at).toLocaleString()}</div>
-                          {m.subject ? <div className="small mt-1"><span className="fw-semibold">Subject:</span> {m.subject}</div> : null}
+                          {m.subject ? (
+                            <div className="small mt-1">
+                              <span className="fw-semibold">Subject:</span> {m.subject}
+                            </div>
+                          ) : null}
                         </div>
 
                         <button className="btn btn-sm btn-outline-danger" onClick={() => deleteMessage(m.id)} disabled={busy}>
@@ -373,12 +552,10 @@ export default function AdminContactPage() {
                     </div>
                   ))}
                 </div>
-
               </div>
             </div>
           </div>
         </div>
-
       </div>
     </div>
   );

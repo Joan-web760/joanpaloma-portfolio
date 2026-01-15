@@ -1,7 +1,9 @@
+// src/components/sections/PricingSection.jsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase-browser";
+import SectionBackground from "@/components/SectionBackground";
 
 const asArr = (arr) =>
   (Array.isArray(arr) ? arr : [])
@@ -25,7 +27,7 @@ export default function PricingSection() {
     (async () => {
       setLoading(true);
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("package_items")
         .select("*")
         .eq("is_published", true)
@@ -33,6 +35,13 @@ export default function PricingSection() {
         .order("sort_order", { ascending: true });
 
       if (!alive) return;
+
+      if (error) {
+        console.error("PricingSection load error:", error);
+        setItems([]);
+        setLoading(false);
+        return;
+      }
 
       setItems(data || []);
       setLoading(false);
@@ -45,16 +54,16 @@ export default function PricingSection() {
 
   if (loading) {
     return (
-      <section id="pricing" className="py-5 bg-light">
+      <SectionBackground sectionKey="pricing" id="pricing" className="py-5">
         <div className="container text-muted">Loading...</div>
-      </section>
+      </SectionBackground>
     );
   }
 
   if (!sorted.length) return null;
 
   return (
-    <section id="pricing" className="py-5 bg-light">
+    <SectionBackground sectionKey="pricing" id="pricing" className="py-5">
       <div className="container">
         <div className="mb-3">
           <h2 className="h3 mb-1">Pricing</h2>
@@ -77,7 +86,7 @@ export default function PricingSection() {
 
                     {p.description ? <div className="text-muted small mt-2">{p.description}</div> : null}
 
-                    {(p.price || p.billing_type) ? (
+                    {p.price || p.billing_type ? (
                       <div className="mt-3">
                         <div className="h3 mb-0">{p.price || "—"}</div>
                         {p.billing_type ? <div className="text-muted small">{p.billing_type}</div> : null}
@@ -88,7 +97,9 @@ export default function PricingSection() {
                       <div className="mt-3">
                         <div className="fw-semibold mb-2">Inclusions</div>
                         <ul className="mb-0">
-                          {inclusions.map((x, idx) => <li key={idx}>{x}</li>)}
+                          {inclusions.map((x, idx) => (
+                            <li key={idx}>{x}</li>
+                          ))}
                         </ul>
                       </div>
                     ) : null}
@@ -97,7 +108,9 @@ export default function PricingSection() {
                       <div className="mt-3">
                         <div className="fw-semibold mb-2">Add-ons</div>
                         <ul className="mb-0">
-                          {addons.map((x, idx) => <li key={idx}>{x}</li>)}
+                          {addons.map((x, idx) => (
+                            <li key={idx}>{x}</li>
+                          ))}
                         </ul>
                       </div>
                     ) : null}
@@ -111,8 +124,7 @@ export default function PricingSection() {
             );
           })}
         </div>
-
       </div>
-    </section>
+    </SectionBackground>
   );
 }

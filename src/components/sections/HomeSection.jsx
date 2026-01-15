@@ -45,7 +45,6 @@ export default function HomeSection() {
   const [loading, setLoading] = useState(true);
   const [row, setRow] = useState(null);
 
-  const heroUrl = useMemo(() => getPublicUrl(MEDIA_BUCKET, row?.hero_image_path), [row?.hero_image_path]);
   const profileUrl = useMemo(() => getPublicUrl(MEDIA_BUCKET, row?.profile_image_path), [row?.profile_image_path]);
 
   const introVideoFileUrl = useMemo(
@@ -86,12 +85,13 @@ export default function HomeSection() {
     };
   }, []);
 
+  // IMPORTANT:
+  // - We no longer apply `heroStyle` background on the inner <section>
+  // - SectionBackground is the actual section wrapper (it receives id + padding)
   if (loading) {
     return (
-      <SectionBackground sectionKey="home">
-        <section id="home" className="py-5">
-          <div className="container text-muted">Loading...</div>
-        </section>
+      <SectionBackground sectionKey="home" id="home" className="py-5">
+        <div className="container text-muted">Loading...</div>
       </SectionBackground>
     );
   }
@@ -100,81 +100,75 @@ export default function HomeSection() {
 
   const badges = Array.isArray(row.badges) ? row.badges : [];
 
-  const heroStyle = heroUrl
-    ? { backgroundImage: `url(${heroUrl})`, backgroundSize: "cover", backgroundPosition: "center" }
-    : undefined;
-
   const hasFileVideo = !!introVideoFileUrl;
   const hasEmbedVideo = !!introVideoEmbedUrl;
 
   return (
-    <SectionBackground sectionKey="home" className="py-0">
-      <section id="home" className="py-5" style={heroStyle}>
-        <div className="container">
-          <div className="row align-items-center g-4">
-            <div className="col-12 col-lg-7">
-              <div className="p-4 rounded bg-white bg-opacity-75 border">
-                <h1 className="display-6 fw-bold mb-2">{row.headline}</h1>
-                <p className="lead mb-3">{row.subheadline}</p>
+    <SectionBackground sectionKey="home" id="home" className="py-5">
+      <div className="container">
+        <div className="row align-items-center g-4">
+          <div className="col-12 col-lg-7">
+            <div className="p-4 rounded bg-white bg-opacity-75 border">
+              <h1 className="display-6 fw-bold mb-2">{row.headline}</h1>
+              <p className="lead mb-3">{row.subheadline}</p>
 
-                {badges.length ? (
-                  <div className="d-flex flex-wrap gap-2 mb-3">
-                    {badges.map((b, idx) => (
-                      <span key={idx} className="badge text-bg-dark">
-                        {b}
-                      </span>
-                    ))}
-                  </div>
-                ) : null}
-
-                <div className="d-flex flex-wrap gap-2">
-                  <a className="btn btn-primary" href={row.primary_cta_url || "#contact"}>
-                    {row.primary_cta_label || "Primary CTA"}
-                  </a>
-                  <a className="btn btn-outline-dark" href={row.secondary_cta_url || "#portfolio"}>
-                    {row.secondary_cta_label || "Secondary CTA"}
-                  </a>
+              {badges.length ? (
+                <div className="d-flex flex-wrap gap-2 mb-3">
+                  {badges.map((b, idx) => (
+                    <span key={idx} className="badge text-bg-dark">
+                      {b}
+                    </span>
+                  ))}
                 </div>
+              ) : null}
+
+              <div className="d-flex flex-wrap gap-2">
+                <a className="btn btn-primary" href={row.primary_cta_url || "#contact"}>
+                  {row.primary_cta_label || "Primary CTA"}
+                </a>
+                <a className="btn btn-outline-dark" href={row.secondary_cta_url || "#portfolio"}>
+                  {row.secondary_cta_label || "Secondary CTA"}
+                </a>
               </div>
             </div>
+          </div>
 
-            <div className="col-12 col-lg-5">
-              <div className="card border-0 shadow-sm">
-                <div className="card-body">
-                  {profileUrl ? <img src={profileUrl} alt="Profile" className="img-fluid rounded mb-3" /> : null}
+          <div className="col-12 col-lg-5">
+            <div className="card border-0 shadow-sm">
+              <div className="card-body">
+                {profileUrl ? <img src={profileUrl} alt="Profile" className="img-fluid rounded mb-3" /> : null}
 
-                  {hasFileVideo ? (
+                {hasFileVideo ? (
+                  <div className="ratio ratio-16x9">
+                    <video
+                      src={introVideoFileUrl}
+                      className="w-100 h-100 rounded"
+                      controls
+                      playsInline
+                      preload="metadata"
+                    />
+                  </div>
+                ) : hasEmbedVideo ? (
+                  isEmbedUrl(introVideoEmbedUrl) ? (
                     <div className="ratio ratio-16x9">
-                      <video
-                        src={introVideoFileUrl}
-                        className="w-100 h-100 rounded"
-                        controls
-                        playsInline
-                        preload="metadata"
+                      <iframe
+                        src={introVideoEmbedUrl}
+                        title="Intro Video"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
                       />
                     </div>
-                  ) : hasEmbedVideo ? (
-                    isEmbedUrl(introVideoEmbedUrl) ? (
-                      <div className="ratio ratio-16x9">
-                        <iframe
-                          src={introVideoEmbedUrl}
-                          title="Intro Video"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                        />
-                      </div>
-                    ) : (
-                      <div className="text-muted small">Intro video URL doesn’t look like an embed URL.</div>
-                    )
                   ) : (
-                    <div className="text-muted small">No intro video configured.</div>
-                  )}
-                </div>
+                    <div className="text-muted small">Intro video URL doesn’t look like an embed URL.</div>
+                  )
+                ) : (
+                  <div className="text-muted small">No intro video configured.</div>
+                )}
               </div>
             </div>
           </div>
         </div>
-      </section>
+      </div>
     </SectionBackground>
   );
 }

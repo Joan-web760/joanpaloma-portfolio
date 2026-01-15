@@ -1,7 +1,9 @@
+// src/components/sections/TestimonialsSection.jsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase-browser";
+import SectionBackground from "@/components/SectionBackground";
 
 function Stars({ rating }) {
   const n = Math.max(1, Math.min(5, Number(rating || 5)));
@@ -38,7 +40,7 @@ export default function TestimonialsSection() {
     (async () => {
       setLoading(true);
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("testimonial_items")
         .select("*")
         .eq("is_published", true)
@@ -46,6 +48,13 @@ export default function TestimonialsSection() {
         .order("sort_order", { ascending: true });
 
       if (!alive) return;
+
+      if (error) {
+        console.error("TestimonialsSection load error:", error);
+        setItems([]);
+        setLoading(false);
+        return;
+      }
 
       setItems(data || []);
       setLoading(false);
@@ -58,16 +67,16 @@ export default function TestimonialsSection() {
 
   if (loading) {
     return (
-      <section id="testimonials" className="py-5">
+      <SectionBackground sectionKey="testimonials" id="testimonials" className="py-5">
         <div className="container text-muted">Loading...</div>
-      </section>
+      </SectionBackground>
     );
   }
 
   if (!sorted.length) return null;
 
   return (
-    <section id="testimonials" className="py-5">
+    <SectionBackground sectionKey="testimonials" id="testimonials" className="py-5">
       <div className="container">
         <div className="mb-3">
           <h2 className="h3 mb-1">Testimonials</h2>
@@ -84,9 +93,16 @@ export default function TestimonialsSection() {
                 <div className="card border-0 shadow-sm h-100">
                   <div className="card-body d-flex flex-column">
                     <div className="d-flex gap-3 align-items-center mb-2">
-                      <div className="rounded-circle border bg-light overflow-hidden d-flex align-items-center justify-content-center" style={{ width: 56, height: 56 }}>
+                      <div
+                        className="rounded-circle border bg-light overflow-hidden d-flex align-items-center justify-content-center"
+                        style={{ width: 56, height: 56 }}
+                      >
                         {img ? (
-                          <img src={img} alt={t.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          <img
+                            src={img}
+                            alt={t.name}
+                            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                          />
                         ) : (
                           <i className="fa-solid fa-user text-muted"></i>
                         )}
@@ -112,8 +128,7 @@ export default function TestimonialsSection() {
             );
           })}
         </div>
-
       </div>
-    </section>
+    </SectionBackground>
   );
 }

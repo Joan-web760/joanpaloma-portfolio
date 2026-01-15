@@ -4,20 +4,18 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase-browser";
 
 const cache = new Map(); // section_key -> row
+const BUCKET = "portfolio-backgrounds";
 
-export default function SectionBackground({ sectionKey, children, className = "" }) {
+export default function SectionBackground({ sectionKey, children, className = "", style: styleProp, ...rest }) {
   const [row, setRow] = useState(cache.get(sectionKey) || null);
 
-  const style = useMemo(() => {
+  const bgStyle = useMemo(() => {
     if (!row?.is_enabled || !row?.bg_image_path) return null;
 
-    const url = supabase.storage
-      .from("portfolio-backgrounds")
-      .getPublicUrl(row.bg_image_path).data.publicUrl;
+    const url = supabase.storage.from(BUCKET).getPublicUrl(row.bg_image_path).data.publicUrl;
 
     return {
-      position: "relative",
-      backgroundImage: `url(${url})`,
+      backgroundImage: `url("${url}")`,
       backgroundPosition: row.position || "center center",
       backgroundSize: row.size || "cover",
       backgroundRepeat: row.repeat || "no-repeat",
@@ -29,30 +27,38 @@ export default function SectionBackground({ sectionKey, children, className = ""
     let alive = true;
 
     (async () => {
-      if (cache.has(sectionKey)) return;
+      // IMPORTANT: don't early-return if cached value is null (so enabling later works after refresh)
+      if (cache.has(sectionKey) && cache.get(sectionKey)) return;
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("section_backgrounds")
         .select("*")
         .eq("section_key", sectionKey)
-        .eq("is_enabled", true)
-        .limit(1)
         .maybeSingle();
 
       if (!alive) return;
+
+      if (error) console.error("SectionBackground load error:", error);
 
       cache.set(sectionKey, data || null);
       setRow(data || null);
     })();
 
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, [sectionKey]);
 
-  const overlayOpacity = row?.is_enabled ? Number(row?.overlay_opacity ?? 0.55) : 0;
+  const enabled = !!(bgStyle && row?.is_enabled);
+  const overlayOpacity = enabled ? Number(row?.overlay_opacity ?? 0.55) : 0;
 
   return (
-    <div style={style || undefined} className={className}>
-      {style ? (
+    <section
+      {...rest}
+      className={`position-relative ${className}`}
+      style={{ ...(bgStyle || {}), ...(styleProp || {}) }}
+    >
+      {enabled ? (
         <div
           style={{
             position: "absolute",
@@ -63,9 +69,7 @@ export default function SectionBackground({ sectionKey, children, className = ""
         />
       ) : null}
 
-      <div style={{ position: "relative" }}>
-        {children}
-      </div>
-    </div>
+      <div style={{ position: "relative" }}>{children}</div>
+    </section>
   );
 }

@@ -1,7 +1,9 @@
+// src/components/sections/SkillsSection.jsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase-browser";
+import SectionBackground from "@/components/SectionBackground";
 
 const TYPE_LABELS = {
   frontend: "Frontend",
@@ -19,8 +21,9 @@ export default function SkillsSection() {
   const grouped = useMemo(() => {
     const map = {};
     for (const s of skills) {
-      if (!map[s.type]) map[s.type] = [];
-      map[s.type].push(s);
+      const type = s.type || "general";
+      if (!map[type]) map[type] = [];
+      map[type].push(s);
     }
     for (const k of Object.keys(map)) {
       map[k].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
@@ -34,7 +37,7 @@ export default function SkillsSection() {
     (async () => {
       setLoading(true);
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("skill_items")
         .select("*")
         .eq("is_published", true)
@@ -42,6 +45,13 @@ export default function SkillsSection() {
         .order("sort_order", { ascending: true });
 
       if (!alive) return;
+
+      if (error) {
+        console.error("SkillsSection load error:", error);
+        setSkills([]);
+        setLoading(false);
+        return;
+      }
 
       setSkills(data || []);
       setLoading(false);
@@ -54,16 +64,16 @@ export default function SkillsSection() {
 
   if (loading) {
     return (
-      <section id="skills" className="py-5">
+      <SectionBackground sectionKey="skills" id="skills" className="py-5">
         <div className="container text-muted">Loading...</div>
-      </section>
+      </SectionBackground>
     );
   }
 
   if (!skills.length) return null;
 
   return (
-    <section id="skills" className="py-5">
+    <SectionBackground sectionKey="skills" id="skills" className="py-5">
       <div className="container">
         <div className="mb-3">
           <h2 className="h3 mb-1">Skills</h2>
@@ -88,13 +98,19 @@ export default function SkillsSection() {
                             <div className="fw-semibold">{s.name}</div>
                             <div className="small text-muted">{s.level}%</div>
                           </div>
-                          <div className="progress" role="progressbar" aria-valuenow={s.level} aria-valuemin="0" aria-valuemax="100">
+
+                          <div
+                            className="progress"
+                            role="progressbar"
+                            aria-valuenow={s.level}
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                          >
                             <div className="progress-bar" style={{ width: `${s.level}%` }}></div>
                           </div>
                         </div>
                       ))}
                     </div>
-
                   </div>
                 </div>
               </div>
@@ -102,6 +118,6 @@ export default function SkillsSection() {
           })}
         </div>
       </div>
-    </section>
+    </SectionBackground>
   );
 }

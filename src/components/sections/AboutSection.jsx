@@ -1,7 +1,9 @@
+// src/components/sections/AboutSection.jsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase-browser";
+import SectionBackground from "@/components/SectionBackground";
 
 const MEDIA_BUCKET = "portfolio-media";
 
@@ -45,13 +47,11 @@ export default function AboutSection() {
 
   const aboutImageUrl = useMemo(() => getPublicUrl(row?.about_image_path), [row?.about_image_path]);
 
-  // NEW: uploaded video file path -> public url
   const extendedVideoFileUrl = useMemo(
     () => getPublicUrl(row?.extended_video_path),
     [row?.extended_video_path]
   );
 
-  // existing: embed url (youtube/vimeo)
   const extendedVideoEmbedUrl = useMemo(
     () => toYoutubeEmbed(row?.extended_video_url || ""),
     [row?.extended_video_url]
@@ -73,6 +73,7 @@ export default function AboutSection() {
       if (!alive) return;
 
       if (error) {
+        console.error("AboutSection load error:", error);
         setRow(null);
         setLoading(false);
         return;
@@ -89,25 +90,22 @@ export default function AboutSection() {
 
   if (loading) {
     return (
-      <section id="about" className="py-5">
+      <SectionBackground sectionKey="about" id="about" className="py-5">
         <div className="container text-muted">Loading...</div>
-      </section>
+      </SectionBackground>
     );
   }
 
   if (!row) return null;
 
   const valuesArr = Array.isArray(row.values_json) ? row.values_json : [];
-  const values = valuesArr
-    .map((v) => (typeof v === "string" ? v : v?.text))
-    .filter(Boolean);
+  const values = valuesArr.map((v) => (typeof v === "string" ? v : v?.text)).filter(Boolean);
 
-  // priority: uploaded video first, then embed url
   const hasFileVideo = !!extendedVideoFileUrl;
   const hasEmbedVideo = !!extendedVideoEmbedUrl && isEmbedUrl(extendedVideoEmbedUrl);
 
   return (
-    <section id="about" className="py-5">
+    <SectionBackground sectionKey="about" id="about" className="py-5">
       <div className="container">
         <div className="row g-4 align-items-start">
           <div className="col-12 col-lg-5">
@@ -147,7 +145,7 @@ export default function AboutSection() {
               </div>
             ) : null}
 
-            {(hasFileVideo || hasEmbedVideo) ? (
+            {hasFileVideo || hasEmbedVideo ? (
               <div className="mt-4">
                 <h3 className="h6 text-muted mb-2">More about me</h3>
 
@@ -176,6 +174,6 @@ export default function AboutSection() {
           </div>
         </div>
       </div>
-    </section>
+    </SectionBackground>
   );
 }

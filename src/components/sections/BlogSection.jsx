@@ -1,7 +1,9 @@
+// src/components/sections/BlogSection.jsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase-browser";
+import SectionBackground from "@/components/SectionBackground";
 
 export default function BlogSection() {
   const [loading, setLoading] = useState(true);
@@ -26,13 +28,20 @@ export default function BlogSection() {
     (async () => {
       setLoading(true);
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("blog_posts")
         .select("id,title,slug,excerpt,cover_image_path,published_at")
         .eq("is_published", true)
         .order("published_at", { ascending: false });
 
       if (!alive) return;
+
+      if (error) {
+        console.error("BlogSection load error:", error);
+        setPosts([]);
+        setLoading(false);
+        return;
+      }
 
       setPosts(data || []);
       setLoading(false);
@@ -45,16 +54,16 @@ export default function BlogSection() {
 
   if (loading) {
     return (
-      <section id="blog" className="py-5 bg-light">
+      <SectionBackground sectionKey="blog" id="blog" className="py-5">
         <div className="container text-muted">Loading...</div>
-      </section>
+      </SectionBackground>
     );
   }
 
   if (!sorted.length) return null;
 
   return (
-    <section id="blog" className="py-5 bg-light">
+    <SectionBackground sectionKey="blog" id="blog" className="py-5">
       <div className="container">
         <div className="mb-3">
           <h2 className="h3 mb-1">Blog</h2>
@@ -70,9 +79,17 @@ export default function BlogSection() {
               <div className="col-12 col-md-6 col-lg-4" key={p.id}>
                 <div className="card border-0 shadow-sm h-100">
                   {img ? (
-                    <img src={img} alt={p.title} className="card-img-top" style={{ height: 180, objectFit: "cover" }} />
+                    <img
+                      src={img}
+                      alt={p.title}
+                      className="card-img-top"
+                      style={{ height: 180, objectFit: "cover" }}
+                    />
                   ) : (
-                    <div className="bg-white border-bottom d-flex align-items-center justify-content-center" style={{ height: 180 }}>
+                    <div
+                      className="bg-white border-bottom d-flex align-items-center justify-content-center"
+                      style={{ height: 180 }}
+                    >
                       <span className="text-muted small">No cover</span>
                     </div>
                   )}
@@ -91,8 +108,7 @@ export default function BlogSection() {
             );
           })}
         </div>
-
       </div>
-    </section>
+    </SectionBackground>
   );
 }

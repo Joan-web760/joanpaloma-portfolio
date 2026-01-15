@@ -1,7 +1,9 @@
+// src/components/sections/ExperienceSection.jsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase-browser";
+import SectionBackground from "@/components/SectionBackground";
 
 const asTextArr = (arr) =>
   (Array.isArray(arr) ? arr : [])
@@ -38,7 +40,7 @@ export default function ExperienceSection() {
     (async () => {
       setLoading(true);
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("experience_items")
         .select("*")
         .eq("is_published", true)
@@ -46,6 +48,13 @@ export default function ExperienceSection() {
         .order("start_date", { ascending: false });
 
       if (!alive) return;
+
+      if (error) {
+        console.error("ExperienceSection load error:", error);
+        setItems([]);
+        setLoading(false);
+        return;
+      }
 
       setItems(data || []);
       setLoading(false);
@@ -58,16 +67,16 @@ export default function ExperienceSection() {
 
   if (loading) {
     return (
-      <section id="experience" className="py-5 bg-light">
+      <SectionBackground sectionKey="experience" id="experience" className="py-5">
         <div className="container text-muted">Loading...</div>
-      </section>
+      </SectionBackground>
     );
   }
 
   if (!sorted.length) return null;
 
   return (
-    <section id="experience" className="py-5 bg-light">
+    <SectionBackground sectionKey="experience" id="experience" className="py-5">
       <div className="container">
         <div className="mb-3">
           <h2 className="h3 mb-1">Work Experience</h2>
@@ -87,9 +96,7 @@ export default function ExperienceSection() {
                   <div className="d-flex flex-wrap gap-2 align-items-start justify-content-between">
                     <div>
                       <div className="h5 mb-1">{it.role_title}</div>
-                      <div className="text-muted">
-                        {[it.company, it.client].filter(Boolean).join(" • ")}
-                      </div>
+                      <div className="text-muted">{[it.company, it.client].filter(Boolean).join(" • ")}</div>
                     </div>
 
                     <div className="text-muted small text-end">
@@ -126,13 +133,17 @@ export default function ExperienceSection() {
                     ) : null}
                   </div>
 
-                  {(tools.length || tags.length) ? (
+                  {tools.length || tags.length ? (
                     <div className="mt-3 d-flex flex-wrap gap-2">
                       {tools.map((t, idx) => (
-                        <span key={`tool_${idx}`} className="badge text-bg-dark">{t}</span>
+                        <span key={`tool_${idx}`} className="badge text-bg-dark">
+                          {t}
+                        </span>
                       ))}
                       {tags.map((t, idx) => (
-                        <span key={`tag_${idx}`} className="badge text-bg-secondary">{t}</span>
+                        <span key={`tag_${idx}`} className="badge text-bg-secondary">
+                          {t}
+                        </span>
                       ))}
                     </div>
                   ) : null}
@@ -142,6 +153,6 @@ export default function ExperienceSection() {
           })}
         </div>
       </div>
-    </section>
+    </SectionBackground>
   );
 }

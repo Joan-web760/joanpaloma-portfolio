@@ -1,22 +1,28 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase-browser";
 
-const navLinks = [
+const primaryLinks = [
   { label: "Home", href: "#home" },
   { label: "About", href: "#about" },
   { label: "Services", href: "#services" },
+  { label: "Portfolio", href: "#portfolio" },
+  { label: "Contact", href: "#contact" },
+];
+
+// put the rest here
+const dropdownLinks = [
   { label: "Skills", href: "#skills" },
   { label: "Experience", href: "#experience" },
-  { label: "Portfolio", href: "#portfolio" },
   { label: "Certifications", href: "#certifications" },
   { label: "Resume", href: "#resume" },
   { label: "Blog", href: "#blog" },
   { label: "Testimonials", href: "#testimonials" },
   { label: "Pricing", href: "#pricing" },
-  { label: "Contact", href: "#contact" },
 ];
+
+const allLinks = [...primaryLinks, ...dropdownLinks];
 
 export default function Navbar() {
   const [active, setActive] = useState("#home");
@@ -25,17 +31,20 @@ export default function Navbar() {
   // Brand (from DB)
   const [brand, setBrand] = useState("MyPortfolio");
 
+  const isDropdownActive = useMemo(
+    () => dropdownLinks.some((l) => l.href === active),
+    [active]
+  );
+
   // Load brand from site_settings (public-safe)
   useEffect(() => {
     let alive = true;
 
     (async () => {
       try {
-        // 1) fast paint from localStorage (optional)
         const cached = typeof window !== "undefined" ? localStorage.getItem("site_title") : null;
         if (cached && alive) setBrand(cached);
 
-        // 2) fetch latest
         const { data, error } = await supabase
           .from("site_settings")
           .select("site_title")
@@ -43,9 +52,10 @@ export default function Navbar() {
           .maybeSingle();
 
         if (error) return;
-        const title = data?.site_title?.trim() || "MyPortfolio";
 
+        const title = data?.site_title?.trim() || "MyPortfolio";
         if (!alive) return;
+
         setBrand(title);
 
         try {
@@ -70,7 +80,7 @@ export default function Navbar() {
 
       let current = "#home";
 
-      for (const link of navLinks) {
+      for (const link of allLinks) {
         const id = link.href.slice(1);
         const el = document.getElementById(id);
         if (!el) continue;
@@ -98,6 +108,17 @@ export default function Navbar() {
     instance.hide();
   };
 
+  const closeDropdown = () => {
+    const toggle = document.getElementById("moreDropdown");
+    if (!toggle) return;
+
+    const bs = window.bootstrap;
+    if (!bs?.Dropdown) return;
+
+    const instance = bs.Dropdown.getOrCreateInstance(toggle);
+    instance.hide();
+  };
+
   const handleLinkClick = (e, href) => {
     e.preventDefault();
 
@@ -115,6 +136,9 @@ export default function Navbar() {
     }
 
     setActive(href);
+
+    // close UI
+    closeDropdown();
     closeMobileMenu();
   };
 
@@ -148,7 +172,8 @@ export default function Navbar() {
 
         <div className="collapse navbar-collapse" id="mainNavbar">
           <ul className="navbar-nav ms-auto align-items-lg-center">
-            {navLinks.map((link) => (
+            {/* Primary links */}
+            {primaryLinks.map((link) => (
               <li className="nav-item" key={link.href}>
                 <a
                   className={`nav-link ${active === link.href ? "active" : ""}`}
@@ -161,6 +186,36 @@ export default function Navbar() {
               </li>
             ))}
 
+            {/* Dropdown */}
+            <li className="nav-item dropdown">
+              <a
+                id="moreDropdown"
+                className={`nav-link dropdown-toggle ${isDropdownActive ? "active" : ""}`}
+                href="#"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                onClick={(e) => e.preventDefault()} // prevent jump to top
+              >
+                More
+              </a>
+
+              <ul className="dropdown-menu dropdown-menu-end">
+                {dropdownLinks.map((link) => (
+                  <li key={link.href}>
+                    <a
+                      className={`dropdown-item ${active === link.href ? "active" : ""}`}
+                      href={link.href}
+                      onClick={(e) => handleLinkClick(e, link.href)}
+                    >
+                      {link.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </li>
+
+            {/* CTA */}
             <li className="nav-item ms-lg-2 mt-2 mt-lg-0">
               <a
                 className="btn btn-primary btn-sm"

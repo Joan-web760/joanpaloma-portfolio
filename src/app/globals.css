@@ -1,14 +1,12 @@
-@import "tailwindcss";
-
 html,
 body {
   height: auto;
   min-height: 100%;
-  overflow-x: hidden; /* common layout safety */
+  overflow-x: hidden;
 }
 
 body {
-  overflow-y: auto; /* ensure scroll isn't trapped */
+  overflow-y: auto;
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;

@@ -1,3 +1,5 @@
+import Navbar from "@/components/Navbar";
+
 import HomeSection from "@/components/sections/HomeSection";
 import AboutSection from "@/components/sections/AboutSection";
 import ServicesSection from "@/components/sections/ServicesSection";
@@ -14,18 +16,21 @@ import ContactSection from "@/components/sections/ContactSection";
 export default function Page() {
   return (
     <>
-      <HomeSection />
-      <AboutSection />
-      <ServicesSection />
-      <SkillsSection />
-      <ExperienceSection />
-      <PortfolioSection />
-      <CertificationsSection />
-      <ResumeSection />
-      <BlogSection />
-      <TestimonialsSection />
-      <PricingSection />
-      <ContactSection />
+      <Navbar />
+      <main>
+        <HomeSection />
+        <AboutSection />
+        <ServicesSection />
+        <SkillsSection />
+        <ExperienceSection />
+        <PortfolioSection />
+        <CertificationsSection />
+        <ResumeSection />
+        <BlogSection />
+        <TestimonialsSection />
+        <PricingSection />
+        <ContactSection />
+      </main>
     </>
   );
 }

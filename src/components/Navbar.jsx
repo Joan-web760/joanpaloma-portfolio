@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase-browser";
 
 const navLinks = [
   { label: "Home", href: "#home" },
@@ -21,6 +22,44 @@ export default function Navbar() {
   const [active, setActive] = useState("#home");
   const [scrolled, setScrolled] = useState(false);
 
+  // Brand (from DB)
+  const [brand, setBrand] = useState("MyPortfolio");
+
+  // Load brand from site_settings (public-safe)
+  useEffect(() => {
+    let alive = true;
+
+    (async () => {
+      try {
+        // 1) fast paint from localStorage (optional)
+        const cached = typeof window !== "undefined" ? localStorage.getItem("site_title") : null;
+        if (cached && alive) setBrand(cached);
+
+        // 2) fetch latest
+        const { data, error } = await supabase
+          .from("site_settings")
+          .select("site_title")
+          .limit(1)
+          .maybeSingle();
+
+        if (error) return;
+        const title = data?.site_title?.trim() || "MyPortfolio";
+
+        if (!alive) return;
+        setBrand(title);
+
+        try {
+          localStorage.setItem("site_title", title);
+        } catch (_) {}
+      } catch (_) {}
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  // Shadow + active section tracking
   useEffect(() => {
     const onScroll = () => {
       setScrolled(window.scrollY > 8);
@@ -52,7 +91,6 @@ export default function Navbar() {
     const menu = document.getElementById("mainNavbar");
     if (!menu) return;
 
-    // Bootstrap bundle exposes window.bootstrap
     const bs = window.bootstrap;
     if (!bs?.Collapse) return;
 
@@ -93,7 +131,7 @@ export default function Navbar() {
           href="#home"
           onClick={(e) => handleLinkClick(e, "#home")}
         >
-          MyPortfolio
+          {brand}
         </a>
 
         <button

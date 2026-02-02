@@ -7,6 +7,9 @@ import SectionBackground from "@/components/SectionBackground";
 
 const MEDIA_BUCKET = "portfolio-media";
 
+// Adjust this once to match your navbar height
+const NAVBAR_SPACER_CLASS = "pt-5 pt-lg-5"; // Bootstrap spacing
+
 function getPublicUrl(bucket, path) {
   if (!path) return "";
   const { data } = supabase.storage.from(bucket).getPublicUrl(path);
@@ -18,13 +21,11 @@ function toYoutubeEmbed(url) {
   try {
     const u = new URL(url);
 
-    // youtu.be/<id>
     if (u.hostname.includes("youtu.be")) {
       const id = u.pathname.replace("/", "");
       return id ? `https://www.youtube.com/embed/${id}` : url;
     }
 
-    // youtube.com/watch?v=<id>
     if (u.hostname.includes("youtube.com") && u.pathname === "/watch") {
       const id = u.searchParams.get("v");
       return id ? `https://www.youtube.com/embed/${id}` : url;
@@ -45,14 +46,20 @@ export default function HomeSection() {
   const [loading, setLoading] = useState(true);
   const [row, setRow] = useState(null);
 
-  const profileUrl = useMemo(() => getPublicUrl(MEDIA_BUCKET, row?.profile_image_path), [row?.profile_image_path]);
+  const profileUrl = useMemo(
+    () => getPublicUrl(MEDIA_BUCKET, row?.profile_image_path),
+    [row?.profile_image_path]
+  );
 
   const introVideoFileUrl = useMemo(
     () => getPublicUrl(MEDIA_BUCKET, row?.intro_video_path),
     [row?.intro_video_path]
   );
 
-  const introVideoEmbedUrl = useMemo(() => toYoutubeEmbed(row?.intro_video_url || ""), [row?.intro_video_url]);
+  const introVideoEmbedUrl = useMemo(
+    () => toYoutubeEmbed(row?.intro_video_url || ""),
+    [row?.intro_video_url]
+  );
 
   useEffect(() => {
     let alive = true;
@@ -85,12 +92,13 @@ export default function HomeSection() {
     };
   }, []);
 
-  // IMPORTANT:
-  // - We no longer apply `heroStyle` background on the inner <section>
-  // - SectionBackground is the actual section wrapper (it receives id + padding)
   if (loading) {
     return (
-      <SectionBackground sectionKey="home" id="home" className="py-5">
+      <SectionBackground
+        sectionKey="home"
+        id="home"
+        className={`py-5 ${NAVBAR_SPACER_CLASS}`}
+      >
         <div className="container text-muted">Loading...</div>
       </SectionBackground>
     );
@@ -99,12 +107,15 @@ export default function HomeSection() {
   if (!row) return null;
 
   const badges = Array.isArray(row.badges) ? row.badges : [];
-
   const hasFileVideo = !!introVideoFileUrl;
   const hasEmbedVideo = !!introVideoEmbedUrl;
 
   return (
-    <SectionBackground sectionKey="home" id="home" className="py-5">
+    <SectionBackground
+      sectionKey="home"
+      id="home"
+      className={`py-5 ${NAVBAR_SPACER_CLASS}`}
+    >
       <div className="container">
         <div className="row align-items-center g-4">
           <div className="col-12 col-lg-7">
@@ -136,7 +147,13 @@ export default function HomeSection() {
           <div className="col-12 col-lg-5">
             <div className="card border-0 shadow-sm">
               <div className="card-body">
-                {profileUrl ? <img src={profileUrl} alt="Profile" className="img-fluid rounded mb-3" /> : null}
+                {profileUrl ? (
+                  <img
+                    src={profileUrl}
+                    alt="Profile"
+                    className="img-fluid rounded mb-3"
+                  />
+                ) : null}
 
                 {hasFileVideo ? (
                   <div className="ratio ratio-16x9">
@@ -159,10 +176,14 @@ export default function HomeSection() {
                       />
                     </div>
                   ) : (
-                    <div className="text-muted small">Intro video URL doesn’t look like an embed URL.</div>
+                    <div className="text-muted small">
+                      Intro video URL doesn’t look like an embed URL.
+                    </div>
                   )
                 ) : (
-                  <div className="text-muted small">No intro video configured.</div>
+                  <div className="text-muted small">
+                    No intro video configured.
+                  </div>
                 )}
               </div>
             </div>

@@ -19,7 +19,7 @@ const fmtDate = (d) => {
   return date.toLocaleString(undefined, { month: "short", year: "numeric" });
 };
 
-export default function ExperienceSection() {
+export default function ExperienceSection({ className = "" } = {}) {
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState([]);
 
@@ -67,7 +67,11 @@ export default function ExperienceSection() {
 
   if (loading) {
     return (
-      <SectionBackground sectionKey="experience" id="experience" className="py-5">
+      <SectionBackground
+        sectionKey="experience"
+        id="experience"
+        className={["py-5", className].filter(Boolean).join(" ")}
+      >
         <div className="container text-muted">Loading...</div>
       </SectionBackground>
     );
@@ -76,7 +80,11 @@ export default function ExperienceSection() {
   if (!sorted.length) return null;
 
   return (
-    <SectionBackground sectionKey="experience" id="experience" className="py-5">
+    <SectionBackground
+      sectionKey="experience"
+      id="experience"
+      className={["py-5", className].filter(Boolean).join(" ")}
+    >
       <div className="container">
         <div className="mb-3">
           <h2 className="h3 mb-1">Work Experience</h2>

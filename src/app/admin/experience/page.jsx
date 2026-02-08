@@ -474,7 +474,7 @@ export default function AdminExperiencePage() {
     }
   };
 
-  const openPreview = () => window.open("/#experience", "_blank");
+  const openPreview = () => window.open("/experience#experience", "_blank");
 
   const mergedDraft = (it) => {
     const base = baselineRef.current[it.id] || normalizeItem(it);

@@ -15,7 +15,7 @@ const primaryLinks = [
 // put the rest here
 const dropdownLinks = [
   { label: "Skills", href: "/#skills" },
-  { label: "Experience", href: "/#experience" },
+  { label: "Experience", href: "/experience#experience" },
   { label: "Certifications", href: "/#certifications" },
   { label: "Resume", href: "/#resume" },
   { label: "Blog", href: "/#blog" },
@@ -44,10 +44,17 @@ const toActiveHash = (href) => {
   return anchor ? `#${anchor}` : "";
 };
 
+const getDefaultActive = (path) => {
+  if (!path) return "#home";
+  if (path === "/") return "#home";
+  const match = allLinks.find((l) => getPath(l.href) === path && getAnchor(l.href));
+  return match ? `#${getAnchor(match.href)}` : "#home";
+};
+
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
-  const [active, setActive] = useState(pathname === "/about" ? "#about" : "#home");
+  const [active, setActive] = useState(() => getDefaultActive(pathname));
   const [scrolled, setScrolled] = useState(false);
 
   // Brand (from DB)
@@ -59,11 +66,7 @@ export default function Navbar() {
   );
 
   useEffect(() => {
-    if (pathname === "/about") {
-      setActive("#about");
-    } else if (pathname === "/") {
-      setActive("#home");
-    }
+    setActive(getDefaultActive(pathname));
   }, [pathname]);
 
   // Load brand from site_settings (public-safe)
@@ -108,7 +111,7 @@ export default function Navbar() {
       const navH = nav?.offsetHeight || 72;
       const y = window.scrollY + navH + 24;
 
-      let current = pathname === "/about" ? "#about" : "#home";
+      let current = getDefaultActive(pathname);
 
       for (const link of allLinks) {
         const anchor = getAnchor(link.href);

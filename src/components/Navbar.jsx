@@ -1,40 +1,70 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 
 const primaryLinks = [
-  { label: "Home", href: "#home" },
-  { label: "About", href: "#about" },
-  { label: "Services", href: "#services" },
-  { label: "Portfolio", href: "#portfolio" },
-  { label: "Contact", href: "#contact" },
+  { label: "Home", href: "/#home" },
+  { label: "About", href: "/about#about" },
+  { label: "Services", href: "/#services" },
+  { label: "Portfolio", href: "/#portfolio" },
+  { label: "Contact", href: "/#contact" },
 ];
 
 // put the rest here
 const dropdownLinks = [
-  { label: "Skills", href: "#skills" },
-  { label: "Experience", href: "#experience" },
-  { label: "Certifications", href: "#certifications" },
-  { label: "Resume", href: "#resume" },
-  { label: "Blog", href: "#blog" },
-  { label: "Testimonials", href: "#testimonials" },
-  { label: "Pricing", href: "#pricing" },
+  { label: "Skills", href: "/#skills" },
+  { label: "Experience", href: "/#experience" },
+  { label: "Certifications", href: "/#certifications" },
+  { label: "Resume", href: "/#resume" },
+  { label: "Blog", href: "/#blog" },
+  { label: "Testimonials", href: "/#testimonials" },
+  { label: "Pricing", href: "/#pricing" },
 ];
 
 const allLinks = [...primaryLinks, ...dropdownLinks];
 
+const getAnchor = (href) => {
+  if (!href) return "";
+  const hashIndex = href.indexOf("#");
+  if (hashIndex === -1) return "";
+  return href.slice(hashIndex + 1);
+};
+
+const getPath = (href) => {
+  if (!href) return "/";
+  const hashIndex = href.indexOf("#");
+  if (hashIndex === -1) return href || "/";
+  return href.slice(0, hashIndex) || "/";
+};
+
+const toActiveHash = (href) => {
+  const anchor = getAnchor(href);
+  return anchor ? `#${anchor}` : "";
+};
+
 export default function Navbar() {
-  const [active, setActive] = useState("#home");
+  const router = useRouter();
+  const pathname = usePathname();
+  const [active, setActive] = useState(pathname === "/about" ? "#about" : "#home");
   const [scrolled, setScrolled] = useState(false);
 
   // Brand (from DB)
   const [brand, setBrand] = useState("MyPortfolio");
 
   const isDropdownActive = useMemo(
-    () => dropdownLinks.some((l) => l.href === active),
+    () => dropdownLinks.some((l) => toActiveHash(l.href) === active),
     [active]
   );
+
+  useEffect(() => {
+    if (pathname === "/about") {
+      setActive("#about");
+    } else if (pathname === "/") {
+      setActive("#home");
+    }
+  }, [pathname]);
 
   // Load brand from site_settings (public-safe)
   useEffect(() => {
@@ -78,15 +108,20 @@ export default function Navbar() {
       const navH = nav?.offsetHeight || 72;
       const y = window.scrollY + navH + 24;
 
-      let current = "#home";
+      let current = pathname === "/about" ? "#about" : "#home";
 
       for (const link of allLinks) {
-        const id = link.href.slice(1);
-        const el = document.getElementById(id);
+        const anchor = getAnchor(link.href);
+        if (!anchor) continue;
+
+        const path = getPath(link.href);
+        if (path !== pathname) continue;
+
+        const el = document.getElementById(anchor);
         if (!el) continue;
 
         const top = el.getBoundingClientRect().top + window.scrollY;
-        if (y >= top) current = link.href;
+        if (y >= top) current = `#${anchor}`;
       }
 
       setActive(current);
@@ -95,7 +130,7 @@ export default function Navbar() {
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  }, [pathname]);
 
   const closeMobileMenu = () => {
     const menu = document.getElementById("mainNavbar");
@@ -122,20 +157,27 @@ export default function Navbar() {
   const handleLinkClick = (e, href) => {
     e.preventDefault();
 
-    const nav = document.getElementById("siteNavbar");
-    const navH = nav?.offsetHeight || 72;
+    const anchor = getAnchor(href);
+    const targetPath = getPath(href);
 
-    const id = href.slice(1);
-    const el = document.getElementById(id);
+    if (anchor && targetPath === pathname) {
+      const nav = document.getElementById("siteNavbar");
+      const navH = nav?.offsetHeight || 72;
 
-    if (el) {
-      const top = el.getBoundingClientRect().top + window.scrollY - navH;
-      window.scrollTo({ top, behavior: "smooth" });
-    } else {
-      window.location.hash = href;
+      const el = document.getElementById(anchor);
+
+      if (el) {
+        const top = el.getBoundingClientRect().top + window.scrollY - navH;
+        window.scrollTo({ top, behavior: "smooth" });
+        setActive(`#${anchor}`);
+        closeDropdown();
+        closeMobileMenu();
+        return;
+      }
     }
 
-    setActive(href);
+    router.push(href);
+    if (anchor) setActive(`#${anchor}`);
 
     // close UI
     closeDropdown();
@@ -152,8 +194,8 @@ export default function Navbar() {
       <div className="container">
         <a
           className="navbar-brand fw-bold"
-          href="#home"
-          onClick={(e) => handleLinkClick(e, "#home")}
+          href="/#home"
+          onClick={(e) => handleLinkClick(e, "/#home")}
         >
           {brand}
         </a>
@@ -173,18 +215,21 @@ export default function Navbar() {
         <div className="collapse navbar-collapse" id="mainNavbar">
           <ul className="navbar-nav ms-auto align-items-lg-center">
             {/* Primary links */}
-            {primaryLinks.map((link) => (
-              <li className="nav-item" key={link.href}>
-                <a
-                  className={`nav-link ${active === link.href ? "active" : ""}`}
-                  href={link.href}
-                  aria-current={active === link.href ? "page" : undefined}
-                  onClick={(e) => handleLinkClick(e, link.href)}
-                >
-                  {link.label}
-                </a>
-              </li>
-            ))}
+            {primaryLinks.map((link) => {
+              const isActive = toActiveHash(link.href) === active;
+              return (
+                <li className="nav-item" key={link.href}>
+                  <a
+                    className={`nav-link ${isActive ? "active" : ""}`}
+                    href={link.href}
+                    aria-current={isActive ? "page" : undefined}
+                    onClick={(e) => handleLinkClick(e, link.href)}
+                  >
+                    {link.label}
+                  </a>
+                </li>
+              );
+            })}
 
             {/* Dropdown */}
             <li className="nav-item dropdown">
@@ -204,7 +249,9 @@ export default function Navbar() {
                 {dropdownLinks.map((link) => (
                   <li key={link.href}>
                     <a
-                      className={`dropdown-item ${active === link.href ? "active" : ""}`}
+                      className={`dropdown-item ${
+                        toActiveHash(link.href) === active ? "active" : ""
+                      }`}
                       href={link.href}
                       onClick={(e) => handleLinkClick(e, link.href)}
                     >
@@ -219,8 +266,8 @@ export default function Navbar() {
             <li className="nav-item ms-lg-2 mt-2 mt-lg-0">
               <a
                 className="btn btn-primary btn-sm"
-                href="#contact"
-                onClick={(e) => handleLinkClick(e, "#contact")}
+                href="/#contact"
+                onClick={(e) => handleLinkClick(e, "/#contact")}
               >
                 Let&apos;s talk
               </a>

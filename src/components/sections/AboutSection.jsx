@@ -41,7 +41,7 @@ function isEmbedUrl(url) {
   return /youtube\.com|youtu\.be|vimeo\.com|\/embed\//i.test(url);
 }
 
-export default function AboutSection() {
+export default function AboutSection({ className = "" } = {}) {
   const [loading, setLoading] = useState(true);
   const [row, setRow] = useState(null);
 
@@ -90,7 +90,11 @@ export default function AboutSection() {
 
   if (loading) {
     return (
-      <SectionBackground sectionKey="about" id="about" className="py-5">
+      <SectionBackground
+        sectionKey="about"
+        id="about"
+        className={["py-5", className].filter(Boolean).join(" ")}
+      >
         <div className="container text-muted">Loading...</div>
       </SectionBackground>
     );
@@ -105,7 +109,11 @@ export default function AboutSection() {
   const hasEmbedVideo = !!extendedVideoEmbedUrl && isEmbedUrl(extendedVideoEmbedUrl);
 
   return (
-    <SectionBackground sectionKey="about" id="about" className="py-5">
+    <SectionBackground
+      sectionKey="about"
+      id="about"
+      className={["py-5", className].filter(Boolean).join(" ")}
+    >
       <div className="container">
         <div className="row g-4 align-items-start">
           <div className="col-12 col-lg-5">

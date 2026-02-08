@@ -277,7 +277,7 @@ export default function AdminAboutEditorPage() {
     }
   };
 
-  const openPreview = () => window.open("/#about", "_blank");
+  const openPreview = () => window.open("/about#about", "_blank");
 
   if (loading) {
     return (
@@ -419,7 +419,7 @@ export default function AdminAboutEditorPage() {
                     <i className="fa-solid fa-arrow-left me-2"></i>Back to Dashboard
                   </button>
                   <button className="btn btn-outline-dark" onClick={openPreview}>
-                    <i className="fa-solid fa-eye me-2"></i>Preview #about
+                    <i className="fa-solid fa-eye me-2"></i>Preview /about
                   </button>
                 </div>
               </div>

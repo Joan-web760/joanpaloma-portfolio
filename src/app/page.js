@@ -1,7 +1,6 @@
 import Navbar from "@/components/Navbar";
 
 import HomeSection from "@/components/sections/HomeSection";
-import AboutSection from "@/components/sections/AboutSection";
 import ServicesSection from "@/components/sections/ServicesSection";
 import SkillsSection from "@/components/sections/SkillsSection";
 import ExperienceSection from "@/components/sections/ExperienceSection";
@@ -19,7 +18,6 @@ export default function Page() {
       <Navbar />
       <main>
         <HomeSection />
-        <AboutSection />
         <ServicesSection />
         <SkillsSection />
         <ExperienceSection />

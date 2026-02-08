@@ -15,7 +15,7 @@ export default function Page() {
   return (
     <>
       <Navbar />
-      <main>
+      <main className="pt-5 pt-lg-5">
         <HomeSection />
         <ServicesSection />
         <SkillsSection />

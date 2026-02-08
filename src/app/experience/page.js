@@ -5,8 +5,8 @@ export default function ExperiencePage() {
   return (
     <>
       <Navbar />
-      <main>
-        <ExperienceSection className="pt-5 pt-lg-5" />
+      <main className="pt-5 pt-lg-5">
+        <ExperienceSection />
       </main>
     </>
   );

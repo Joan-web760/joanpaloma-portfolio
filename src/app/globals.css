@@ -1,6 +1,8 @@
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&family=Fraunces:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap");
 
 :root {
+  --public-font-body: "EB Garamond", "Garamond", "Times New Roman", serif;
+  --public-font-heading: "EB Garamond", "Garamond", "Times New Roman", serif;
   --admin-bg: #f4efe7;
   --admin-surface: #ffffff;
   --admin-surface-2: #efe7dd;
@@ -33,7 +35,11 @@ body {
   overflow-y: auto;
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--public-font-body);
+}
+
+body :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6) {
+  font-family: var(--public-font-heading);
 }
 
 .admin-shell {
@@ -346,6 +352,7 @@ body {
 }
 
 .admin-shell .modal-content {
+  background-color: var(--admin-surface);
   border-radius: var(--admin-radius);
   border: 1px solid var(--admin-border);
   box-shadow: var(--admin-shadow);

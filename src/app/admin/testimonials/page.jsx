@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
+import AdminActionModal, { useAdminActionModal } from "@/components/admin/AdminActionModal";
 
 const emptyForm = {
   quote: "",
@@ -17,6 +18,7 @@ const emptyForm = {
 
 export default function AdminTestimonialsPage() {
   const router = useRouter();
+  const { modal, confirm, success, onConfirm, onCancel } = useAdminActionModal();
 
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -101,6 +103,14 @@ export default function AdminTestimonialsPage() {
     });
 
   const createItem = async () => {
+    const ok = await confirm({
+      title: "Add testimonial?",
+      message: "This will create a new testimonial item.",
+      confirmText: "Add",
+      confirmVariant: "primary",
+    });
+    if (!ok) return;
+
     setBusy(true);
     setError("");
     setNotice("");
@@ -137,6 +147,7 @@ export default function AdminTestimonialsPage() {
       setItems((prev) => sortFeaturedFirst([...prev, data]));
       setForm(emptyForm);
       toast("Testimonial added.");
+      success({ title: "Testimonial added", message: "The testimonial was created successfully." });
     } catch (e) {
       setError(e.message || "Create failed.");
     } finally {
@@ -163,6 +174,14 @@ export default function AdminTestimonialsPage() {
   const saveChanges = async () => {
     const ids = Array.from(dirtyIds);
     if (!ids.length) return;
+
+    const ok = await confirm({
+      title: "Save changes?",
+      message: "Apply your staged edits to the testimonials.",
+      confirmText: "Save",
+      confirmVariant: "success",
+    });
+    if (!ok) return;
 
     setBusy(true);
     setError("");
@@ -226,6 +245,7 @@ export default function AdminTestimonialsPage() {
       setDirtyIds(new Set());
 
       toast("Saved.");
+      success({ title: "Changes saved", message: "Testimonial updates were applied." });
     } catch (e) {
       setError(e.message || "Save failed.");
     } finally {
@@ -270,7 +290,13 @@ export default function AdminTestimonialsPage() {
   };
 
   const deleteItem = async (id) => {
-    if (!confirm("Delete this testimonial?")) return;
+    const ok = await confirm({
+      title: "Delete testimonial?",
+      message: "This will permanently remove the testimonial.",
+      confirmText: "Delete",
+      confirmVariant: "danger",
+    });
+    if (!ok) return;
 
     setBusy(true);
     setError("");
@@ -295,6 +321,7 @@ export default function AdminTestimonialsPage() {
       });
 
       toast("Deleted.");
+      success({ title: "Testimonial deleted", message: "The testimonial was removed." });
     } catch (e) {
       setError(e.message || "Delete failed.");
     } finally {
@@ -748,6 +775,7 @@ export default function AdminTestimonialsPage() {
           </div>
         </div>
       </div>
+      <AdminActionModal modal={modal} onConfirm={onConfirm} onCancel={onCancel} />
     </div>
   );
 }

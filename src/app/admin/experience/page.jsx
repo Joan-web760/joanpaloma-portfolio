@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
+import AdminActionModal, { useAdminActionModal } from "@/components/admin/AdminActionModal";
 
 const emptyForm = {
   role_title: "",
@@ -46,6 +47,7 @@ const toTags = (text) =>
 
 export default function AdminExperiencePage() {
   const router = useRouter();
+  const { modal, confirm, success, onConfirm, onCancel } = useAdminActionModal();
 
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -216,6 +218,14 @@ export default function AdminExperiencePage() {
   };
 
   const saveRow = async (id) => {
+    const ok = await confirm({
+      title: "Save changes?",
+      message: "Apply updates to this experience item.",
+      confirmText: "Save",
+      confirmVariant: "success",
+    });
+    if (!ok) return;
+
     setBusy(true);
     setError("");
     setNotice("");
@@ -263,6 +273,7 @@ export default function AdminExperiencePage() {
       });
 
       toast("Saved.");
+      success({ title: "Experience updated", message: "Your changes were saved." });
     } catch (e) {
       setError(e.message || "Save failed.");
     } finally {
@@ -275,6 +286,14 @@ export default function AdminExperiencePage() {
       toast("No changes to save.");
       return;
     }
+
+    const ok = await confirm({
+      title: "Save all changes?",
+      message: "Apply updates to all edited experience items.",
+      confirmText: "Save all",
+      confirmVariant: "success",
+    });
+    if (!ok) return;
 
     setBusy(true);
     setError("");
@@ -321,6 +340,7 @@ export default function AdminExperiencePage() {
       setDirtyIds(new Set());
 
       toast("All changes saved.");
+      success({ title: "Changes saved", message: "All experience updates were applied." });
     } catch (e) {
       setError(e.message || "Save all failed.");
     } finally {
@@ -335,6 +355,14 @@ export default function AdminExperiencePage() {
   };
 
   const createItem = async () => {
+    const ok = await confirm({
+      title: "Add experience?",
+      message: "This will add a new experience item.",
+      confirmText: "Add",
+      confirmVariant: "primary",
+    });
+    if (!ok) return;
+
     setBusy(true);
     setError("");
     setNotice("");
@@ -376,6 +404,7 @@ export default function AdminExperiencePage() {
 
       setForm({ ...emptyForm, is_published: true });
       toast("Experience added.");
+      success({ title: "Experience added", message: "The new item was created successfully." });
     } catch (e) {
       setError(e.message || "Create failed.");
     } finally {
@@ -384,7 +413,13 @@ export default function AdminExperiencePage() {
   };
 
   const deleteItem = async (id) => {
-    if (!confirm("Delete this experience item?")) return;
+    const ok = await confirm({
+      title: "Delete experience item?",
+      message: "This will permanently remove the item.",
+      confirmText: "Delete",
+      confirmVariant: "danger",
+    });
+    if (!ok) return;
 
     setBusy(true);
     setError("");
@@ -414,6 +449,7 @@ export default function AdminExperiencePage() {
       });
 
       toast("Deleted.");
+      success({ title: "Experience deleted", message: "The item was removed." });
     } catch (e) {
       setError(e.message || "Delete failed.");
     } finally {
@@ -950,6 +986,7 @@ export default function AdminExperiencePage() {
           </div>
         </div>
       </div>
+      <AdminActionModal modal={modal} onConfirm={onConfirm} onCancel={onCancel} />
     </div>
   );
 }

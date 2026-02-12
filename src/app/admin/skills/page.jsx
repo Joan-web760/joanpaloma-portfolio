@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
+import AdminActionModal, { useAdminActionModal } from "@/components/admin/AdminActionModal";
 
 /**
  * Updates:
@@ -49,6 +50,7 @@ const isSameSkill = (a, b) => {
 
 export default function AdminSkillsPage() {
   const router = useRouter();
+  const { modal, confirm, success, onConfirm, onCancel } = useAdminActionModal();
 
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -180,11 +182,20 @@ export default function AdminSkillsPage() {
   };
 
   const saveChanges = async () => {
+    const ok = await confirm({
+      title: "Save changes?",
+      message: "Apply your staged edits to the skills list.",
+      confirmText: "Save",
+      confirmVariant: "success",
+    });
+    if (!ok) return;
+
     setBusy(true);
     setError("");
     setNotice("");
 
     try {
+
       const base = initialSkillsRef.current || [];
       const baseMap = new Map(base.map((s) => [s.id, s]));
 
@@ -233,6 +244,7 @@ export default function AdminSkillsPage() {
       initialSkillsRef.current = withGroup(nextCanonical);
 
       toast(`Saved ${updates.length} change${updates.length > 1 ? "s" : ""}.`);
+      success({ title: "Changes saved", message: "Skill updates were applied." });
     } catch (e) {
       setError(e.message || "Save failed.");
     } finally {
@@ -247,6 +259,14 @@ export default function AdminSkillsPage() {
   };
 
   const createSkill = async () => {
+    const ok = await confirm({
+      title: "Add skill?",
+      message: "This will create a new skill item.",
+      confirmText: "Add",
+      confirmVariant: "primary",
+    });
+    if (!ok) return;
+
     setBusy(true);
     setError("");
     setNotice("");
@@ -282,6 +302,7 @@ export default function AdminSkillsPage() {
 
       setNewSkill({ name: "", type: type, level: 80, is_published: true });
       toast("Skill created.");
+      success({ title: "Skill added", message: "The skill was created successfully." });
     } catch (e) {
       setError(e.message || "Create skill failed.");
     } finally {
@@ -290,7 +311,13 @@ export default function AdminSkillsPage() {
   };
 
   const deleteSkill = async (id) => {
-    if (!confirm("Delete this skill?")) return;
+    const ok = await confirm({
+      title: "Delete skill?",
+      message: "This will permanently remove the skill.",
+      confirmText: "Delete",
+      confirmVariant: "danger",
+    });
+    if (!ok) return;
 
     setBusy(true);
     setError("");
@@ -306,6 +333,7 @@ export default function AdminSkillsPage() {
       initialSkillsRef.current = withGroup(next);
 
       toast("Skill deleted.");
+      success({ title: "Skill deleted", message: "The skill was removed." });
     } catch (e) {
       setError(e.message || "Delete skill failed.");
     } finally {
@@ -630,6 +658,7 @@ export default function AdminSkillsPage() {
           </div>
         </div>
       </div>
+      <AdminActionModal modal={modal} onConfirm={onConfirm} onCancel={onCancel} />
     </div>
   );
 }

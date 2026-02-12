@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
+import AdminActionModal, { useAdminActionModal } from "@/components/admin/AdminActionModal";
 
 const emptyCategory = { title: "", description: "", is_published: true };
 const emptyService = { title: "", description: "", bulletsText: "", is_published: true };
@@ -59,6 +60,7 @@ const handleBulletsKeyDown = (e, currentValue, setValue) => {
 
 export default function AdminServicesPage() {
   const router = useRouter();
+  const { modal, confirm, success, onConfirm, onCancel } = useAdminActionModal();
   const mountedRef = useRef(true);
 
   const [loading, setLoading] = useState(true);
@@ -240,6 +242,14 @@ export default function AdminServicesPage() {
 
   // ---------- CATEGORY CRUD ----------
   const createCategory = async () => {
+    const ok = await confirm({
+      title: "Add category?",
+      message: "This will create a new service category.",
+      confirmText: "Add",
+      confirmVariant: "primary",
+    });
+    if (!ok) return;
+
     setBusy(true);
     setError("");
     setNotice("");
@@ -271,6 +281,7 @@ export default function AdminServicesPage() {
       setNewCat(emptyCategory);
       setSelectedCatId(toKey(data.id));
       toast("Category created.");
+      success({ title: "Category added", message: "The category was created successfully." });
     } catch (e) {
       setError(e.message || "Create category failed.");
     } finally {
@@ -299,7 +310,13 @@ export default function AdminServicesPage() {
   };
 
   const deleteCategory = async (id) => {
-    if (!confirm("Delete this category? All services under it will also be deleted.")) return;
+    const ok = await confirm({
+      title: "Delete category?",
+      message: "This will delete the category and all services under it.",
+      confirmText: "Delete",
+      confirmVariant: "danger",
+    });
+    if (!ok) return;
 
     setBusy(true);
     setError("");
@@ -316,6 +333,7 @@ export default function AdminServicesPage() {
       const remaining = categoriesSorted.filter((c) => c.id !== id);
       setSelectedCatId(remaining.length ? toKey(remaining[0].id) : "");
       toast("Category deleted.");
+      success({ title: "Category deleted", message: "The category and its services were removed." });
     } catch (e) {
       setError(e.message || "Delete category failed.");
     } finally {
@@ -351,6 +369,14 @@ export default function AdminServicesPage() {
 
   // ---------- SERVICE CRUD ----------
   const createService = async () => {
+    const ok = await confirm({
+      title: "Add service?",
+      message: "This will create a new service item.",
+      confirmText: "Add",
+      confirmVariant: "primary",
+    });
+    if (!ok) return;
+
     setBusy(true);
     setError("");
     setNotice("");
@@ -400,6 +426,7 @@ export default function AdminServicesPage() {
       }));
 
       toast("Service created.");
+      success({ title: "Service added", message: "The service was created successfully." });
     } catch (e) {
       setError(e.message || "Create service failed.");
     } finally {
@@ -408,7 +435,13 @@ export default function AdminServicesPage() {
   };
 
   const deleteService = async (id) => {
-    if (!confirm("Delete this service?")) return;
+    const ok = await confirm({
+      title: "Delete service?",
+      message: "This will permanently remove the service.",
+      confirmText: "Delete",
+      confirmVariant: "danger",
+    });
+    if (!ok) return;
 
     setBusy(true);
     setError("");
@@ -427,6 +460,7 @@ export default function AdminServicesPage() {
       });
       setDirty(true);
       toast("Service deleted.");
+      success({ title: "Service deleted", message: "The service was removed." });
     } catch (e) {
       setError(e.message || "Delete service failed.");
     } finally {
@@ -482,6 +516,14 @@ export default function AdminServicesPage() {
   // ------- SAVE (batch update drafts) -------
   const saveChanges = async () => {
     if (!selectedCategory) return;
+
+    const ok = await confirm({
+      title: "Save changes?",
+      message: "Apply your edits to the category and its services.",
+      confirmText: "Save",
+      confirmVariant: "success",
+    });
+    if (!ok) return;
 
     setBusy(true);
     setError("");
@@ -564,6 +606,7 @@ export default function AdminServicesPage() {
 
       toast("Saved.");
       setDirty(false);
+      success({ title: "Changes saved", message: "Service updates were applied." });
     } catch (e) {
       setError(e.message || "Save failed.");
     } finally {
@@ -571,10 +614,16 @@ export default function AdminServicesPage() {
     }
   };
 
-  const discardChanges = () => {
+  const discardChanges = async () => {
     if (!selectedCategory) return;
     if (!dirty) return;
-    if (!confirm("Discard unsaved changes?")) return;
+    const ok = await confirm({
+      title: "Discard changes?",
+      message: "You have unsaved changes. Discard them?",
+      confirmText: "Discard",
+      confirmVariant: "danger",
+    });
+    if (!ok) return;
 
     setCatDraft({
       title: selectedCategory.title || "",
@@ -619,9 +668,14 @@ export default function AdminServicesPage() {
     setDirty(true);
   };
 
-  const onSelectCategory = (nextId) => {
+  const onSelectCategory = async (nextId) => {
     if (dirty) {
-      const ok = confirm("You have unsaved changes. Discard them and switch category?");
+      const ok = await confirm({
+        title: "Switch category?",
+        message: "You have unsaved changes. Discard them and switch category?",
+        confirmText: "Switch",
+        confirmVariant: "danger",
+      });
       if (!ok) return;
     }
     setSelectedCatId(nextId);
@@ -1116,6 +1170,7 @@ export default function AdminServicesPage() {
           Tip: “Move up/down” reorders immediately. Field edits are saved only when you click <b>Save Changes</b>.
         </div>
       </div>
+      <AdminActionModal modal={modal} onConfirm={onConfirm} onCancel={onCancel} />
     </div>
   );
 }

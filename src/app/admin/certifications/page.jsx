@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
+import AdminActionModal, { useAdminActionModal } from "@/components/admin/AdminActionModal";
 
 const emptyForm = {
   title: "",
@@ -16,6 +17,7 @@ const emptyForm = {
 
 export default function AdminCertificationsPage() {
   const router = useRouter();
+  const { modal, confirm, success, onConfirm, onCancel } = useAdminActionModal();
 
   const mountedRef = useRef(true);
 
@@ -124,6 +126,14 @@ export default function AdminCertificationsPage() {
   };
 
   const createItem = async () => {
+    const ok = await confirm({
+      title: "Add certification?",
+      message: "This will create a new certification item.",
+      confirmText: "Add",
+      confirmVariant: "primary",
+    });
+    if (!ok) return;
+
     setBusy(true);
     setError("");
     setNotice("");
@@ -154,6 +164,7 @@ export default function AdminCertificationsPage() {
       setItems((prev) => [...prev, data].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)));
       setForm(emptyForm);
       toast("Certification added.");
+      success({ title: "Certification added", message: "The certification was created successfully." });
     } catch (e) {
       setError(e.message || "Create failed.");
     } finally {
@@ -162,7 +173,13 @@ export default function AdminCertificationsPage() {
   };
 
   const deleteItem = async (id) => {
-    if (!confirm("Delete this certification?")) return;
+    const ok = await confirm({
+      title: "Delete certification?",
+      message: "This will permanently remove the certification.",
+      confirmText: "Delete",
+      confirmVariant: "danger",
+    });
+    if (!ok) return;
 
     setBusy(true);
     setError("");
@@ -179,6 +196,7 @@ export default function AdminCertificationsPage() {
         return next;
       });
       toast("Deleted.");
+      success({ title: "Certification deleted", message: "The certification was removed." });
     } catch (e) {
       setError(e.message || "Delete failed.");
     } finally {
@@ -283,6 +301,14 @@ export default function AdminCertificationsPage() {
   const saveChanges = async () => {
     if (!hasPendingChanges) return;
 
+    const ok = await confirm({
+      title: "Save changes?",
+      message: "Apply your staged edits to the selected certifications.",
+      confirmText: "Save",
+      confirmVariant: "success",
+    });
+    if (!ok) return;
+
     setSaving(true);
     setBusy(true);
     setError("");
@@ -340,6 +366,7 @@ export default function AdminCertificationsPage() {
 
       setDrafts({});
       toast("Saved changes.");
+      success({ title: "Changes saved", message: "Certification updates have been applied." });
     } catch (e) {
       setError(e.message || "Save failed.");
     } finally {
@@ -711,6 +738,7 @@ export default function AdminCertificationsPage() {
                                   });
 
                                   toast("Saved.");
+                                  success({ title: "Row saved", message: "Certification changes were saved." });
                                 } catch (e) {
                                   setError(e.message || "Save failed.");
                                 } finally {
@@ -776,6 +804,7 @@ export default function AdminCertificationsPage() {
           </div>
         </div>
       </div>
+      <AdminActionModal modal={modal} onConfirm={onConfirm} onCancel={onCancel} />
     </div>
   );
 }

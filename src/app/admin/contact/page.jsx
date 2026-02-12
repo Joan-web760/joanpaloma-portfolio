@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
+import AdminActionModal, { useAdminActionModal } from "@/components/admin/AdminActionModal";
 
 const defaultSocials = {
   facebook: "",
@@ -16,6 +17,7 @@ const defaultSocials = {
 export default function AdminContactPage() {
   const router = useRouter();
   const mountedRef = useRef(true);
+  const { modal, confirm, success, onConfirm, onCancel } = useAdminActionModal();
 
   const [loading, setLoading] = useState(true);
 
@@ -122,6 +124,14 @@ export default function AdminContactPage() {
     const patch = normalizeSettingsPatch(draft);
     if (!patch) return;
 
+    const ok = await confirm({
+      title: "Save contact settings?",
+      message: "Apply your changes to the contact section settings.",
+      confirmText: "Save",
+      confirmVariant: "success",
+    });
+    if (!ok) return;
+
     setBusy(true);
     setError("");
     setNotice("");
@@ -141,6 +151,7 @@ export default function AdminContactPage() {
       setDirty(false);
 
       toast("Saved.");
+      success({ title: "Settings saved", message: "Contact settings were updated." });
     } catch (e) {
       setError(e.message || "Save failed.");
     } finally {
@@ -178,6 +189,14 @@ export default function AdminContactPage() {
   };
 
   const submitTest = async () => {
+    const ok = await confirm({
+      title: "Send test message?",
+      message: "This will add a test message to the inbox.",
+      confirmText: "Send",
+      confirmVariant: "primary",
+    });
+    if (!ok) return;
+
     setBusy(true);
     setError("");
     setNotice("");
@@ -202,6 +221,7 @@ export default function AdminContactPage() {
 
       setTest({ name: "", email: "", subject: "", message: "" });
       toast("Test message sent.");
+      success({ title: "Message sent", message: "The test message was added to the inbox." });
       await reloadInbox();
     } catch (e) {
       setError(e.message || "Send failed.");
@@ -211,7 +231,13 @@ export default function AdminContactPage() {
   };
 
   const deleteMessage = async (id) => {
-    if (!confirm("Delete this message?")) return;
+    const ok = await confirm({
+      title: "Delete message?",
+      message: "This will permanently remove the message.",
+      confirmText: "Delete",
+      confirmVariant: "danger",
+    });
+    if (!ok) return;
 
     setBusy(true);
     setError("");
@@ -222,6 +248,7 @@ export default function AdminContactPage() {
       if (delErr) throw delErr;
 
       toast("Deleted.");
+      success({ title: "Message deleted", message: "The message was removed from the inbox." });
       await reloadInbox();
     } catch (e) {
       setError(e.message || "Delete failed.");
@@ -557,6 +584,7 @@ export default function AdminContactPage() {
           </div>
         </div>
       </div>
+      <AdminActionModal modal={modal} onConfirm={onConfirm} onCancel={onCancel} />
     </div>
   );
 }

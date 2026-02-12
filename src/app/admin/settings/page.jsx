@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
+import AdminActionModal, { useAdminActionModal } from "@/components/admin/AdminActionModal";
 
 const sectionKeys = [
   "home",
@@ -48,6 +49,7 @@ const toRgba = (hex, opacity) => {
 
 export default function AdminSettingsPage() {
   const router = useRouter();
+  const { modal, confirm, success, onConfirm, onCancel } = useAdminActionModal();
 
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -472,7 +474,13 @@ export default function AdminSettingsPage() {
                               disabled={busy || !row.bg_image_path}
                               onClick={async () => {
                                 if (!row.bg_image_path) return;
-                                if (!confirm(`Remove background for "${key}"?`)) return;
+                                const ok = await confirm({
+                                  title: "Remove background?",
+                                  message: `Remove background for "${key}"?`,
+                                  confirmText: "Remove",
+                                  confirmVariant: "danger",
+                                });
+                                if (!ok) return;
 
                                 setBusy(true);
                                 setError("");
@@ -480,6 +488,7 @@ export default function AdminSettingsPage() {
                                 try {
                                   await removeBgFile(row.bg_image_path);
                                   await saveBg(row.id, { bg_image_path: null, is_enabled: false });
+                                  success({ title: "Background removed", message: `Removed "${key}" background.` });
                                 } catch (e) {
                                   setError(e.message || "Remove failed.");
                                 } finally {
@@ -688,6 +697,7 @@ export default function AdminSettingsPage() {
           </div>
         </div>
       </div>
+      <AdminActionModal modal={modal} onConfirm={onConfirm} onCancel={onCancel} />
     </div>
   );
 }

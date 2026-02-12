@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
+import AdminActionModal, { useAdminActionModal } from "@/components/admin/AdminActionModal";
 
 const emptyForm = {
   title: "",
@@ -25,6 +26,7 @@ function slugify(input) {
 
 export default function AdminBlogPage() {
   const router = useRouter();
+  const { modal, confirm, success, onConfirm, onCancel } = useAdminActionModal();
 
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -102,6 +104,14 @@ export default function AdminBlogPage() {
   };
 
   const createPost = async () => {
+    const ok = await confirm({
+      title: "Create post?",
+      message: "This will add a new blog post to the list.",
+      confirmText: "Create",
+      confirmVariant: "primary",
+    });
+    if (!ok) return;
+
     setBusy(true);
     setError("");
     setNotice("");
@@ -131,6 +141,7 @@ export default function AdminBlogPage() {
       setForm(emptyForm);
       setSlugLocked(false);
       toast("Post created.");
+      success({ title: "Post added", message: "The post was created successfully." });
     } catch (e) {
       setError(e.message || "Create failed.");
     } finally {
@@ -152,6 +163,7 @@ export default function AdminBlogPage() {
 
       setPosts((prev) => prev.map((p) => (p.id === id ? data : p)));
       toast("Saved.");
+      success({ title: "Post updated", message: "Your changes have been saved.", autoCloseMs: 1000 });
     } catch (e) {
       setError(e.message || "Save failed.");
     } finally {
@@ -160,7 +172,13 @@ export default function AdminBlogPage() {
   };
 
   const deletePost = async (id) => {
-    if (!confirm("Delete this post?")) return;
+    const ok = await confirm({
+      title: "Delete post?",
+      message: "This will permanently remove the post.",
+      confirmText: "Delete",
+      confirmVariant: "danger",
+    });
+    if (!ok) return;
 
     setBusy(true);
     setError("");
@@ -172,6 +190,7 @@ export default function AdminBlogPage() {
 
       setPosts((prev) => prev.filter((p) => p.id !== id));
       toast("Deleted.");
+      success({ title: "Post deleted", message: "The post was removed." });
     } catch (e) {
       setError(e.message || "Delete failed.");
     } finally {
@@ -508,6 +527,7 @@ export default function AdminBlogPage() {
           </div>
         </div>
       </div>
+      <AdminActionModal modal={modal} onConfirm={onConfirm} onCancel={onCancel} />
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
+import AdminActionModal, { useAdminActionModal } from "@/components/admin/AdminActionModal";
 
 const emptyForm = {
   name: "",
@@ -35,6 +36,7 @@ const sortPackages = (list) =>
 
 export default function AdminPricingPage() {
   const router = useRouter();
+  const { modal, confirm, success, onConfirm, onCancel } = useAdminActionModal();
 
   const [loading, setLoading] = useState(true);
 
@@ -128,6 +130,14 @@ export default function AdminPricingPage() {
   };
 
   const createItem = async () => {
+    const ok = await confirm({
+      title: "Add package?",
+      message: "This will create a new pricing package.",
+      confirmText: "Add",
+      confirmVariant: "primary",
+    });
+    if (!ok) return;
+
     setBusy(true);
     setError("");
     setNotice("");
@@ -160,6 +170,7 @@ export default function AdminPricingPage() {
       setItems((prev) => sortPackages([...(prev || []), data]));
       setForm(emptyForm);
       toast("Package added.");
+      success({ title: "Package added", message: "The pricing package was created." });
     } catch (e) {
       setError(e.message || "Create failed.");
     } finally {
@@ -195,7 +206,13 @@ export default function AdminPricingPage() {
   };
 
   const deleteItem = async (id) => {
-    if (!confirm("Delete this package?")) return;
+    const ok = await confirm({
+      title: "Delete package?",
+      message: "This will permanently remove the package.",
+      confirmText: "Delete",
+      confirmVariant: "danger",
+    });
+    if (!ok) return;
 
     setBusy(true);
     setError("");
@@ -220,6 +237,7 @@ export default function AdminPricingPage() {
       });
 
       toast("Deleted.");
+      success({ title: "Package deleted", message: "The package was removed." });
     } catch (e) {
       setError(e.message || "Delete failed.");
     } finally {
@@ -268,6 +286,14 @@ export default function AdminPricingPage() {
 
   const saveChanges = async () => {
     if (!dirtyIds.size) return;
+
+    const ok = await confirm({
+      title: "Save changes?",
+      message: "Apply your staged edits to the pricing packages.",
+      confirmText: "Save",
+      confirmVariant: "success",
+    });
+    if (!ok) return;
 
     setBusy(true);
     setError("");
@@ -327,6 +353,7 @@ export default function AdminPricingPage() {
       setDrafts({});
       setDirtyIds(new Set());
       toast("Saved.");
+      success({ title: "Changes saved", message: "Pricing updates were applied." });
     } catch (e) {
       setError(e.message || "Save failed.");
     } finally {
@@ -722,6 +749,7 @@ export default function AdminPricingPage() {
           </div>
         </div>
       </div>
+      <AdminActionModal modal={modal} onConfirm={onConfirm} onCancel={onCancel} />
     </div>
   );
 }

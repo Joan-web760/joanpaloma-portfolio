@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
+import AdminActionModal, { useAdminActionModal } from "@/components/admin/AdminActionModal";
 
 /** Helpers */
 const toLines = (text) =>
@@ -50,6 +51,7 @@ const pick = (obj, keys) => {
 
 export default function AdminPortfolioPage() {
   const router = useRouter();
+  const { modal, confirm, success, onConfirm, onCancel } = useAdminActionModal();
   const mountedRef = useRef(true);
 
   const [loading, setLoading] = useState(true);
@@ -320,7 +322,13 @@ export default function AdminPortfolioPage() {
   };
 
   const deleteMedia = async (m) => {
-    if (!confirm("Delete this media item? (Also removes file in Storage)")) return;
+    const ok = await confirm({
+      title: "Delete media item?",
+      message: "This will remove the media and delete the file from storage.",
+      confirmText: "Delete",
+      confirmVariant: "danger",
+    });
+    if (!ok) return;
 
     setBusy(true);
     setError("");
@@ -342,6 +350,7 @@ export default function AdminPortfolioPage() {
       });
 
       toast("Media deleted.");
+      success({ title: "Media deleted", message: "The media item was removed." });
     } catch (e) {
       setError(e.message || "Media delete failed.");
     } finally {
@@ -368,6 +377,14 @@ export default function AdminPortfolioPage() {
 
   // ---------- ITEMS ----------
   const createItem = async () => {
+    const ok = await confirm({
+      title: "Add portfolio item?",
+      message: "This will create a new portfolio entry.",
+      confirmText: "Add",
+      confirmVariant: "primary",
+    });
+    if (!ok) return;
+
     setBusy(true);
     setError("");
     setNotice("");
@@ -432,6 +449,7 @@ export default function AdminPortfolioPage() {
       setNewItemFiles([]);
 
       toast("Portfolio item created.");
+      success({ title: "Portfolio item added", message: "The portfolio item was created." });
     } catch (e) {
       setError(e.message || "Create failed.");
     } finally {
@@ -440,7 +458,13 @@ export default function AdminPortfolioPage() {
   };
 
   const deleteItem = async (id) => {
-    if (!confirm("Delete this portfolio item? This also deletes its media records.")) return;
+    const ok = await confirm({
+      title: "Delete portfolio item?",
+      message: "This will delete the item and its media records.",
+      confirmText: "Delete",
+      confirmVariant: "danger",
+    });
+    if (!ok) return;
 
     setBusy(true);
     setError("");
@@ -467,6 +491,7 @@ export default function AdminPortfolioPage() {
       });
 
       toast("Item deleted.");
+      success({ title: "Portfolio item deleted", message: "The item was removed." });
     } catch (e) {
       setError(e.message || "Delete failed.");
     } finally {
@@ -547,6 +572,14 @@ export default function AdminPortfolioPage() {
     const ids = Array.from(dirtyIds);
     if (!ids.length) return;
 
+    const ok = await confirm({
+      title: "Save changes?",
+      message: "Apply your edits to the selected portfolio items.",
+      confirmText: "Save",
+      confirmVariant: "success",
+    });
+    if (!ok) return;
+
     setSaving(true);
     setBusy(true);
     setError("");
@@ -592,6 +625,7 @@ export default function AdminPortfolioPage() {
       // clear dirty set
       setDirtyIds(new Set());
       toast("Saved changes.");
+      success({ title: "Changes saved", message: "Portfolio updates were applied." });
     } catch (e) {
       setError(e.message || "Save failed.");
     } finally {
@@ -975,6 +1009,7 @@ export default function AdminPortfolioPage() {
           but you must ensure your Storage policies allow signed URL creation for authenticated users.
         </div>
       </div>
+      <AdminActionModal modal={modal} onConfirm={onConfirm} onCancel={onCancel} />
     </div>
   );
 }

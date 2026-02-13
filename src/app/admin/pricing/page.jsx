@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 import AdminActionModal, { useAdminActionModal } from "@/components/admin/AdminActionModal";
+import AdminStepper, { AdminStep } from "@/components/admin/AdminStepper";
 
 const emptyForm = {
   name: "",
@@ -431,7 +432,9 @@ export default function AdminPricingPage() {
           </div>
         ) : null}
 
-        {/* Add */}
+        <AdminStepper>
+          <AdminStep title="Add Package" description="Create a new pricing tier.">
+            {/* Add */}
         <div className="card border-0 shadow-sm mb-3">
           <div className="card-body">
             <h2 className="h6 mb-3">Add Package</h2>
@@ -549,7 +552,10 @@ export default function AdminPricingPage() {
           </div>
         </div>
 
-        {/* List */}
+          </AdminStep>
+
+          <AdminStep title="Manage Packages" description="Edit details, reorder, and publish.">
+            {/* List */}
         <div className="card border-0 shadow-sm">
           <div className="card-body">
             <div className="d-flex align-items-center justify-content-between mb-3">
@@ -748,6 +754,8 @@ export default function AdminPricingPage() {
             </div>
           </div>
         </div>
+          </AdminStep>
+        </AdminStepper>
       </div>
       <AdminActionModal modal={modal} onConfirm={onConfirm} onCancel={onCancel} />
     </div>

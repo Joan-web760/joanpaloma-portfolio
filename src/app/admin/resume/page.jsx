@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
+import AdminStepper, { AdminStep } from "@/components/admin/AdminStepper";
 
 export default function AdminResumePage() {
   const router = useRouter();
@@ -185,80 +186,91 @@ export default function AdminResumePage() {
           </div>
         ) : null}
 
-        <div className="card border-0 shadow-sm">
-          <div className="card-body">
-            <div className="row g-3">
-              <div className="col-12">
-                <label className="form-label">Summary</label>
-                <textarea
-                  className="form-control"
-                  rows="5"
-                  defaultValue={row.summary || ""}
-                  onBlur={(e) => updateRow({ summary: e.target.value.trim() || null })}
-                  disabled={busy}
-                />
-              </div>
+        <AdminStepper>
+          <AdminStep title="Summary and Publish" description="Update summary, label, and visibility.">
+            <div className="card border-0 shadow-sm">
+              <div className="card-body">
+                <div className="row g-3">
+                  <div className="col-12">
+                    <label className="form-label">Summary</label>
+                    <textarea
+                      className="form-control"
+                      rows="5"
+                      defaultValue={row.summary || ""}
+                      onBlur={(e) => updateRow({ summary: e.target.value.trim() || null })}
+                      disabled={busy}
+                    />
+                  </div>
 
-              <div className="col-12 col-md-6">
-                <label className="form-label">Button Label</label>
-                <input
-                  className="form-control"
-                  defaultValue={row.button_label || "Download CV"}
-                  onBlur={(e) => {
-                    const v = e.target.value.trim() || "Download CV";
-                    if (v !== row.button_label) updateRow({ button_label: v });
-                  }}
-                  disabled={busy}
-                />
-              </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">Button Label</label>
+                    <input
+                      className="form-control"
+                      defaultValue={row.button_label || "Download CV"}
+                      onBlur={(e) => {
+                        const v = e.target.value.trim() || "Download CV";
+                        if (v !== row.button_label) updateRow({ button_label: v });
+                      }}
+                      disabled={busy}
+                    />
+                  </div>
 
-              <div className="col-12 col-md-6 d-flex align-items-end">
-                <div className="form-check">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    defaultChecked={!!row.is_published}
-                    onChange={(e) => updateRow({ is_published: e.target.checked })}
-                    disabled={busy}
-                    id="resumePub"
-                  />
-                  <label className="form-check-label" htmlFor="resumePub">Published</label>
+                  <div className="col-12 col-md-6 d-flex align-items-end">
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        defaultChecked={!!row.is_published}
+                        onChange={(e) => updateRow({ is_published: e.target.checked })}
+                        disabled={busy}
+                        id="resumePub"
+                      />
+                      <label className="form-check-label" htmlFor="resumePub">Published</label>
+                    </div>
+                  </div>
                 </div>
               </div>
-
-              <div className="col-12">
-                <label className="form-label">Upload / Replace CV (PDF)</label>
-                <input className="form-control" type="file" accept="application/pdf" onChange={replaceCv} disabled={busy} />
-                <div className="form-text">
-                  Uploads to bucket <code>portfolio-docs</code> under <code>resume/</code>.
-                </div>
-              </div>
-
-              <div className="col-12">
-                <div className="border rounded p-3 bg-white">
-                  <div className="fw-semibold mb-1">Current CV</div>
-                  {row.cv_file_path ? (
-                    <>
-                      <div className="small text-muted mb-2">
-                        Path: <code>{row.cv_file_path}</code>
-                      </div>
-                      {cvUrl ? (
-                        <a className="btn btn-outline-dark" href={cvUrl} target="_blank" rel="noreferrer">
-                          <i className="fa-solid fa-file-pdf me-2"></i>Open PDF
-                        </a>
-                      ) : (
-                        <div className="text-muted small">No public URL (bucket might be private).</div>
-                      )}
-                    </>
-                  ) : (
-                    <div className="text-muted">No CV uploaded yet.</div>
-                  )}
-                </div>
-              </div>
-
             </div>
-          </div>
-        </div>
+          </AdminStep>
+
+          <AdminStep title="CV File" description="Upload and review your PDF.">
+            <div className="card border-0 shadow-sm">
+              <div className="card-body">
+                <div className="row g-3">
+                  <div className="col-12">
+                    <label className="form-label">Upload / Replace CV (PDF)</label>
+                    <input className="form-control" type="file" accept="application/pdf" onChange={replaceCv} disabled={busy} />
+                    <div className="form-text">
+                      Uploads to bucket <code>portfolio-docs</code> under <code>resume/</code>.
+                    </div>
+                  </div>
+
+                  <div className="col-12">
+                    <div className="border rounded p-3 bg-white">
+                      <div className="fw-semibold mb-1">Current CV</div>
+                      {row.cv_file_path ? (
+                        <>
+                          <div className="small text-muted mb-2">
+                            Path: <code>{row.cv_file_path}</code>
+                          </div>
+                          {cvUrl ? (
+                            <a className="btn btn-outline-dark" href={cvUrl} target="_blank" rel="noreferrer">
+                              <i className="fa-solid fa-file-pdf me-2"></i>Open PDF
+                            </a>
+                          ) : (
+                            <div className="text-muted small">No public URL (bucket might be private).</div>
+                          )}
+                        </>
+                      ) : (
+                        <div className="text-muted">No CV uploaded yet.</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </AdminStep>
+        </AdminStepper>
 
       </div>
     </div>

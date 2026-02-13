@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 import AdminActionModal, { useAdminActionModal } from "@/components/admin/AdminActionModal";
+import AdminStepper, { AdminStep } from "@/components/admin/AdminStepper";
 
 const emptyCategory = { title: "", description: "", is_published: true };
 const emptyService = { title: "", description: "", bulletsText: "", is_published: true };
@@ -729,7 +730,9 @@ export default function AdminServicesPage() {
           </div>
         ) : null}
 
-        {/* Add Category */}
+        <AdminStepper>
+          <AdminStep title="Categories" description="Create and name service categories.">
+            {/* Add Category */}
         <div className="card border-0 shadow-sm mb-3">
           <div className="card-body">
             <h2 className="h6 mb-3">Add Category</h2>
@@ -776,7 +779,10 @@ export default function AdminServicesPage() {
           </div>
         </div>
 
-        {/* Add Service */}
+          </AdminStep>
+
+          <AdminStep title="Add Services" description="Create services inside a category.">
+            {/* Add Service */}
         <div className="card border-0 shadow-sm mb-3">
           <div className="card-body">
             <h2 className="h6 mb-3">Add Service</h2>
@@ -876,7 +882,10 @@ export default function AdminServicesPage() {
           </div>
         </div>
 
-        {/* Catalog */}
+          </AdminStep>
+
+          <AdminStep title="Organize and Edit" description="Pick a category, edit services, and save.">
+            {/* Catalog */}
         <div className="row g-3">
           {/* Left: Category Picker */}
           <div className="col-12 col-lg-4">
@@ -1165,6 +1174,9 @@ export default function AdminServicesPage() {
             </div>
           </div>
         </div>
+
+          </AdminStep>
+        </AdminStepper>
 
         <div className="small text-muted mt-3">
           Tip: “Move up/down” reorders immediately. Field edits are saved only when you click <b>Save Changes</b>.

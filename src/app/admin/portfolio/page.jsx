@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 import AdminActionModal, { useAdminActionModal } from "@/components/admin/AdminActionModal";
+import AdminStepper, { AdminStep } from "@/components/admin/AdminStepper";
 
 /** Helpers */
 const toLines = (text) =>
@@ -711,7 +712,9 @@ export default function AdminPortfolioPage() {
           </div>
         ) : null}
 
-        {/* Add Item */}
+        <AdminStepper>
+          <AdminStep title="Add Portfolio Item" description="Create a new project entry.">
+            {/* Add Item */}
         <div className="card border-0 shadow-sm mb-3">
           <div className="card-body">
             <h2 className="h6 mb-3">Add Portfolio Item</h2>
@@ -797,7 +800,10 @@ export default function AdminPortfolioPage() {
           </div>
         </div>
 
-        {/* Items */}
+          </AdminStep>
+
+          <AdminStep title="Manage Items" description="Edit details, media, and publish status.">
+            {/* Items */}
         <div className="card border-0 shadow-sm">
           <div className="card-body">
             <h2 className="h6 mb-3">Items</h2>
@@ -1003,6 +1009,9 @@ export default function AdminPortfolioPage() {
             </div>
           </div>
         </div>
+
+          </AdminStep>
+        </AdminStepper>
 
         <div className="small text-muted mt-3">
           Tip: If previews show broken images, your bucket may be <b>private</b>. This page already attempts signed URLs,

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 import AdminActionModal, { useAdminActionModal } from "@/components/admin/AdminActionModal";
+import AdminStepper, { AdminStep } from "@/components/admin/AdminStepper";
 
 /**
  * Updates:
@@ -444,7 +445,9 @@ export default function AdminSkillsPage() {
           </div>
         ) : null}
 
-        {/* Add Skill */}
+        <AdminStepper>
+          <AdminStep title="Add Skill" description="Create a new skill entry.">
+            {/* Add Skill */}
         <div className="card border-0 shadow-sm mb-3">
           <div className="card-body">
             <h2 className="h6 mb-3">Add Skill</h2>
@@ -529,7 +532,10 @@ export default function AdminSkillsPage() {
           </div>
         </div>
 
-        {/* List by derived type */}
+          </AdminStep>
+
+          <AdminStep title="Manage Skills" description="Edit, reorder, and publish skills.">
+            {/* List by derived type */}
         <div className="card border-0 shadow-sm">
           <div className="card-body">
             <h2 className="h6 mb-3">Skills Catalog</h2>
@@ -657,6 +663,8 @@ export default function AdminSkillsPage() {
             {!draftSkills.length ? <div className="text-muted">No skills yet.</div> : null}
           </div>
         </div>
+          </AdminStep>
+        </AdminStepper>
       </div>
       <AdminActionModal modal={modal} onConfirm={onConfirm} onCancel={onCancel} />
     </div>

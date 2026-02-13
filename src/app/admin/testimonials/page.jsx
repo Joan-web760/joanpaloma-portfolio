@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 import AdminActionModal, { useAdminActionModal } from "@/components/admin/AdminActionModal";
+import AdminStepper, { AdminStep } from "@/components/admin/AdminStepper";
 
 const emptyForm = {
   quote: "",
@@ -421,7 +422,9 @@ export default function AdminTestimonialsPage() {
           </div>
         ) : null}
 
-        {/* Add */}
+        <AdminStepper>
+          <AdminStep title="Add Testimonial" description="Create a new testimonial entry.">
+            {/* Add */}
         <div className="card border-0 shadow-sm mb-3">
           <div className="card-body">
             <h2 className="h6 mb-3">Add Testimonial</h2>
@@ -557,7 +560,10 @@ export default function AdminTestimonialsPage() {
           </div>
         </div>
 
-        {/* List */}
+          </AdminStep>
+
+          <AdminStep title="Manage Testimonials" description="Edit, reorder, and publish items.">
+            {/* List */}
         <div className="card border-0 shadow-sm">
           <div className="card-body">
             <h2 className="h6 mb-3">Items</h2>
@@ -774,6 +780,8 @@ export default function AdminTestimonialsPage() {
             </div>
           </div>
         </div>
+          </AdminStep>
+        </AdminStepper>
       </div>
       <AdminActionModal modal={modal} onConfirm={onConfirm} onCancel={onCancel} />
     </div>

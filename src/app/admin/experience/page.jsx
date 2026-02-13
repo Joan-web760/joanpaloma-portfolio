@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 import AdminActionModal, { useAdminActionModal } from "@/components/admin/AdminActionModal";
+import AdminStepper, { AdminStep } from "@/components/admin/AdminStepper";
 
 const emptyForm = {
   role_title: "",
@@ -585,7 +586,9 @@ export default function AdminExperiencePage() {
           </div>
         ) : null}
 
-        {/* Add Form */}
+        <AdminStepper>
+          <AdminStep title="Add Experience" description="Create a new timeline entry.">
+            {/* Add Form */}
         <div className="card border-0 shadow-sm mb-3">
           <div className="card-body">
             <h2 className="h6 mb-3">Add Experience</h2>
@@ -745,7 +748,10 @@ export default function AdminExperiencePage() {
           </div>
         </div>
 
-        {/* List */}
+          </AdminStep>
+
+          <AdminStep title="Manage Timeline" description="Edit, reorder, and publish entries.">
+            {/* List */}
         <div className="card border-0 shadow-sm">
           <div className="card-body">
             <h2 className="h6 mb-3">Timeline Items</h2>
@@ -985,6 +991,8 @@ export default function AdminExperiencePage() {
             </div>
           </div>
         </div>
+          </AdminStep>
+        </AdminStepper>
       </div>
       <AdminActionModal modal={modal} onConfirm={onConfirm} onCancel={onCancel} />
     </div>

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
+import AdminStepper, { AdminStep } from "@/components/admin/AdminStepper";
 
 const DEFAULT_BADGES = ["Next.js", "Supabase", "Bootstrap", "React"];
 const MEDIA_BUCKET = "portfolio-media";
@@ -387,183 +388,188 @@ export default function AdminHomeEditorPage() {
           </div>
         ) : null}
 
-        <div className="row g-3">
-          <div className="col-12 col-lg-8">
-            <div className="card border-0 shadow-sm">
-              <div className="card-body">
-                <h2 className="h6 mb-3">Content</h2>
+        <AdminStepper>
+          <AdminStep title="Hero Content" description="Headlines, CTAs, and publish status.">
+            <div className="row g-3">
+              <div className="col-12 col-lg-8">
+                <div className="card border-0 shadow-sm">
+                  <div className="card-body">
+                    <h2 className="h6 mb-3">Content</h2>
 
-                <div className="mb-3">
-                  <label className="form-label">Headline</label>
-                  <input className="form-control" value={headline} onChange={(e) => setHeadline(e.target.value)} />
-                </div>
+                    <div className="mb-3">
+                      <label className="form-label">Headline</label>
+                      <input className="form-control" value={headline} onChange={(e) => setHeadline(e.target.value)} />
+                    </div>
 
-                <div className="mb-3">
-                  <label className="form-label">Subheadline</label>
-                  <textarea className="form-control" rows="3" value={subheadline} onChange={(e) => setSubheadline(e.target.value)} />
-                </div>
+                    <div className="mb-3">
+                      <label className="form-label">Subheadline</label>
+                      <textarea className="form-control" rows="3" value={subheadline} onChange={(e) => setSubheadline(e.target.value)} />
+                    </div>
 
-                <div className="row g-2">
-                  <div className="col-12 col-md-6">
-                    <label className="form-label">Primary CTA Label</label>
-                    <input className="form-control" value={primaryCtaLabel} onChange={(e) => setPrimaryCtaLabel(e.target.value)} />
-                  </div>
-                  <div className="col-12 col-md-6">
-                    <label className="form-label">Primary CTA URL</label>
-                    <input className="form-control" value={primaryCtaUrl} onChange={(e) => setPrimaryCtaUrl(e.target.value)} />
-                  </div>
-                </div>
-
-                <div className="row g-2 mt-1">
-                  <div className="col-12 col-md-6">
-                    <label className="form-label">Secondary CTA Label</label>
-                    <input className="form-control" value={secondaryCtaLabel} onChange={(e) => setSecondaryCtaLabel(e.target.value)} />
-                  </div>
-                  <div className="col-12 col-md-6">
-                    <label className="form-label">Secondary CTA URL</label>
-                    <input className="form-control" value={secondaryCtaUrl} onChange={(e) => setSecondaryCtaUrl(e.target.value)} />
-                  </div>
-                </div>
-
-                <div className="mt-3">
-                  <label className="form-label">Badges (comma-separated)</label>
-                  <input
-                    className="form-control"
-                    placeholder="Next.js, Supabase, Bootstrap..."
-                    value={badgesText}
-                    onChange={(e) => setBadgesText(e.target.value)}
-                  />
-                </div>
-
-                <div className="mt-3">
-                  <label className="form-label">Intro Video URL (optional)</label>
-                  <input
-                    className="form-control"
-                    placeholder="https://youtube.com/..."
-                    value={introVideoUrl}
-                    onChange={(e) => setIntroVideoUrl(e.target.value)}
-                  />
-                  <div className="form-text">
-                    If you upload a video file, the uploaded video will be used first (intro_video_path).
-                  </div>
-                </div>
-
-                <div className="mt-3 form-check">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    checked={isPublished}
-                    onChange={(e) => setIsPublished(e.target.checked)}
-                    id="publishedCheck"
-                  />
-                  <label className="form-check-label" htmlFor="publishedCheck">
-                    Mark as published (Save required)
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div>
-
-
-
-          <div className="col-12 col-lg-4">
-
-            <div className="card border-0 shadow-sm mb-3">
-              <div className="card-body">
-                <h2 className="h6 mb-2">Quick Links</h2>
-                <div className="d-grid gap-2">
-                  <button className="btn btn-outline-primary" onClick={() => router.push("/admin")}>
-                    <i className="fa-solid fa-arrow-left me-2"></i>Back to Dashboard
-                  </button>
-                  <button className="btn btn-outline-dark" onClick={openPreview}>
-                    <i className="fa-solid fa-eye me-2"></i>Preview #home
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="card border-0 shadow-sm mb-3">
-              <div className="card-body">
-                <h2 className="h6 mb-3">Media</h2>
-
-                <div className="mb-3">
-                  <label className="form-label">Hero Image</label>
-                  <input className="form-control" type="file" accept="image/*" onChange={onHeroFile} disabled={saving} />
-                  {heroUrl ? (
-                    <div className="mt-2">
-                      <img src={heroUrl} alt="Hero" className="img-fluid rounded border" />
-                      <div className="small text-muted mt-1">
-                        Path: <code>{heroImagePath}</code>
+                    <div className="row g-2">
+                      <div className="col-12 col-md-6">
+                        <label className="form-label">Primary CTA Label</label>
+                        <input className="form-control" value={primaryCtaLabel} onChange={(e) => setPrimaryCtaLabel(e.target.value)} />
+                      </div>
+                      <div className="col-12 col-md-6">
+                        <label className="form-label">Primary CTA URL</label>
+                        <input className="form-control" value={primaryCtaUrl} onChange={(e) => setPrimaryCtaUrl(e.target.value)} />
                       </div>
                     </div>
-                  ) : (
-                    <div className="small text-muted mt-2">No hero image uploaded.</div>
-                  )}
-                </div>
 
-                <hr />
-
-                <div className="mb-3">
-                  <label className="form-label">Profile Image</label>
-                  <input className="form-control" type="file" accept="image/*" onChange={onProfileFile} disabled={saving} />
-                  {profileUrl ? (
-                    <div className="mt-2">
-                      <img src={profileUrl} alt="Profile" className="img-fluid rounded border" />
-                      <div className="small text-muted mt-1">
-                        Path: <code>{profileImagePath}</code>
+                    <div className="row g-2 mt-1">
+                      <div className="col-12 col-md-6">
+                        <label className="form-label">Secondary CTA Label</label>
+                        <input className="form-control" value={secondaryCtaLabel} onChange={(e) => setSecondaryCtaLabel(e.target.value)} />
+                      </div>
+                      <div className="col-12 col-md-6">
+                        <label className="form-label">Secondary CTA URL</label>
+                        <input className="form-control" value={secondaryCtaUrl} onChange={(e) => setSecondaryCtaUrl(e.target.value)} />
                       </div>
                     </div>
-                  ) : (
-                    <div className="small text-muted mt-2">No profile image uploaded.</div>
-                  )}
+
+                    <div className="mt-3">
+                      <label className="form-label">Badges (comma-separated)</label>
+                      <input
+                        className="form-control"
+                        placeholder="Next.js, Supabase, Bootstrap..."
+                        value={badgesText}
+                        onChange={(e) => setBadgesText(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="mt-3">
+                      <label className="form-label">Intro Video URL (optional)</label>
+                      <input
+                        className="form-control"
+                        placeholder="https://youtube.com/..."
+                        value={introVideoUrl}
+                        onChange={(e) => setIntroVideoUrl(e.target.value)}
+                      />
+                      <div className="form-text">
+                        If you upload a video file, the uploaded video will be used first (intro_video_path).
+                      </div>
+                    </div>
+
+                    <div className="mt-3 form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        checked={isPublished}
+                        onChange={(e) => setIsPublished(e.target.checked)}
+                        id="publishedCheck"
+                      />
+                      <label className="form-check-label" htmlFor="publishedCheck">
+                        Mark as published (Save required)
+                      </label>
+                    </div>
+                  </div>
                 </div>
+              </div>
 
-                <hr />
-
-                {/* NEW: Intro Video Upload */}
-                <div>
-                  <label className="form-label">Intro Video (Upload)</label>
-                  <input
-                    className="form-control"
-                    type="file"
-                    accept="video/mp4,video/webm,video/*"
-                    onChange={onIntroVideoFile}
-                    disabled={saving}
-                  />
-
-                  {introVideoFileUrl ? (
-                    <div className="mt-2">
-                      <div className="ratio ratio-16x9">
-                        <video src={introVideoFileUrl} controls playsInline preload="metadata" />
-                      </div>
-                      <div className="small text-muted mt-2">
-                        Path: <code>{introVideoPath}</code>
-                      </div>
-
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-outline-danger mt-2"
-                        disabled={saving}
-                        onClick={() => {
-                          setIntroVideoPath(null);
-                          setNotice("Intro video cleared. Click Save to persist.");
-                        }}
-                      >
-                        <i className="fa-solid fa-trash me-2"></i>Remove Video (clears DB field)
+              <div className="col-12 col-lg-4">
+                <div className="card border-0 shadow-sm mb-3">
+                  <div className="card-body">
+                    <h2 className="h6 mb-2">Quick Links</h2>
+                    <div className="d-grid gap-2">
+                      <button className="btn btn-outline-primary" onClick={() => router.push("/admin")}>
+                        <i className="fa-solid fa-arrow-left me-2"></i>Back to Dashboard
+                      </button>
+                      <button className="btn btn-outline-dark" onClick={openPreview}>
+                        <i className="fa-solid fa-eye me-2"></i>Preview #home
                       </button>
                     </div>
-                  ) : (
-                    <div className="small text-muted mt-2">No intro video uploaded.</div>
-                  )}
-
-                  <div className="form-text mt-2">Max 50MB (adjust in code). Recommended: mp4 (H.264).</div>
+                  </div>
                 </div>
               </div>
             </div>
+          </AdminStep>
 
+          <AdminStep title="Media Uploads" description="Hero, profile, and intro video files.">
+            <div className="row g-3">
+              <div className="col-12">
+                <div className="card border-0 shadow-sm mb-3">
+                  <div className="card-body">
+                    <h2 className="h6 mb-3">Media</h2>
 
-          </div>
-        </div>
+                    <div className="mb-3">
+                      <label className="form-label">Hero Image</label>
+                      <input className="form-control" type="file" accept="image/*" onChange={onHeroFile} disabled={saving} />
+                      {heroUrl ? (
+                        <div className="mt-2">
+                          <img src={heroUrl} alt="Hero" className="img-fluid rounded border" />
+                          <div className="small text-muted mt-1">
+                            Path: <code>{heroImagePath}</code>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="small text-muted mt-2">No hero image uploaded.</div>
+                      )}
+                    </div>
+
+                    <hr />
+
+                    <div className="mb-3">
+                      <label className="form-label">Profile Image</label>
+                      <input className="form-control" type="file" accept="image/*" onChange={onProfileFile} disabled={saving} />
+                      {profileUrl ? (
+                        <div className="mt-2">
+                          <img src={profileUrl} alt="Profile" className="img-fluid rounded border" />
+                          <div className="small text-muted mt-1">
+                            Path: <code>{profileImagePath}</code>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="small text-muted mt-2">No profile image uploaded.</div>
+                      )}
+                    </div>
+
+                    <hr />
+
+                    {/* NEW: Intro Video Upload */}
+                    <div>
+                      <label className="form-label">Intro Video (Upload)</label>
+                      <input
+                        className="form-control"
+                        type="file"
+                        accept="video/mp4,video/webm,video/*"
+                        onChange={onIntroVideoFile}
+                        disabled={saving}
+                      />
+
+                      {introVideoFileUrl ? (
+                        <div className="mt-2">
+                          <div className="ratio ratio-16x9">
+                            <video src={introVideoFileUrl} controls playsInline preload="metadata" />
+                          </div>
+                          <div className="small text-muted mt-2">
+                            Path: <code>{introVideoPath}</code>
+                          </div>
+
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-danger mt-2"
+                            disabled={saving}
+                            onClick={() => {
+                              setIntroVideoPath(null);
+                              setNotice("Intro video cleared. Click Save to persist.");
+                            }}
+                          >
+                            <i className="fa-solid fa-trash me-2"></i>Remove Video (clears DB field)
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="small text-muted mt-2">No intro video uploaded.</div>
+                      )}
+
+                      <div className="form-text mt-2">Max 50MB (adjust in code). Recommended: mp4 (H.264).</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </AdminStep>
+        </AdminStepper>
 
         <div className="small text-muted mt-3">
           Storage bucket: <code>{MEDIA_BUCKET}</code> — intro videos are uploaded to <code>home/intro/</code>.

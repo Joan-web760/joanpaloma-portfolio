@@ -672,6 +672,100 @@ body :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6) {
   color: var(--admin-primary);
 }
 
+.admin-shell .admin-stepper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.admin-shell .admin-stepper-nav {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.admin-shell .admin-stepper-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--admin-radius-sm);
+  border: 1px solid var(--admin-border);
+  background: var(--admin-surface);
+  text-align: left;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.admin-shell .admin-stepper-item:hover {
+  border-color: rgba(31, 111, 120, 0.45);
+  transform: translateY(-1px);
+}
+
+.admin-shell .admin-stepper-item.active {
+  border-color: var(--admin-primary);
+  box-shadow: var(--admin-shadow-soft);
+}
+
+.admin-shell .admin-stepper-item.complete {
+  background: var(--admin-surface-2);
+}
+
+.admin-shell .admin-stepper-dot {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--admin-border);
+  background: var(--admin-surface-2);
+  color: var(--admin-muted);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.admin-shell .admin-stepper-item.active .admin-stepper-dot {
+  background: var(--admin-primary);
+  border-color: var(--admin-primary);
+  color: #ffffff;
+}
+
+.admin-shell .admin-stepper-item.complete .admin-stepper-dot {
+  background: var(--admin-success);
+  border-color: var(--admin-success);
+  color: #ffffff;
+}
+
+.admin-shell .admin-stepper-title {
+  font-size: 0.95rem;
+}
+
+.admin-shell .admin-stepper-desc {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--admin-muted);
+}
+
+.admin-shell .admin-stepper-panel {
+  animation: admin-rise 0.45s ease both;
+}
+
+.admin-shell .admin-stepper-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-shell .admin-stepper-progress {
+  font-weight: 600;
+  color: var(--admin-muted);
+}
+
 .admin-shell .vstack > * {
   animation: admin-rise 0.5s ease both;
 }

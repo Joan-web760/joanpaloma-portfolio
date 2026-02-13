@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 import AdminActionModal, { useAdminActionModal } from "@/components/admin/AdminActionModal";
+import AdminStepper, { AdminStep } from "@/components/admin/AdminStepper";
 
 const defaultSocials = {
   facebook: "",
@@ -337,252 +338,258 @@ export default function AdminContactPage() {
           </div>
         ) : null}
 
-        <div className="row g-3">
-          {/* Settings */}
-          <div className="col-12 col-lg-6">
-            <div className="card border-0 shadow-sm">
-              <div className="card-body">
-                <h2 className="h6 mb-3">Settings</h2>
+        <AdminStepper>
+          <AdminStep title="Contact Settings" description="Edit headings, emails, socials, and publish status.">
+            <div className="row g-3">
+              <div className="col-12">
+                <div className="card border-0 shadow-sm">
+                  <div className="card-body">
+                    <h2 className="h6 mb-3">Settings</h2>
 
-                <div className="row g-2">
-                  <div className="col-12">
-                    <label className="form-label">Heading</label>
-                    <input
-                      className="form-control"
-                      value={draft.heading || ""}
-                      onChange={(e) => markDirty({ ...draft, heading: e.target.value })}
-                      disabled={busy}
-                    />
-                  </div>
-
-                  <div className="col-12">
-                    <label className="form-label">Subheading</label>
-                    <textarea
-                      className="form-control"
-                      rows="2"
-                      value={draft.subheading || ""}
-                      onChange={(e) => markDirty({ ...draft, subheading: e.target.value })}
-                      disabled={busy}
-                    />
-                  </div>
-
-                  <div className="col-12 col-md-6">
-                    <label className="form-label">Recipient Email (admin)</label>
-                    <input
-                      className="form-control"
-                      value={draft.recipient_email || ""}
-                      onChange={(e) => markDirty({ ...draft, recipient_email: e.target.value })}
-                      disabled={busy}
-                    />
-                    <div className="form-text">Display / reference only (no sending without API).</div>
-                  </div>
-
-                  <div className="col-12 col-md-6">
-                    <label className="form-label">Booking URL (Calendly)</label>
-                    <input
-                      className="form-control"
-                      value={draft.booking_url || ""}
-                      onChange={(e) => markDirty({ ...draft, booking_url: e.target.value })}
-                      disabled={busy}
-                    />
-                  </div>
-
-                  <div className="col-12 col-md-6">
-                    <label className="form-label">Public Email</label>
-                    <input
-                      className="form-control"
-                      value={draft.public_email || ""}
-                      onChange={(e) => markDirty({ ...draft, public_email: e.target.value })}
-                      disabled={busy}
-                    />
-                  </div>
-
-                  <div className="col-12 col-md-6">
-                    <label className="form-label">Phone</label>
-                    <input
-                      className="form-control"
-                      value={draft.phone || ""}
-                      onChange={(e) => markDirty({ ...draft, phone: e.target.value })}
-                      disabled={busy}
-                    />
-                  </div>
-
-                  <div className="col-12 col-md-6">
-                    <label className="form-label">Hours</label>
-                    <input
-                      className="form-control"
-                      value={draft.hours_text || ""}
-                      onChange={(e) => markDirty({ ...draft, hours_text: e.target.value })}
-                      disabled={busy}
-                    />
-                  </div>
-
-                  <div className="col-12 col-md-6">
-                    <label className="form-label">Timezone</label>
-                    <input
-                      className="form-control"
-                      value={draft.timezone || ""}
-                      onChange={(e) => markDirty({ ...draft, timezone: e.target.value })}
-                      disabled={busy}
-                    />
-                  </div>
-
-                  <div className="col-12">
-                    <div className="fw-semibold mb-2">Socials</div>
                     <div className="row g-2">
-                      {Object.keys(defaultSocials).map((key) => (
-                        <div className="col-12 col-md-6" key={key}>
-                          <label className="form-label text-capitalize">{key}</label>
+                      <div className="col-12">
+                        <label className="form-label">Heading</label>
+                        <input
+                          className="form-control"
+                          value={draft.heading || ""}
+                          onChange={(e) => markDirty({ ...draft, heading: e.target.value })}
+                          disabled={busy}
+                        />
+                      </div>
+
+                      <div className="col-12">
+                        <label className="form-label">Subheading</label>
+                        <textarea
+                          className="form-control"
+                          rows="2"
+                          value={draft.subheading || ""}
+                          onChange={(e) => markDirty({ ...draft, subheading: e.target.value })}
+                          disabled={busy}
+                        />
+                      </div>
+
+                      <div className="col-12 col-md-6">
+                        <label className="form-label">Recipient Email (admin)</label>
+                        <input
+                          className="form-control"
+                          value={draft.recipient_email || ""}
+                          onChange={(e) => markDirty({ ...draft, recipient_email: e.target.value })}
+                          disabled={busy}
+                        />
+                        <div className="form-text">Display / reference only (no sending without API).</div>
+                      </div>
+
+                      <div className="col-12 col-md-6">
+                        <label className="form-label">Booking URL (Calendly)</label>
+                        <input
+                          className="form-control"
+                          value={draft.booking_url || ""}
+                          onChange={(e) => markDirty({ ...draft, booking_url: e.target.value })}
+                          disabled={busy}
+                        />
+                      </div>
+
+                      <div className="col-12 col-md-6">
+                        <label className="form-label">Public Email</label>
+                        <input
+                          className="form-control"
+                          value={draft.public_email || ""}
+                          onChange={(e) => markDirty({ ...draft, public_email: e.target.value })}
+                          disabled={busy}
+                        />
+                      </div>
+
+                      <div className="col-12 col-md-6">
+                        <label className="form-label">Phone</label>
+                        <input
+                          className="form-control"
+                          value={draft.phone || ""}
+                          onChange={(e) => markDirty({ ...draft, phone: e.target.value })}
+                          disabled={busy}
+                        />
+                      </div>
+
+                      <div className="col-12 col-md-6">
+                        <label className="form-label">Hours</label>
+                        <input
+                          className="form-control"
+                          value={draft.hours_text || ""}
+                          onChange={(e) => markDirty({ ...draft, hours_text: e.target.value })}
+                          disabled={busy}
+                        />
+                      </div>
+
+                      <div className="col-12 col-md-6">
+                        <label className="form-label">Timezone</label>
+                        <input
+                          className="form-control"
+                          value={draft.timezone || ""}
+                          onChange={(e) => markDirty({ ...draft, timezone: e.target.value })}
+                          disabled={busy}
+                        />
+                      </div>
+
+                      <div className="col-12">
+                        <div className="fw-semibold mb-2">Socials</div>
+                        <div className="row g-2">
+                          {Object.keys(defaultSocials).map((key) => (
+                            <div className="col-12 col-md-6" key={key}>
+                              <label className="form-label text-capitalize">{key}</label>
+                              <input
+                                className="form-control"
+                                value={draftSocials[key] || ""}
+                                onChange={(e) => {
+                                  const nextSocials = { ...draftSocials, [key]: e.target.value };
+                                  markDirty({ ...draft, socials: nextSocials });
+                                }}
+                                disabled={busy}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="col-12 d-flex align-items-center justify-content-between mt-2">
+                        <div className="form-check">
                           <input
-                            className="form-control"
-                            value={draftSocials[key] || ""}
-                            onChange={(e) => {
-                              const nextSocials = { ...draftSocials, [key]: e.target.value };
-                              markDirty({ ...draft, socials: nextSocials });
-                            }}
+                            className="form-check-input"
+                            type="checkbox"
+                            checked={!!draft.is_published}
+                            onChange={(e) => markDirty({ ...draft, is_published: e.target.checked })}
                             disabled={busy}
+                            id="contactPub"
                           />
+                          <label className="form-check-label" htmlFor="contactPub">
+                            Published
+                          </label>
+                        </div>
+
+                        <button className="btn btn-outline-secondary" onClick={reloadInbox} disabled={busy}>
+                          {busy ? (
+                            <>
+                              <span className="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+                              Refreshing...
+                            </>
+                          ) : (
+                            <>
+                              <i className="fa-solid fa-rotate me-2"></i>Refresh Inbox
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </AdminStep>
+
+          <AdminStep title="Test and Inbox" description="Send a test message and review submissions.">
+            <div className="row g-3">
+              <div className="col-12">
+                <div className="card border-0 shadow-sm mb-3">
+                  <div className="card-body">
+                    <h2 className="h6 mb-3">Test Form (writes to inbox)</h2>
+
+                    <div className="row g-2">
+                      <div className="col-12 col-md-6">
+                        <label className="form-label">Name *</label>
+                        <input
+                          className="form-control"
+                          value={test.name}
+                          onChange={(e) => setTest((p) => ({ ...p, name: e.target.value }))}
+                          disabled={busy}
+                        />
+                      </div>
+
+                      <div className="col-12 col-md-6">
+                        <label className="form-label">Email *</label>
+                        <input
+                          className="form-control"
+                          value={test.email}
+                          onChange={(e) => setTest((p) => ({ ...p, email: e.target.value }))}
+                          disabled={busy}
+                        />
+                      </div>
+
+                      <div className="col-12">
+                        <label className="form-label">Subject</label>
+                        <input
+                          className="form-control"
+                          value={test.subject}
+                          onChange={(e) => setTest((p) => ({ ...p, subject: e.target.value }))}
+                          disabled={busy}
+                        />
+                      </div>
+
+                      <div className="col-12">
+                        <label className="form-label">Message *</label>
+                        <textarea
+                          className="form-control"
+                          rows="4"
+                          value={test.message}
+                          onChange={(e) => setTest((p) => ({ ...p, message: e.target.value }))}
+                          disabled={busy}
+                        />
+                      </div>
+
+                      <div className="col-12 d-flex justify-content-end">
+                        <button className="btn btn-primary" onClick={submitTest} disabled={busy}>
+                          {busy ? (
+                            <>
+                              <span className="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+                              Sending...
+                            </>
+                          ) : (
+                            <>
+                              <i className="fa-solid fa-paper-plane me-2"></i>Send Test
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="card border-0 shadow-sm">
+                  <div className="card-body">
+                    <h2 className="h6 mb-3">Inbox (latest 25)</h2>
+
+                    {!inbox.length ? <div className="text-muted">No messages yet.</div> : null}
+
+                    <div className="vstack gap-2">
+                      {inbox.map((m) => (
+                        <div key={m.id} className="border rounded p-3 bg-white">
+                          <div className="d-flex justify-content-between gap-2">
+                            <div>
+                              <div className="fw-semibold">
+                                {m.name} <span className="text-muted small">({m.email})</span>
+                              </div>
+                              <div className="text-muted small">{new Date(m.created_at).toLocaleString()}</div>
+                              {m.subject ? (
+                                <div className="small mt-1">
+                                  <span className="fw-semibold">Subject:</span> {m.subject}
+                                </div>
+                              ) : null}
+                            </div>
+
+                            <button className="btn btn-sm btn-outline-danger" onClick={() => deleteMessage(m.id)} disabled={busy}>
+                              <i className="fa-solid fa-trash"></i>
+                            </button>
+                          </div>
+
+                          <div className="small text-muted mt-2" style={{ whiteSpace: "pre-wrap" }}>
+                            {m.message}
+                          </div>
                         </div>
                       ))}
                     </div>
                   </div>
-
-                  <div className="col-12 d-flex align-items-center justify-content-between mt-2">
-                    <div className="form-check">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        checked={!!draft.is_published}
-                        onChange={(e) => markDirty({ ...draft, is_published: e.target.checked })}
-                        disabled={busy}
-                        id="contactPub"
-                      />
-                      <label className="form-check-label" htmlFor="contactPub">
-                        Published
-                      </label>
-                    </div>
-
-                    <button className="btn btn-outline-secondary" onClick={reloadInbox} disabled={busy}>
-                      {busy ? (
-                        <>
-                          <span className="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
-                          Refreshing...
-                        </>
-                      ) : (
-                        <>
-                          <i className="fa-solid fa-rotate me-2"></i>Refresh Inbox
-                        </>
-                      )}
-                    </button>
-                  </div>
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* Test Form + Inbox */}
-          <div className="col-12 col-lg-6">
-            <div className="card border-0 shadow-sm mb-3">
-              <div className="card-body">
-                <h2 className="h6 mb-3">Test Form (writes to inbox)</h2>
-
-                <div className="row g-2">
-                  <div className="col-12 col-md-6">
-                    <label className="form-label">Name *</label>
-                    <input
-                      className="form-control"
-                      value={test.name}
-                      onChange={(e) => setTest((p) => ({ ...p, name: e.target.value }))}
-                      disabled={busy}
-                    />
-                  </div>
-
-                  <div className="col-12 col-md-6">
-                    <label className="form-label">Email *</label>
-                    <input
-                      className="form-control"
-                      value={test.email}
-                      onChange={(e) => setTest((p) => ({ ...p, email: e.target.value }))}
-                      disabled={busy}
-                    />
-                  </div>
-
-                  <div className="col-12">
-                    <label className="form-label">Subject</label>
-                    <input
-                      className="form-control"
-                      value={test.subject}
-                      onChange={(e) => setTest((p) => ({ ...p, subject: e.target.value }))}
-                      disabled={busy}
-                    />
-                  </div>
-
-                  <div className="col-12">
-                    <label className="form-label">Message *</label>
-                    <textarea
-                      className="form-control"
-                      rows="4"
-                      value={test.message}
-                      onChange={(e) => setTest((p) => ({ ...p, message: e.target.value }))}
-                      disabled={busy}
-                    />
-                  </div>
-
-                  <div className="col-12 d-flex justify-content-end">
-                    <button className="btn btn-primary" onClick={submitTest} disabled={busy}>
-                      {busy ? (
-                        <>
-                          <span className="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
-                          Sending...
-                        </>
-                      ) : (
-                        <>
-                          <i className="fa-solid fa-paper-plane me-2"></i>Send Test
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="card border-0 shadow-sm">
-              <div className="card-body">
-                <h2 className="h6 mb-3">Inbox (latest 25)</h2>
-
-                {!inbox.length ? <div className="text-muted">No messages yet.</div> : null}
-
-                <div className="vstack gap-2">
-                  {inbox.map((m) => (
-                    <div key={m.id} className="border rounded p-3 bg-white">
-                      <div className="d-flex justify-content-between gap-2">
-                        <div>
-                          <div className="fw-semibold">
-                            {m.name} <span className="text-muted small">({m.email})</span>
-                          </div>
-                          <div className="text-muted small">{new Date(m.created_at).toLocaleString()}</div>
-                          {m.subject ? (
-                            <div className="small mt-1">
-                              <span className="fw-semibold">Subject:</span> {m.subject}
-                            </div>
-                          ) : null}
-                        </div>
-
-                        <button className="btn btn-sm btn-outline-danger" onClick={() => deleteMessage(m.id)} disabled={busy}>
-                          <i className="fa-solid fa-trash"></i>
-                        </button>
-                      </div>
-
-                      <div className="small text-muted mt-2" style={{ whiteSpace: "pre-wrap" }}>
-                        {m.message}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+          </AdminStep>
+        </AdminStepper>
       </div>
       <AdminActionModal modal={modal} onConfirm={onConfirm} onCancel={onCancel} />
     </div>

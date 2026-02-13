@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 import AdminActionModal, { useAdminActionModal } from "@/components/admin/AdminActionModal";
+import AdminStepper, { AdminStep } from "@/components/admin/AdminStepper";
 
 const sectionKeys = [
   "home",
@@ -283,9 +284,11 @@ export default function AdminSettingsPage() {
           </div>
         ) : null}
 
-        <div className="row g-3">
-          {/* Site Settings */}
-          <div className="col-12 col-lg-5">
+        <AdminStepper>
+          <AdminStep title="Site Settings" description="Branding, SEO, footer, and publish status.">
+            <div className="row g-3">
+              {/* Site Settings */}
+          <div className="col-12">
             <div className="card border-0 shadow-sm">
               <div className="card-body">
                 <div className="d-flex align-items-center justify-content-between mb-3">
@@ -404,9 +407,13 @@ export default function AdminSettingsPage() {
               </div>
             </div>
           </div>
+        </div>
+          </AdminStep>
 
-          {/* Backgrounds */}
-          <div className="col-12 col-lg-7">
+          <AdminStep title="Section Backgrounds" description="Upload images and tune overlays.">
+            <div className="row g-3">
+              {/* Backgrounds */}
+          <div className="col-12">
             <div className="card border-0 shadow-sm">
               <div className="card-body">
                 <h2 className="h6 mb-3">Section Backgrounds</h2>
@@ -696,6 +703,8 @@ export default function AdminSettingsPage() {
             </div>
           </div>
         </div>
+          </AdminStep>
+        </AdminStepper>
       </div>
       <AdminActionModal modal={modal} onConfirm={onConfirm} onCancel={onCancel} />
     </div>

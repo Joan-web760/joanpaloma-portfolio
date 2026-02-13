@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 import AdminActionModal, { useAdminActionModal } from "@/components/admin/AdminActionModal";
+import AdminStepper, { AdminStep } from "@/components/admin/AdminStepper";
 
 const emptyForm = {
   title: "",
@@ -244,7 +245,9 @@ export default function AdminBlogPage() {
           </div>
         ) : null}
 
-        {/* Create */}
+        <AdminStepper>
+          <AdminStep title="Create Post" description="Draft a new blog entry.">
+            {/* Create */}
         <div className="card border-0 shadow-sm mb-3">
           <div className="card-body">
             <h2 className="h6 mb-3">Create Post</h2>
@@ -381,7 +384,10 @@ export default function AdminBlogPage() {
           </div>
         </div>
 
-        {/* List */}
+          </AdminStep>
+
+          <AdminStep title="Manage Posts" description="Edit content, covers, and publish status.">
+            {/* List */}
         <div className="card border-0 shadow-sm">
           <div className="card-body">
             <h2 className="h6 mb-3">Posts</h2>
@@ -526,6 +532,8 @@ export default function AdminBlogPage() {
             </div>
           </div>
         </div>
+          </AdminStep>
+        </AdminStepper>
       </div>
       <AdminActionModal modal={modal} onConfirm={onConfirm} onCancel={onCancel} />
     </div>

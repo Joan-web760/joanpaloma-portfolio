@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
+import AdminStepper, { AdminStep } from "@/components/admin/AdminStepper";
 
 const DEFAULT_VALUES = ["Clear communication", "Reliable delivery", "Ownership mindset"];
 const MEDIA_BUCKET = "portfolio-media";
@@ -350,146 +351,154 @@ export default function AdminAboutEditorPage() {
           </div>
         ) : null}
 
-        <div className="row g-3">
-          <div className="col-12 col-lg-8">
-            <div className="card border-0 shadow-sm">
-              <div className="card-body">
-                <h2 className="h6 mb-3">Content</h2>
+        <AdminStepper>
+          <AdminStep title="Story Details" description="Bios, values, and publish status.">
+            <div className="row g-3">
+              <div className="col-12 col-lg-8">
+                <div className="card border-0 shadow-sm">
+                  <div className="card-body">
+                    <h2 className="h6 mb-3">Content</h2>
 
-                <div className="mb-3">
-                  <label className="form-label">Short Bio</label>
-                  <textarea className="form-control" rows="3" value={shortBio} onChange={(e) => setShortBio(e.target.value)} />
-                </div>
+                    <div className="mb-3">
+                      <label className="form-label">Short Bio</label>
+                      <textarea className="form-control" rows="3" value={shortBio} onChange={(e) => setShortBio(e.target.value)} />
+                    </div>
 
-                <div className="mb-3">
-                  <label className="form-label">Long Bio</label>
-                  <textarea className="form-control" rows="8" value={longBio} onChange={(e) => setLongBio(e.target.value)} />
-                </div>
+                    <div className="mb-3">
+                      <label className="form-label">Long Bio</label>
+                      <textarea className="form-control" rows="8" value={longBio} onChange={(e) => setLongBio(e.target.value)} />
+                    </div>
 
-                <div className="mb-3">
-                  <label className="form-label">Values (one per line)</label>
-                  <textarea
-                    className="form-control"
-                    rows="6"
-                    placeholder={"Clear communication\nReliable delivery\nOwnership mindset"}
-                    value={valuesText}
-                    onChange={(e) => setValuesText(e.target.value)}
-                  />
-                  <div className="form-text">
-                    Stored in <code>values_json</code> as an array.
-                  </div>
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label">Extended Video URL (optional)</label>
-                  <input
-                    className="form-control"
-                    placeholder="https://youtube.com/..."
-                    value={extendedVideoUrl}
-                    onChange={(e) => setExtendedVideoUrl(e.target.value)}
-                  />
-                  <div className="form-text">
-                    If you upload a video file, the uploaded video will be used first (extended_video_path).
-                  </div>
-                </div>
-
-                <div className="form-check">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    checked={isPublished}
-                    onChange={(e) => setIsPublished(e.target.checked)}
-                    id="aboutPublishedCheck"
-                  />
-                  <label className="form-check-label" htmlFor="aboutPublishedCheck">
-                    Mark as published (Save required)
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="col-12 col-lg-4">
-
-            <div className="card border-0 shadow-sm mb-3">
-              <div className="card-body">
-                <h2 className="h6 mb-2">Quick Links</h2>
-                <div className="d-grid gap-2">
-                  <button className="btn btn-outline-primary" onClick={() => router.push("/admin")}>
-                    <i className="fa-solid fa-arrow-left me-2"></i>Back to Dashboard
-                  </button>
-                  <button className="btn btn-outline-dark" onClick={openPreview}>
-                    <i className="fa-solid fa-eye me-2"></i>Preview /about
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="card border-0 shadow-sm mb-3">
-              <div className="card-body">
-                <h2 className="h6 mb-3">Media</h2>
-
-                <div className="mb-3">
-                  <label className="form-label">About Image</label>
-                  <input className="form-control" type="file" accept="image/*" onChange={onAboutImageFile} disabled={saving} />
-
-                  {aboutImageUrl ? (
-                    <div className="mt-2">
-                      <img src={aboutImageUrl} alt="About" className="img-fluid rounded border" />
-                      <div className="small text-muted mt-1">
-                        Path: <code>{aboutImagePath}</code>
+                    <div className="mb-3">
+                      <label className="form-label">Values (one per line)</label>
+                      <textarea
+                        className="form-control"
+                        rows="6"
+                        placeholder={"Clear communication\nReliable delivery\nOwnership mindset"}
+                        value={valuesText}
+                        onChange={(e) => setValuesText(e.target.value)}
+                      />
+                      <div className="form-text">
+                        Stored in <code>values_json</code> as an array.
                       </div>
                     </div>
-                  ) : (
-                    <div className="small text-muted mt-2">No about image uploaded.</div>
-                  )}
+
+                    <div className="mb-3">
+                      <label className="form-label">Extended Video URL (optional)</label>
+                      <input
+                        className="form-control"
+                        placeholder="https://youtube.com/..."
+                        value={extendedVideoUrl}
+                        onChange={(e) => setExtendedVideoUrl(e.target.value)}
+                      />
+                      <div className="form-text">
+                        If you upload a video file, the uploaded video will be used first (extended_video_path).
+                      </div>
+                    </div>
+
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        checked={isPublished}
+                        onChange={(e) => setIsPublished(e.target.checked)}
+                        id="aboutPublishedCheck"
+                      />
+                      <label className="form-check-label" htmlFor="aboutPublishedCheck">
+                        Mark as published (Save required)
+                      </label>
+                    </div>
+                  </div>
                 </div>
+              </div>
 
-                <hr />
-
-                {/* NEW: About Video Upload */}
-                <div>
-                  <label className="form-label">Extended Video (Upload)</label>
-                  <input
-                    className="form-control"
-                    type="file"
-                    accept="video/mp4,video/webm,video/*"
-                    onChange={onAboutVideoFile}
-                    disabled={saving}
-                  />
-
-                  {extendedVideoFileUrl ? (
-                    <div className="mt-2">
-                      <div className="ratio ratio-16x9">
-                        <video src={extendedVideoFileUrl} controls playsInline preload="metadata" />
-                      </div>
-                      <div className="small text-muted mt-2">
-                        Path: <code>{extendedVideoPath}</code>
-                      </div>
-
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-outline-danger mt-2"
-                        disabled={saving}
-                        onClick={() => {
-                          setExtendedVideoPath(null);
-                          setNotice("Extended video cleared. Click Save to persist.");
-                        }}
-                      >
-                        <i className="fa-solid fa-trash me-2"></i>Remove Video (clears DB field)
+              <div className="col-12 col-lg-4">
+                <div className="card border-0 shadow-sm mb-3">
+                  <div className="card-body">
+                    <h2 className="h6 mb-2">Quick Links</h2>
+                    <div className="d-grid gap-2">
+                      <button className="btn btn-outline-primary" onClick={() => router.push("/admin")}>
+                        <i className="fa-solid fa-arrow-left me-2"></i>Back to Dashboard
+                      </button>
+                      <button className="btn btn-outline-dark" onClick={openPreview}>
+                        <i className="fa-solid fa-eye me-2"></i>Preview /about
                       </button>
                     </div>
-                  ) : (
-                    <div className="small text-muted mt-2">No extended video uploaded.</div>
-                  )}
-
-                  <div className="form-text mt-2">Max 50MB (adjust in code). Recommended: mp4 (H.264).</div>
+                  </div>
                 </div>
               </div>
             </div>
+          </AdminStep>
 
-          </div>
-        </div>
+          <AdminStep title="Media Uploads" description="Profile image and extended video.">
+            <div className="row g-3">
+              <div className="col-12">
+                <div className="card border-0 shadow-sm mb-3">
+                  <div className="card-body">
+                    <h2 className="h6 mb-3">Media</h2>
+
+                    <div className="mb-3">
+                      <label className="form-label">About Image</label>
+                      <input className="form-control" type="file" accept="image/*" onChange={onAboutImageFile} disabled={saving} />
+
+                      {aboutImageUrl ? (
+                        <div className="mt-2">
+                          <img src={aboutImageUrl} alt="About" className="img-fluid rounded border" />
+                          <div className="small text-muted mt-1">
+                            Path: <code>{aboutImagePath}</code>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="small text-muted mt-2">No about image uploaded.</div>
+                      )}
+                    </div>
+
+                    <hr />
+
+                    {/* NEW: About Video Upload */}
+                    <div>
+                      <label className="form-label">Extended Video (Upload)</label>
+                      <input
+                        className="form-control"
+                        type="file"
+                        accept="video/mp4,video/webm,video/*"
+                        onChange={onAboutVideoFile}
+                        disabled={saving}
+                      />
+
+                      {extendedVideoFileUrl ? (
+                        <div className="mt-2">
+                          <div className="ratio ratio-16x9">
+                            <video src={extendedVideoFileUrl} controls playsInline preload="metadata" />
+                          </div>
+                          <div className="small text-muted mt-2">
+                            Path: <code>{extendedVideoPath}</code>
+                          </div>
+
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-danger mt-2"
+                            disabled={saving}
+                            onClick={() => {
+                              setExtendedVideoPath(null);
+                              setNotice("Extended video cleared. Click Save to persist.");
+                            }}
+                          >
+                            <i className="fa-solid fa-trash me-2"></i>Remove Video (clears DB field)
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="small text-muted mt-2">No extended video uploaded.</div>
+                      )}
+
+                      <div className="form-text mt-2">Max 50MB (adjust in code). Recommended: mp4 (H.264).</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </AdminStep>
+        </AdminStepper>
 
         <div className="small text-muted mt-3">
           Storage bucket: <code>{MEDIA_BUCKET}</code> — about videos are uploaded to <code>about/video/</code>.

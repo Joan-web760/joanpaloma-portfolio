@@ -325,6 +325,7 @@ export default function AdminSettingsPage() {
                     <label className="form-label">Site Title</label>
                     <input
                       className="form-control"
+                      placeholder="e.g. Joan Paloma - Virtual Assistant"
                       value={siteUi.site_title}
                       onChange={(e) => {
                         setSiteUi((p) => ({ ...p, site_title: e.target.value }));
@@ -332,6 +333,7 @@ export default function AdminSettingsPage() {
                       }}
                       disabled={busy}
                     />
+                    <div className="form-text">Shown in the browser tab and search results.</div>
                   </div>
 
                   <div className="col-12">
@@ -339,6 +341,7 @@ export default function AdminSettingsPage() {
                     <textarea
                       className="form-control"
                       rows="2"
+                      placeholder="Short description of your portfolio and services."
                       value={siteUi.site_description}
                       onChange={(e) => {
                         setSiteUi((p) => ({ ...p, site_description: e.target.value }));
@@ -346,12 +349,14 @@ export default function AdminSettingsPage() {
                       }}
                       disabled={busy}
                     />
+                    <div className="form-text">1-2 sentences used for SEO and previews.</div>
                   </div>
 
                   <div className="col-12">
                     <label className="form-label">Keywords</label>
                     <input
                       className="form-control"
+                      placeholder="virtual assistant, operations, admin support"
                       value={siteUi.site_keywords}
                       onChange={(e) => {
                         setSiteUi((p) => ({ ...p, site_keywords: e.target.value }));
@@ -359,12 +364,14 @@ export default function AdminSettingsPage() {
                       }}
                       disabled={busy}
                     />
+                    <div className="form-text">Comma-separated keywords that describe your services.</div>
                   </div>
 
                   <div className="col-12">
                     <label className="form-label">Footer Text</label>
                     <input
                       className="form-control"
+                      placeholder="e.g. Copyright 2026 Joan Paloma. All rights reserved."
                       value={siteUi.footer_text}
                       onChange={(e) => {
                         setSiteUi((p) => ({ ...p, footer_text: e.target.value }));
@@ -372,6 +379,7 @@ export default function AdminSettingsPage() {
                       }}
                       disabled={busy}
                     />
+                    <div className="form-text">Short line that appears at the bottom of the site.</div>
                   </div>
 
                   <div className="col-12 d-flex align-items-center justify-content-between">
@@ -390,15 +398,7 @@ export default function AdminSettingsPage() {
                       <label className="form-check-label" htmlFor="sitePub">
                         Published
                       </label>
-                    </div>
-                  </div>
-
-                  <div className="col-12">
-                    <div className="alert alert-warning py-2 mb-0">
-                      <div className="small">
-                        Logo/Favicon uploads are optional. If you want them stored in DB, tell me whether you prefer:
-                        <strong> portfolio-media</strong> or <strong>portfolio-backgrounds</strong>.
-                      </div>
+                      <div className="form-text">Toggle overall site visibility.</div>
                     </div>
                   </div>
                 </div>
@@ -474,6 +474,7 @@ export default function AdminSettingsPage() {
                               <label className="form-check-label" htmlFor={`en_${row.id}`}>
                                 Enabled
                               </label>
+                              <div className="form-text">Show this background on the section.</div>
                             </div>
 
                             <button
@@ -539,6 +540,7 @@ export default function AdminSettingsPage() {
                                 }
                               }}
                             />
+                            <div className="form-text">Upload a wide image (recommended 1600px or wider).</div>
 
                             {preview ? (
                               <div className="rounded border mt-2 overflow-hidden position-relative">
@@ -582,7 +584,7 @@ export default function AdminSettingsPage() {
                                     }}
                                   />
                                 </div>
-                                <div className="small text-muted mt-1">Stored as hex (e.g. #000000).</div>
+                                <div className="form-text">Darker overlays improve text readability.</div>
                               </div>
 
                               <div className="col-12 col-md-6">
@@ -620,16 +622,19 @@ export default function AdminSettingsPage() {
                                     markDirtyBg(row.id);
                                   }}
                                 />
+                                <div className="form-text">0.00 is transparent, 1.00 is solid.</div>
                               </div>
 
                               <div className="col-12 col-md-6">
                                 <label className="form-label">Position</label>
                                 <input
                                   className="form-control"
+                                  placeholder="center center"
                                   defaultValue={row.position}
                                   onBlur={(e) => saveBg(row.id, { position: e.target.value.trim() || "center center" })}
                                   disabled={busy}
                                 />
+                                <div className="form-text">Controls focal point (e.g. center center, top right).</div>
                               </div>
 
                               <div className="col-12 col-md-4">
@@ -646,6 +651,7 @@ export default function AdminSettingsPage() {
                                     </option>
                                   ))}
                                 </select>
+                                <div className="form-text">Cover fills the section; contain fits the full image.</div>
                               </div>
 
                               <div className="col-12 col-md-4">
@@ -662,6 +668,7 @@ export default function AdminSettingsPage() {
                                     </option>
                                   ))}
                                 </select>
+                                <div className="form-text">Usually "no-repeat" for full-size images.</div>
                               </div>
 
                               <div className="col-12 col-md-4">
@@ -678,18 +685,12 @@ export default function AdminSettingsPage() {
                                     </option>
                                   ))}
                                 </select>
+                                <div className="form-text">Fixed keeps the image in place while scrolling.</div>
                               </div>
                             </div>
 
                             <div className="mt-2">
-                              <div className="small text-muted">
-                                Overlay CSS: <code>{overlayCss}</code>
-                              </div>
-                              {row.bg_image_path ? (
-                                <div className="small text-muted mt-1">
-                                  Path: <code>{row.bg_image_path}</code>
-                                </div>
-                              ) : null}
+                              <div className="small text-muted">Preview reflects your overlay settings.</div>
                             </div>
 
                             {dirtyBg[row.id] ? <div className="small text-muted mt-2">You have unsaved changes.</div> : null}

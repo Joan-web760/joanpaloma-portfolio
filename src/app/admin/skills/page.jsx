@@ -408,7 +408,7 @@ export default function AdminSkillsPage() {
         <div className="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
           <div>
             <h1 className="h5 mb-1">Skills</h1>
-            <div className="small text-muted">CRUD skills by custom type, level, publish, and order.</div>
+            <div className="small text-muted">Group, level, and publish the skills you want to highlight.</div>
           </div>
 
           <div className="d-flex flex-wrap gap-2 align-items-center">
@@ -462,6 +462,7 @@ export default function AdminSkillsPage() {
                   onChange={(e) => setNewSkill((p) => ({ ...p, name: e.target.value }))}
                   disabled={busy}
                 />
+                <div className="form-text">Use the exact skill name clients might recognize.</div>
               </div>
 
               <div className="col-12 col-md-3">
@@ -478,6 +479,7 @@ export default function AdminSkillsPage() {
                   disabled={busy}
                   list="skillTypeExamples"
                 />
+                <div className="form-text">Group similar skills under a shared category.</div>
                 <datalist id="skillTypeExamples">
                   {TYPE_EXAMPLES.map((x) => (
                     <option key={x} value={x} />
@@ -505,6 +507,7 @@ export default function AdminSkillsPage() {
                 <div className="progress" role="progressbar" aria-valuenow={clamp(Number(newSkill.level) || 0, 0, 100)} aria-valuemin={0} aria-valuemax={100}>
                   <div className="progress-bar" style={{ width: `${clamp(Number(newSkill.level) || 0, 0, 100)}%` }} />
                 </div>
+                <div className="form-text">Set a confidence level. 0 = beginner, 100 = expert.</div>
               </div>
 
               <div className="col-6 col-md-1">
@@ -518,8 +521,9 @@ export default function AdminSkillsPage() {
                     id="newSkillPub"
                   />
                   <label className="form-check-label" htmlFor="newSkillPub">
-                    Pub
+                    Publish
                   </label>
+                  <div className="form-text">Show this skill on your site.</div>
                 </div>
               </div>
 
@@ -562,10 +566,12 @@ export default function AdminSkillsPage() {
                               <label className="form-label">Name</label>
                               <input
                                 className="form-control"
+                                placeholder='e.g. "Notion", "Figma", "Zapier"'
                                 value={s.name || ""}
                                 onChange={(e) => setDraftField(s.id, { name: e.target.value })}
                                 disabled={busy}
                               />
+                              <div className="form-text">Use the exact skill name that appears on your resume.</div>
                             </div>
 
                             <div className="col-12 col-md-3">
@@ -582,6 +588,7 @@ export default function AdminSkillsPage() {
                                 disabled={busy}
                                 list="skillTypeExamples"
                               />
+                              <div className="form-text">Keep types consistent to avoid duplicated groups.</div>
                             </div>
 
                             {/* NEW: Level slider + progress */}
@@ -604,6 +611,7 @@ export default function AdminSkillsPage() {
                               <div className="progress" role="progressbar" aria-valuenow={lvl} aria-valuemin={0} aria-valuemax={100}>
                                 <div className="progress-bar" style={{ width: `${lvl}%` }} />
                               </div>
+                              <div className="form-text">Quick gauge for how strong you feel in this skill.</div>
                             </div>
 
                             <div className="col-6 col-md-1">
@@ -617,8 +625,9 @@ export default function AdminSkillsPage() {
                                   id={`skillPub_${s.id}`}
                                 />
                                 <label className="form-check-label" htmlFor={`skillPub_${s.id}`}>
-                                  Pub
+                                  Publish
                                 </label>
+                                <div className="form-text">Hide to keep this skill private.</div>
                               </div>
                             </div>
 

@@ -435,40 +435,48 @@ export default function AdminTestimonialsPage() {
                 <textarea
                   className="form-control"
                   rows="3"
+                  placeholder="Share the client's feedback in their own words."
                   value={form.quote}
                   onChange={(e) => setForm((p) => ({ ...p, quote: e.target.value }))}
                   disabled={busy}
                 />
+                <div className="form-text">Keep it authentic and concise (1-3 sentences).</div>
               </div>
 
               <div className="col-12 col-md-4">
                 <label className="form-label">Name *</label>
                 <input
                   className="form-control"
+                  placeholder="e.g. Alex Morgan"
                   value={form.name}
                   onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
                   disabled={busy}
                 />
+                <div className="form-text">Client or colleague name as it should appear publicly.</div>
               </div>
 
               <div className="col-12 col-md-4">
                 <label className="form-label">Role</label>
                 <input
                   className="form-control"
+                  placeholder="e.g. Founder, COO"
                   value={form.role}
                   onChange={(e) => setForm((p) => ({ ...p, role: e.target.value }))}
                   disabled={busy}
                 />
+                <div className="form-text">Optional job title to add credibility.</div>
               </div>
 
               <div className="col-12 col-md-4">
                 <label className="form-label">Company</label>
                 <input
                   className="form-control"
+                  placeholder="e.g. BrightLabs"
                   value={form.company}
                   onChange={(e) => setForm((p) => ({ ...p, company: e.target.value }))}
                   disabled={busy}
                 />
+                <div className="form-text">Optional company or brand name.</div>
               </div>
 
               <div className="col-12 col-md-3">
@@ -485,6 +493,7 @@ export default function AdminTestimonialsPage() {
                     </option>
                   ))}
                 </select>
+                <div className="form-text">Choose a star rating (1-5).</div>
               </div>
 
               <div className="col-12 col-md-5">
@@ -514,10 +523,9 @@ export default function AdminTestimonialsPage() {
                     }
                   }}
                 />
+                <div className="form-text">Square headshot works best (at least 400x400).</div>
                 {form.avatar_path ? (
-                  <div className="small text-muted mt-1">
-                    Path: <code>{form.avatar_path}</code>
-                  </div>
+                  <div className="small text-muted mt-1">Avatar ready. It will be saved when you add the testimonial.</div>
                 ) : null}
               </div>
 
@@ -532,10 +540,11 @@ export default function AdminTestimonialsPage() {
                       disabled={busy}
                       id="newFeat"
                     />
-                    <label className="form-check-label" htmlFor="newFeat">
-                      Featured
-                    </label>
-                  </div>
+                  <label className="form-check-label" htmlFor="newFeat">
+                    Featured
+                  </label>
+                  <div className="form-text">Highlight this testimonial on the page.</div>
+                </div>
 
                   <div className="form-check">
                     <input
@@ -546,10 +555,11 @@ export default function AdminTestimonialsPage() {
                       disabled={busy}
                       id="newPub"
                     />
-                    <label className="form-check-label" htmlFor="newPub">
-                      Published
-                    </label>
-                  </div>
+                  <label className="form-check-label" htmlFor="newPub">
+                    Published
+                  </label>
+                  <div className="form-text">Show this testimonial publicly.</div>
+                </div>
                 </div>
 
                 <button className="btn btn-primary" onClick={createItem} disabled={busy}>
@@ -634,40 +644,48 @@ export default function AdminTestimonialsPage() {
                         <textarea
                           className="form-control"
                           rows="3"
+                          placeholder="Share the client's feedback in their own words."
                           value={quoteVal}
                           onChange={(e) => stage(it.id, { quote: e.target.value })}
                           disabled={busy}
                         />
+                        <div className="form-text">Keep it short and authentic.</div>
                       </div>
 
                       <div className="col-12 col-md-3">
                         <label className="form-label">Name</label>
                         <input
                           className="form-control"
+                          placeholder="e.g. Alex Morgan"
                           value={nameVal}
                           onChange={(e) => stage(it.id, { name: e.target.value })}
                           disabled={busy}
                         />
+                        <div className="form-text">Public display name.</div>
                       </div>
 
                       <div className="col-12 col-md-3">
                         <label className="form-label">Role</label>
                         <input
                           className="form-control"
+                          placeholder="e.g. Founder, COO"
                           value={roleVal || ""}
                           onChange={(e) => stage(it.id, { role: e.target.value })}
                           disabled={busy}
                         />
+                        <div className="form-text">Optional job title.</div>
                       </div>
 
                       <div className="col-12 col-md-3">
                         <label className="form-label">Company</label>
                         <input
                           className="form-control"
+                          placeholder="e.g. BrightLabs"
                           value={companyVal || ""}
                           onChange={(e) => stage(it.id, { company: e.target.value })}
                           disabled={busy}
                         />
+                        <div className="form-text">Optional company or brand.</div>
                       </div>
 
                       <div className="col-12 col-md-3">
@@ -684,6 +702,7 @@ export default function AdminTestimonialsPage() {
                             </option>
                           ))}
                         </select>
+                        <div className="form-text">Select a star rating (1-5).</div>
                       </div>
 
                       <div className="col-12 col-md-6">
@@ -718,6 +737,7 @@ export default function AdminTestimonialsPage() {
                             }
                           }}
                         />
+                        <div className="form-text">Use a square headshot (at least 400x400).</div>
                       </div>
 
                       <div className="col-12 col-md-6 d-flex align-items-end">
@@ -731,24 +751,26 @@ export default function AdminTestimonialsPage() {
                               disabled={busy}
                               id={`feat_${it.id}`}
                             />
-                            <label className="form-check-label" htmlFor={`feat_${it.id}`}>
-                              Featured
-                            </label>
-                          </div>
+                          <label className="form-check-label" htmlFor={`feat_${it.id}`}>
+                            Featured
+                          </label>
+                          <div className="form-text">Highlight this testimonial on the page.</div>
+                        </div>
 
-                          <div className="form-check">
-                            <input
-                              className="form-check-input"
-                              type="checkbox"
-                              checked={publishedVal}
-                              onChange={(e) => stage(it.id, { is_published: e.target.checked })}
-                              disabled={busy}
-                              id={`pub_${it.id}`}
-                            />
-                            <label className="form-check-label" htmlFor={`pub_${it.id}`}>
-                              Published
-                            </label>
-                          </div>
+                        <div className="form-check">
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            checked={publishedVal}
+                            onChange={(e) => stage(it.id, { is_published: e.target.checked })}
+                            disabled={busy}
+                            id={`pub_${it.id}`}
+                          />
+                          <label className="form-check-label" htmlFor={`pub_${it.id}`}>
+                            Published
+                          </label>
+                          <div className="form-text">Toggle visibility on the public site.</div>
+                        </div>
                         </div>
                       </div>
                     </div>

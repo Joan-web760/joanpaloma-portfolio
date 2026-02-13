@@ -699,9 +699,9 @@ export default function AdminServicesPage() {
         {/* Header */}
         <div className="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
           <div>
-            <h1 className="h5 mb-1">Services — VA Offerings</h1>
+            <h1 className="h5 mb-1">Services - VA Offerings</h1>
             <div className="small text-muted">
-              Edit fields then click <b>Save Changes</b>. We show <b>Position</b> instead of “Order: 10/20”.
+              Edit fields then click <b>Save Changes</b>. Use the position badges to understand display order.
             </div>
           </div>
 
@@ -741,19 +741,23 @@ export default function AdminServicesPage() {
                 <label className="form-label">Title</label>
                 <input
                   className="form-control"
+                  placeholder="e.g. Executive Support"
                   value={newCat.title}
                   onChange={(e) => setNewCat((p) => ({ ...p, title: e.target.value }))}
                   disabled={busy}
                 />
+                <div className="form-text">Short category name that groups similar services.</div>
               </div>
               <div className="col-12 col-md-6">
                 <label className="form-label">Description (optional)</label>
                 <input
                   className="form-control"
+                  placeholder="e.g. Ongoing support for busy founders"
                   value={newCat.description}
                   onChange={(e) => setNewCat((p) => ({ ...p, description: e.target.value }))}
                   disabled={busy}
                 />
+                <div className="form-text">One sentence that explains who this category is for.</div>
               </div>
               <div className="col-6 col-md-1">
                 <div className="form-check mt-4">
@@ -766,8 +770,9 @@ export default function AdminServicesPage() {
                     id="newCatPub"
                   />
                   <label className="form-check-label" htmlFor="newCatPub">
-                    Pub
+                    Publish
                   </label>
+                  <div className="form-text">Show this category on your site.</div>
                 </div>
               </div>
               <div className="col-6 col-md-1 d-grid">
@@ -802,26 +807,31 @@ export default function AdminServicesPage() {
                     </option>
                   ))}
                 </select>
+                <div className="form-text">Choose the category this service belongs to.</div>
               </div>
 
               <div className="col-12 col-md-3">
                 <label className="form-label">Title</label>
                 <input
                   className="form-control"
+                  placeholder="e.g. Inbox Management"
                   value={newItem.title}
                   onChange={(e) => setNewItem((p) => ({ ...p, title: e.target.value }))}
                   disabled={busy}
                 />
+                <div className="form-text">Use a short, scannable service name.</div>
               </div>
 
               <div className="col-12 col-md-4">
                 <label className="form-label">Description (optional)</label>
                 <input
                   className="form-control"
+                  placeholder="e.g. Daily triage, responses, and follow-ups"
                   value={newItem.description}
                   onChange={(e) => setNewItem((p) => ({ ...p, description: e.target.value }))}
                   disabled={busy}
                 />
+                <div className="form-text">One sentence that explains the outcome.</div>
               </div>
 
               <div className="col-6 col-md-1">
@@ -835,8 +845,9 @@ export default function AdminServicesPage() {
                     id="newItemPub"
                   />
                   <label className="form-check-label" htmlFor="newItemPub">
-                    Pub
+                    Publish
                   </label>
+                  <div className="form-text">Show this service on your site.</div>
                 </div>
               </div>
 
@@ -875,8 +886,7 @@ export default function AdminServicesPage() {
                   placeholder={bulletsPlaceholder}
                   disabled={busy}
                 />
-
-
+                <div className="form-text">List 2-5 key tasks or outcomes. One bullet per line.</div>
               </div>
             </div>
           </div>
@@ -1007,20 +1017,24 @@ export default function AdminServicesPage() {
                         <label className="form-label">Category Title</label>
                         <input
                           className="form-control"
+                          placeholder="e.g. Executive Support"
                           value={catDraft.title}
                           onChange={(e) => onChangeCatDraft({ title: e.target.value })}
                           disabled={busy}
                         />
+                        <div className="form-text">Keep it short and consistent with your service areas.</div>
                       </div>
 
                       <div className="col-12 col-md-5">
                         <label className="form-label">Category Description</label>
                         <input
                           className="form-control"
+                          placeholder="e.g. Ongoing operational support for founders"
                           value={catDraft.description}
                           onChange={(e) => onChangeCatDraft({ description: e.target.value })}
                           disabled={busy}
                         />
+                        <div className="form-text">Optional one-liner that appears under the category.</div>
                       </div>
 
                       <div className="col-12 col-md-2">
@@ -1037,6 +1051,7 @@ export default function AdminServicesPage() {
                           <label className="form-check-label" htmlFor={`catPub_${toKey(selectedCategory.id)}`}>
                             Visible
                           </label>
+                          <div className="form-text">Turn on to show this category publicly.</div>
                         </div>
                       </div>
                     </div>
@@ -1102,20 +1117,24 @@ export default function AdminServicesPage() {
                                     <label className="form-label">Title</label>
                                     <input
                                       className="form-control"
+                                      placeholder="e.g. Calendar Management"
                                       value={d.title}
                                       onChange={(e) => onChangeServiceDraft(it.id, { title: e.target.value })}
                                       disabled={busy}
                                     />
+                                    <div className="form-text">Short, scannable service name.</div>
                                   </div>
 
                                   <div className="col-12 col-md-5">
                                     <label className="form-label">Description</label>
                                     <input
                                       className="form-control"
+                                      placeholder="e.g. Schedule optimization and meeting prep"
                                       value={d.description}
                                       onChange={(e) => onChangeServiceDraft(it.id, { description: e.target.value })}
                                       disabled={busy}
                                     />
+                                    <div className="form-text">Brief outcome-focused summary.</div>
                                   </div>
 
                                   <div className="col-12 col-md-3">
@@ -1132,6 +1151,7 @@ export default function AdminServicesPage() {
                                       <label className="form-check-label" htmlFor={`itPub_${toKey(it.id)}`}>
                                         Visible
                                       </label>
+                                      <div className="form-text">Publish to show this service.</div>
                                     </div>
                                   </div>
 
@@ -1158,8 +1178,7 @@ export default function AdminServicesPage() {
                                       placeholder={bulletsPlaceholder}
                                       disabled={busy}
                                     />
-
-
+                                    <div className="form-text">List key tasks or deliverables. One bullet per line.</div>
                                   </div>
                                 </div>
                               </div>

@@ -159,7 +159,7 @@ export default function AdminResumePage() {
         <div className="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
           <div>
             <h1 className="h5 mb-1">Resume / CV</h1>
-            <div className="small text-muted">Upload/replace your CV PDF and edit the summary + button label.</div>
+            <div className="small text-muted">Upload your PDF and customize the summary and button text.</div>
           </div>
 
           <div className="d-flex gap-2">
@@ -196,16 +196,19 @@ export default function AdminResumePage() {
                     <textarea
                       className="form-control"
                       rows="5"
+                      placeholder="Briefly summarize your experience, specialties, and the type of work you are seeking."
                       defaultValue={row.summary || ""}
                       onBlur={(e) => updateRow({ summary: e.target.value.trim() || null })}
                       disabled={busy}
                     />
+                    <div className="form-text">Keep it concise - 3 to 5 sentences works well.</div>
                   </div>
 
                   <div className="col-12 col-md-6">
                     <label className="form-label">Button Label</label>
                     <input
                       className="form-control"
+                      placeholder="Download CV"
                       defaultValue={row.button_label || "Download CV"}
                       onBlur={(e) => {
                         const v = e.target.value.trim() || "Download CV";
@@ -213,6 +216,7 @@ export default function AdminResumePage() {
                       }}
                       disabled={busy}
                     />
+                    <div className="form-text">Short call-to-action for the download button.</div>
                   </div>
 
                   <div className="col-12 col-md-6 d-flex align-items-end">
@@ -226,6 +230,7 @@ export default function AdminResumePage() {
                         id="resumePub"
                       />
                       <label className="form-check-label" htmlFor="resumePub">Published</label>
+                      <div className="form-text">Toggle to show or hide the Resume section.</div>
                     </div>
                   </div>
                 </div>
@@ -240,9 +245,7 @@ export default function AdminResumePage() {
                   <div className="col-12">
                     <label className="form-label">Upload / Replace CV (PDF)</label>
                     <input className="form-control" type="file" accept="application/pdf" onChange={replaceCv} disabled={busy} />
-                    <div className="form-text">
-                      Uploads to bucket <code>portfolio-docs</code> under <code>resume/</code>.
-                    </div>
+                    <div className="form-text">Upload a PDF version of your CV (1-3 pages recommended).</div>
                   </div>
 
                   <div className="col-12">
@@ -250,15 +253,12 @@ export default function AdminResumePage() {
                       <div className="fw-semibold mb-1">Current CV</div>
                       {row.cv_file_path ? (
                         <>
-                          <div className="small text-muted mb-2">
-                            Path: <code>{row.cv_file_path}</code>
-                          </div>
                           {cvUrl ? (
                             <a className="btn btn-outline-dark" href={cvUrl} target="_blank" rel="noreferrer">
                               <i className="fa-solid fa-file-pdf me-2"></i>Open PDF
                             </a>
                           ) : (
-                            <div className="text-muted small">No public URL (bucket might be private).</div>
+                            <div className="text-muted small">Preview link unavailable. Upload a new PDF if needed.</div>
                           )}
                         </>
                       ) : (

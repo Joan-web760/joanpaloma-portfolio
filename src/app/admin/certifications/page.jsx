@@ -460,20 +460,24 @@ export default function AdminCertificationsPage() {
                 <label className="form-label">Title *</label>
                 <input
                   className="form-control"
+                  placeholder="e.g. Google Project Management Certificate"
                   value={form.title}
                   onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
                   disabled={busy}
                 />
+                <div className="form-text">Use the official certification name.</div>
               </div>
 
               <div className="col-12 col-md-4">
                 <label className="form-label">Provider</label>
                 <input
                   className="form-control"
+                  placeholder="e.g. Google"
                   value={form.provider}
                   onChange={(e) => setForm((p) => ({ ...p, provider: e.target.value }))}
                   disabled={busy}
                 />
+                <div className="form-text">Organization or issuing body.</div>
               </div>
 
               <div className="col-12 col-md-4">
@@ -481,34 +485,37 @@ export default function AdminCertificationsPage() {
                 <input
                   className="form-control"
                   type="date"
+                  placeholder="YYYY-MM-DD"
                   value={form.issued_date}
                   onChange={(e) => setForm((p) => ({ ...p, issued_date: e.target.value }))}
                   disabled={busy}
                 />
+                <div className="form-text">When the certificate was issued.</div>
               </div>
 
               <div className="col-12">
                 <label className="form-label">Verification URL</label>
                 <input
                   className="form-control"
+                  placeholder="https://certificate-link.com/verify"
                   value={form.verification_url}
                   onChange={(e) => setForm((p) => ({ ...p, verification_url: e.target.value }))}
                   disabled={busy}
                 />
+                <div className="form-text">Optional link to verify or view the credential.</div>
               </div>
 
               <div className="col-12 col-md-6">
                 <label className="form-label">Certificate Image (optional)</label>
                 <input className="form-control" type="file" accept="image/*" onChange={onFormImageChange} disabled={busy} />
+                <div className="form-text">Upload a clean certificate image (JPG/PNG).</div>
                 {formImageUrl ? (
                   <div className="mt-2">
                     <img src={formImageUrl} alt="Certificate preview" className="img-fluid rounded border" />
-                    <div className="small text-muted mt-1">
-                      Path: <code>{form.certificate_image_path}</code>
-                    </div>
+                    <div className="small text-muted mt-1">Image ready. It will be saved when you add the item.</div>
                   </div>
                 ) : (
-                  <div className="small text-muted mt-2">No image selected.</div>
+                  <div className="small text-muted mt-2">No image selected yet.</div>
                 )}
               </div>
 
@@ -525,6 +532,7 @@ export default function AdminCertificationsPage() {
                   <label className="form-check-label" htmlFor="newCertPub">
                     Published
                   </label>
+                  <div className="form-text">Show this certification on your site.</div>
                 </div>
 
                 <button className="btn btn-primary" onClick={createItem} disabled={busy}>
@@ -612,20 +620,24 @@ export default function AdminCertificationsPage() {
                         <label className="form-label">Title</label>
                         <input
                           className="form-control"
+                          placeholder="e.g. Google Project Management Certificate"
                           value={titleVal}
                           onChange={(e) => onEdit(it.id, { title: e.target.value })}
                           disabled={busy}
                         />
+                        <div className="form-text">Official name of the certification.</div>
                       </div>
 
                       <div className="col-12 col-md-4">
                         <label className="form-label">Provider</label>
                         <input
                           className="form-control"
+                          placeholder="e.g. Google"
                           value={providerVal}
                           onChange={(e) => onEdit(it.id, { provider: e.target.value })}
                           disabled={busy}
                         />
+                        <div className="form-text">Issuer or organization.</div>
                       </div>
 
                       <div className="col-12 col-md-4">
@@ -633,24 +645,28 @@ export default function AdminCertificationsPage() {
                         <input
                           className="form-control"
                           type="date"
+                          placeholder="YYYY-MM-DD"
                           value={issuedVal || ""}
                           onChange={(e) => onEdit(it.id, { issued_date: e.target.value })}
                           disabled={busy}
                         />
+                        <div className="form-text">Date the certificate was issued.</div>
                       </div>
 
                       <div className="col-12">
                         <label className="form-label">Verification URL</label>
                         <input
                           className="form-control"
+                          placeholder="https://certificate-link.com/verify"
                           value={verifyVal}
                           onChange={(e) => onEdit(it.id, { verification_url: e.target.value })}
                           disabled={busy}
                         />
+                        <div className="form-text">Optional verification or credential link.</div>
                       </div>
 
                       <div className="col-12 col-md-6">
-                        <label className="form-label">Replace Image (saves immediately)</label>
+                        <label className="form-label">Replace Image</label>
                         <input
                           className="form-control"
                           type="file"
@@ -667,6 +683,7 @@ export default function AdminCertificationsPage() {
                             }
                           }}
                         />
+                        <div className="form-text">Uploading a new image updates the item right away.</div>
 
                         {img ? (
                           <div className="mt-2">
@@ -690,6 +707,7 @@ export default function AdminCertificationsPage() {
                           <label className="form-check-label" htmlFor={`pub_${it.id}`}>
                             Published
                           </label>
+                          <div className="form-text">Toggle visibility on the public site.</div>
                         </div>
 
                         {isDirty ? (

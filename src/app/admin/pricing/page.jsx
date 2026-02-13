@@ -444,20 +444,24 @@ export default function AdminPricingPage() {
                 <label className="form-label">Name *</label>
                 <input
                   className="form-control"
+                  placeholder="e.g. Starter"
                   value={form.name}
                   onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
                   disabled={busy}
                 />
+                <div className="form-text">Package or tier name.</div>
               </div>
 
               <div className="col-12 col-md-4">
                 <label className="form-label">Price</label>
                 <input
                   className="form-control"
+                  placeholder="e.g. $1,200"
                   value={form.price}
                   onChange={(e) => setForm((p) => ({ ...p, price: e.target.value }))}
                   disabled={busy}
                 />
+                <div className="form-text">Use a clear price format (include currency).</div>
               </div>
 
               <div className="col-12 col-md-4">
@@ -469,6 +473,7 @@ export default function AdminPricingPage() {
                   disabled={busy}
                   placeholder="per month / per project"
                 />
+                <div className="form-text">Explain how the price is billed.</div>
               </div>
 
               <div className="col-12">
@@ -476,10 +481,12 @@ export default function AdminPricingPage() {
                 <textarea
                   className="form-control"
                   rows="2"
+                  placeholder="Who this package is for and the main outcome."
                   value={form.description}
                   onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
                   disabled={busy}
                 />
+                <div className="form-text">1-2 sentences that summarize the offer.</div>
               </div>
 
               <div className="col-12 col-md-6">
@@ -487,10 +494,12 @@ export default function AdminPricingPage() {
                 <textarea
                   className="form-control"
                   rows="6"
+                  placeholder={"Weekly reporting\nInbox management\nCalendar optimization"}
                   value={form.inclusionsText}
                   onChange={(e) => setForm((p) => ({ ...p, inclusionsText: e.target.value }))}
                   disabled={busy}
                 />
+                <div className="form-text">List what is included in this package.</div>
               </div>
 
               <div className="col-12 col-md-6">
@@ -498,10 +507,12 @@ export default function AdminPricingPage() {
                 <textarea
                   className="form-control"
                   rows="6"
+                  placeholder={"Additional inbox coverage\nWeekend support"}
                   value={form.addonsText}
                   onChange={(e) => setForm((p) => ({ ...p, addonsText: e.target.value }))}
                   disabled={busy}
                 />
+                <div className="form-text">Optional extras clients can add.</div>
               </div>
 
               <div className="col-12 d-flex flex-wrap gap-3 align-items-center justify-content-between mt-2">
@@ -518,6 +529,7 @@ export default function AdminPricingPage() {
                     <label className="form-check-label" htmlFor="newFeat">
                       Featured
                     </label>
+                    <div className="form-text">Highlight this package on the pricing page.</div>
                   </div>
 
                   <div className="form-check">
@@ -532,6 +544,7 @@ export default function AdminPricingPage() {
                     <label className="form-check-label" htmlFor="newPub">
                       Published
                     </label>
+                    <div className="form-text">Show this package publicly.</div>
                   </div>
                 </div>
 
@@ -636,30 +649,36 @@ export default function AdminPricingPage() {
                         <label className="form-label">Name</label>
                         <input
                           className="form-control"
+                          placeholder="e.g. Starter"
                           value={nameVal}
                           onChange={(e) => stage(it.id, { name: e.target.value })}
                           disabled={busy}
                         />
+                        <div className="form-text">Package or tier name.</div>
                       </div>
 
                       <div className="col-12 col-md-4">
                         <label className="form-label">Price</label>
                         <input
                           className="form-control"
+                          placeholder="e.g. $1,200"
                           value={priceVal}
                           onChange={(e) => stage(it.id, { price: e.target.value })}
                           disabled={busy}
                         />
+                        <div className="form-text">Include currency and format clearly.</div>
                       </div>
 
                       <div className="col-12 col-md-4">
                         <label className="form-label">Billing Type</label>
                         <input
                           className="form-control"
+                          placeholder="per month / per project"
                           value={billingVal}
                           onChange={(e) => stage(it.id, { billing_type: e.target.value })}
                           disabled={busy}
                         />
+                        <div className="form-text">How the price is billed.</div>
                       </div>
 
                       <div className="col-12">
@@ -667,10 +686,12 @@ export default function AdminPricingPage() {
                         <textarea
                           className="form-control"
                           rows="2"
+                          placeholder="Who this package is for and the main outcome."
                           value={descVal}
                           onChange={(e) => stage(it.id, { description: e.target.value })}
                           disabled={busy}
                         />
+                        <div className="form-text">1-2 sentences that summarize the offer.</div>
                       </div>
 
                       <div className="col-12 col-md-6">
@@ -678,10 +699,12 @@ export default function AdminPricingPage() {
                         <textarea
                           className="form-control"
                           rows="6"
+                          placeholder={"Weekly reporting\nInbox management\nCalendar optimization"}
                           value={incText}
                           onChange={(e) => stage(it.id, { inclusionsText: e.target.value })}
                           disabled={busy}
                         />
+                        <div className="form-text">List what is included in this package.</div>
                       </div>
 
                       <div className="col-12 col-md-6">
@@ -689,10 +712,12 @@ export default function AdminPricingPage() {
                         <textarea
                           className="form-control"
                           rows="6"
+                          placeholder={"Additional inbox coverage\nWeekend support"}
                           value={addText}
                           onChange={(e) => stage(it.id, { addonsText: e.target.value })}
                           disabled={busy}
                         />
+                        <div className="form-text">Optional extras clients can add.</div>
                       </div>
 
                       <div className="col-12 d-flex flex-wrap gap-3 align-items-center">
@@ -708,6 +733,7 @@ export default function AdminPricingPage() {
                           <label className="form-check-label" htmlFor={`feat_${it.id}`}>
                             Featured
                           </label>
+                          <div className="form-text">Highlight this package on the pricing page.</div>
                         </div>
 
                         <div className="form-check">
@@ -722,6 +748,7 @@ export default function AdminPricingPage() {
                           <label className="form-check-label" htmlFor={`pub_${it.id}`}>
                             Published
                           </label>
+                          <div className="form-text">Show this package publicly.</div>
                         </div>
 
                         {isDirty ? (

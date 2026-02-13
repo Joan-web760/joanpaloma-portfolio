@@ -598,38 +598,46 @@ export default function AdminExperiencePage() {
                 <label className="form-label">Role Title *</label>
                 <input
                   className="form-control"
+                  placeholder="e.g. Senior Virtual Assistant"
                   value={form.role_title}
                   onChange={(e) => setForm((p) => ({ ...p, role_title: e.target.value }))}
                   disabled={busy}
                 />
+                <div className="form-text">Use the job title or role name shown on your resume.</div>
               </div>
               <div className="col-12 col-md-4">
                 <label className="form-label">Company</label>
                 <input
                   className="form-control"
+                  placeholder="e.g. Acme Co."
                   value={form.company}
                   onChange={(e) => setForm((p) => ({ ...p, company: e.target.value }))}
                   disabled={busy}
                 />
+                <div className="form-text">Add the company or brand you supported.</div>
               </div>
               <div className="col-12 col-md-4">
                 <label className="form-label">Client (optional)</label>
                 <input
                   className="form-control"
+                  placeholder="e.g. Client name (if agency)"
                   value={form.client}
                   onChange={(e) => setForm((p) => ({ ...p, client: e.target.value }))}
                   disabled={busy}
                 />
+                <div className="form-text">Use this if you worked through an agency or consultancy.</div>
               </div>
 
               <div className="col-12 col-md-4">
                 <label className="form-label">Location</label>
                 <input
                   className="form-control"
+                  placeholder="e.g. Remote - Manila, PH"
                   value={form.location}
                   onChange={(e) => setForm((p) => ({ ...p, location: e.target.value }))}
                   disabled={busy}
                 />
+                <div className="form-text">City, country, or "Remote".</div>
               </div>
 
               <div className="col-6 col-md-3">
@@ -637,10 +645,12 @@ export default function AdminExperiencePage() {
                 <input
                   className="form-control"
                   type="date"
+                  placeholder="YYYY-MM-DD"
                   value={form.start_date}
                   onChange={(e) => setForm((p) => ({ ...p, start_date: e.target.value }))}
                   disabled={busy}
                 />
+                <div className="form-text">Use the month you started.</div>
               </div>
 
               <div className="col-6 col-md-3">
@@ -648,10 +658,12 @@ export default function AdminExperiencePage() {
                 <input
                   className="form-control"
                   type="date"
+                  placeholder="YYYY-MM-DD"
                   value={form.end_date}
                   onChange={(e) => setForm((p) => ({ ...p, end_date: e.target.value }))}
                   disabled={busy || form.is_current}
                 />
+                <div className="form-text">Leave blank if this role is current.</div>
               </div>
 
               <div className="col-12 col-md-2">
@@ -667,6 +679,7 @@ export default function AdminExperiencePage() {
                   <label className="form-check-label" htmlFor="isCurrent">
                     Current
                   </label>
+                  <div className="form-text">Check if you are still in this role.</div>
                 </div>
               </div>
 
@@ -675,10 +688,12 @@ export default function AdminExperiencePage() {
                 <textarea
                   className="form-control"
                   rows="2"
+                  placeholder="One sentence describing the role and impact."
                   value={form.summary}
                   onChange={(e) => setForm((p) => ({ ...p, summary: e.target.value }))}
                   disabled={busy}
                 />
+                <div className="form-text">Keep it concise. This appears under the role title.</div>
               </div>
 
               <div className="col-12 col-md-6">
@@ -686,10 +701,12 @@ export default function AdminExperiencePage() {
                 <textarea
                   className="form-control"
                   rows="5"
+                  placeholder={"Managed inbox triage\nCoordinated calendars\nPrepared weekly reports"}
                   value={form.responsibilitiesText}
                   onChange={(e) => setForm((p) => ({ ...p, responsibilitiesText: e.target.value }))}
                   disabled={busy}
                 />
+                <div className="form-text">List day-to-day tasks. One item per line.</div>
               </div>
 
               <div className="col-12 col-md-6">
@@ -697,30 +714,36 @@ export default function AdminExperiencePage() {
                 <textarea
                   className="form-control"
                   rows="5"
+                  placeholder={"Reduced response time by 40%\nSaved 8 hours/week with automation"}
                   value={form.achievementsText}
                   onChange={(e) => setForm((p) => ({ ...p, achievementsText: e.target.value }))}
                   disabled={busy}
                 />
+                <div className="form-text">Highlight measurable wins and outcomes.</div>
               </div>
 
               <div className="col-12 col-md-6">
                 <label className="form-label">Tools (comma-separated)</label>
                 <input
                   className="form-control"
+                  placeholder="Notion, Slack, Google Workspace"
                   value={form.toolsText}
                   onChange={(e) => setForm((p) => ({ ...p, toolsText: e.target.value }))}
                   disabled={busy}
                 />
+                <div className="form-text">List key tools or platforms used.</div>
               </div>
 
               <div className="col-12 col-md-6">
                 <label className="form-label">Tags (comma-separated)</label>
                 <input
                   className="form-control"
+                  placeholder="Executive, Operations, Client Support"
                   value={form.tagsText}
                   onChange={(e) => setForm((p) => ({ ...p, tagsText: e.target.value }))}
                   disabled={busy}
                 />
+                <div className="form-text">Optional keywords for filtering or emphasis.</div>
               </div>
 
               <div className="col-6">
@@ -736,6 +759,7 @@ export default function AdminExperiencePage() {
                   <label className="form-check-label" htmlFor="newExpPub">
                     Published
                   </label>
+                  <div className="form-text">Show this role on your public timeline.</div>
                 </div>
               </div>
 
@@ -817,40 +841,48 @@ export default function AdminExperiencePage() {
                         <label className="form-label">Role</label>
                         <input
                           className="form-control"
+                          placeholder="e.g. Executive Assistant"
                           value={v.role_title}
                           onChange={(e) => stage(it.id, "role_title", e.target.value)}
                           disabled={busy}
                         />
+                        <div className="form-text">Role title as you want it displayed.</div>
                       </div>
 
                       <div className="col-12 col-md-4">
                         <label className="form-label">Company</label>
                         <input
                           className="form-control"
+                          placeholder="e.g. Acme Co."
                           value={v.company}
                           onChange={(e) => stage(it.id, "company", e.target.value)}
                           disabled={busy}
                         />
+                        <div className="form-text">Company or brand name.</div>
                       </div>
 
                       <div className="col-12 col-md-4">
                         <label className="form-label">Client</label>
                         <input
                           className="form-control"
+                          placeholder="e.g. Client name (if agency)"
                           value={v.client}
                           onChange={(e) => stage(it.id, "client", e.target.value)}
                           disabled={busy}
                         />
+                        <div className="form-text">Optional client name if you served via an agency.</div>
                       </div>
 
                       <div className="col-12 col-md-4">
                         <label className="form-label">Location</label>
                         <input
                           className="form-control"
+                          placeholder="e.g. Remote - Manila, PH"
                           value={v.location}
                           onChange={(e) => stage(it.id, "location", e.target.value)}
                           disabled={busy}
                         />
+                        <div className="form-text">City, country, or remote.</div>
                       </div>
 
                       <div className="col-6 col-md-3">
@@ -858,10 +890,12 @@ export default function AdminExperiencePage() {
                         <input
                           className="form-control"
                           type="date"
+                          placeholder="YYYY-MM-DD"
                           value={v.start_date}
                           onChange={(e) => stage(it.id, "start_date", e.target.value)}
                           disabled={busy}
                         />
+                        <div className="form-text">Start month for this role.</div>
                       </div>
 
                       <div className="col-6 col-md-3">
@@ -869,10 +903,12 @@ export default function AdminExperiencePage() {
                         <input
                           className="form-control"
                           type="date"
+                          placeholder="YYYY-MM-DD"
                           value={v.end_date}
                           onChange={(e) => stage(it.id, "end_date", e.target.value)}
                           disabled={busy || v.is_current}
                         />
+                        <div className="form-text">Leave blank if current.</div>
                       </div>
 
                       <div className="col-12 col-md-2">
@@ -888,6 +924,7 @@ export default function AdminExperiencePage() {
                           <label className="form-check-label" htmlFor={`cur_${it.id}`}>
                             Current
                           </label>
+                          <div className="form-text">Check if this role is ongoing.</div>
                         </div>
                       </div>
 
@@ -896,10 +933,12 @@ export default function AdminExperiencePage() {
                         <textarea
                           className="form-control"
                           rows="2"
+                          placeholder="One-sentence overview of your impact."
                           value={v.summary}
                           onChange={(e) => stage(it.id, "summary", e.target.value)}
                           disabled={busy}
                         />
+                        <div className="form-text">Quick overview that sits under the role.</div>
                       </div>
 
                       <div className="col-12 col-md-6">
@@ -907,10 +946,12 @@ export default function AdminExperiencePage() {
                         <textarea
                           className="form-control"
                           rows="5"
+                          placeholder={"Managed inbox triage\nCoordinated calendars\nPrepared weekly reports"}
                           value={v.responsibilitiesText}
                           onChange={(e) => stage(it.id, "responsibilitiesText", e.target.value)}
                           disabled={busy}
                         />
+                        <div className="form-text">List day-to-day tasks. One item per line.</div>
                       </div>
 
                       <div className="col-12 col-md-6">
@@ -918,30 +959,36 @@ export default function AdminExperiencePage() {
                         <textarea
                           className="form-control"
                           rows="5"
+                          placeholder={"Reduced response time by 40%\nSaved 8 hours/week with automation"}
                           value={v.achievementsText}
                           onChange={(e) => stage(it.id, "achievementsText", e.target.value)}
                           disabled={busy}
                         />
+                        <div className="form-text">Highlight measurable outcomes and wins.</div>
                       </div>
 
                       <div className="col-12 col-md-6">
                         <label className="form-label">Tools (comma-separated)</label>
                         <input
                           className="form-control"
+                          placeholder="Notion, Slack, Google Workspace"
                           value={v.toolsText}
                           onChange={(e) => stage(it.id, "toolsText", e.target.value)}
                           disabled={busy}
                         />
+                        <div className="form-text">Include platforms and tools you used regularly.</div>
                       </div>
 
                       <div className="col-12 col-md-6">
                         <label className="form-label">Tags (comma-separated)</label>
                         <input
                           className="form-control"
+                          placeholder="Executive, Operations, Client Support"
                           value={v.tagsText}
                           onChange={(e) => stage(it.id, "tagsText", e.target.value)}
                           disabled={busy}
                         />
+                        <div className="form-text">Optional keywords for filtering and emphasis.</div>
                       </div>
 
                       <div className="col-12">
@@ -958,6 +1005,7 @@ export default function AdminExperiencePage() {
                             <label className="form-check-label" htmlFor={`pub_${it.id}`}>
                               Published
                             </label>
+                            <div className="form-text">Turn on to show this role on the site.</div>
                           </div>
 
                           <button

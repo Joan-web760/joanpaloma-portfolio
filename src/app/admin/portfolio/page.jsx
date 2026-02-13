@@ -662,8 +662,7 @@ export default function AdminPortfolioPage() {
           <div>
             <h1 className="h5 mb-1">Portfolio — Work Samples</h1>
             <div className="small text-muted">
-              CRUD items, feature toggle, reorder, and upload screenshots/videos to Supabase bucket{" "}
-              <code>{BUCKET}</code>.
+              Add projects, highlight featured work, reorder items, and upload screenshots or demo clips.
             </div>
           </div>
 
@@ -722,37 +721,88 @@ export default function AdminPortfolioPage() {
             <div className="row g-2">
               <div className="col-12 col-md-4">
                 <label className="form-label">Title *</label>
-                <input className="form-control" value={newItem.title} onChange={(e) => setNewItem((p) => ({ ...p, title: e.target.value }))} disabled={busy} />
+                <input
+                  className="form-control"
+                  placeholder="e.g. Client Onboarding Redesign"
+                  value={newItem.title}
+                  onChange={(e) => setNewItem((p) => ({ ...p, title: e.target.value }))}
+                  disabled={busy}
+                />
+                <div className="form-text">Project name or headline clients will recognize.</div>
               </div>
 
               <div className="col-12 col-md-4">
                 <label className="form-label">Subtitle</label>
-                <input className="form-control" value={newItem.subtitle} onChange={(e) => setNewItem((p) => ({ ...p, subtitle: e.target.value }))} disabled={busy} />
+                <input
+                  className="form-control"
+                  placeholder="e.g. Streamlined workflows for a SaaS team"
+                  value={newItem.subtitle}
+                  onChange={(e) => setNewItem((p) => ({ ...p, subtitle: e.target.value }))}
+                  disabled={busy}
+                />
+                <div className="form-text">Optional one-line summary under the title.</div>
               </div>
 
               <div className="col-12 col-md-4">
                 <label className="form-label">Tags (comma-separated)</label>
-                <input className="form-control" value={newItem.tagsText} onChange={(e) => setNewItem((p) => ({ ...p, tagsText: e.target.value }))} disabled={busy} />
+                <input
+                  className="form-control"
+                  placeholder="Operations, Automation, SaaS"
+                  value={newItem.tagsText}
+                  onChange={(e) => setNewItem((p) => ({ ...p, tagsText: e.target.value }))}
+                  disabled={busy}
+                />
+                <div className="form-text">Helps visitors filter and understand the project focus.</div>
               </div>
 
               <div className="col-12">
                 <label className="form-label">Description</label>
-                <textarea className="form-control" rows="3" value={newItem.description} onChange={(e) => setNewItem((p) => ({ ...p, description: e.target.value }))} disabled={busy} />
+                <textarea
+                  className="form-control"
+                  rows="3"
+                  placeholder="Describe your role, the problem, and the outcome in 2-4 sentences."
+                  value={newItem.description}
+                  onChange={(e) => setNewItem((p) => ({ ...p, description: e.target.value }))}
+                  disabled={busy}
+                />
+                <div className="form-text">Focus on impact and what you delivered.</div>
               </div>
 
               <div className="col-12 col-md-4">
                 <label className="form-label">Project URL</label>
-                <input className="form-control" value={newItem.project_url} onChange={(e) => setNewItem((p) => ({ ...p, project_url: e.target.value }))} disabled={busy} />
+                <input
+                  className="form-control"
+                  placeholder="https://client.com/case-study"
+                  value={newItem.project_url}
+                  onChange={(e) => setNewItem((p) => ({ ...p, project_url: e.target.value }))}
+                  disabled={busy}
+                />
+                <div className="form-text">Link to the live project or case study.</div>
               </div>
 
               <div className="col-12 col-md-4">
                 <label className="form-label">Repo URL</label>
-                <input className="form-control" value={newItem.repo_url} onChange={(e) => setNewItem((p) => ({ ...p, repo_url: e.target.value }))} disabled={busy} />
+                <input
+                  className="form-control"
+                  placeholder="https://github.com/username/project"
+                  value={newItem.repo_url}
+                  onChange={(e) => setNewItem((p) => ({ ...p, repo_url: e.target.value }))}
+                  disabled={busy}
+                />
+                <div className="form-text">Optional if you want to share the code.</div>
               </div>
 
               <div className="col-12 col-md-4">
                 <label className="form-label">Results / Metrics (one per line)</label>
-                <textarea className="form-control" rows="3" value={newItem.resultsText} onChange={(e) => setNewItem((p) => ({ ...p, resultsText: e.target.value }))} disabled={busy} />
+                <textarea
+                  className="form-control"
+                  rows="3"
+                  placeholder={"Reduced response time by 40%\nSaved 10 hours/week\nImproved NPS to 9.2"}
+                  value={newItem.resultsText}
+                  onChange={(e) => setNewItem((p) => ({ ...p, resultsText: e.target.value }))}
+                  disabled={busy}
+                />
+                <div className="form-text">List measurable outcomes or wins.</div>
               </div>
 
               <div className="col-12">
@@ -771,8 +821,7 @@ export default function AdminPortfolioPage() {
                   }}
                 />
                 <div className="form-text">
-                  Selected files upload right after you click <b>Add Portfolio Item</b>. Bucket:{" "}
-                  <code>{BUCKET}</code> under <code>portfolio/&lt;newId&gt;/</code>
+                  Add screenshots or a short demo video. Files upload after you click <b>Add Portfolio Item</b>.
                 </div>
                 {newItemFiles.length ? <div className="small text-muted mt-1">Selected: {newItemFiles.length} file(s)</div> : null}
               </div>
@@ -781,6 +830,7 @@ export default function AdminPortfolioPage() {
                 <div className="form-check mt-2">
                   <input className="form-check-input" type="checkbox" checked={!!newItem.is_featured} onChange={(e) => setNewItem((p) => ({ ...p, is_featured: e.target.checked }))} disabled={busy} id="newFeat" />
                   <label className="form-check-label" htmlFor="newFeat">Featured</label>
+                  <div className="form-text">Highlight this project at the top of your portfolio.</div>
                 </div>
               </div>
 
@@ -788,6 +838,7 @@ export default function AdminPortfolioPage() {
                 <div className="form-check mt-2">
                   <input className="form-check-input" type="checkbox" checked={!!newItem.is_published} onChange={(e) => setNewItem((p) => ({ ...p, is_published: e.target.checked }))} disabled={busy} id="newPub" />
                   <label className="form-check-label" htmlFor="newPub">Published</label>
+                  <div className="form-text">Show this project on your public site.</div>
                 </div>
               </div>
 
@@ -882,43 +933,95 @@ export default function AdminPortfolioPage() {
                     <div className="row g-2 mt-2">
                       <div className="col-12 col-md-4">
                         <label className="form-label">Title</label>
-                        <input className="form-control" value={d.title} onChange={(e) => setDraft(it.id, { title: e.target.value })} disabled={busy} />
+                        <input
+                          className="form-control"
+                          placeholder="e.g. Client Onboarding Redesign"
+                          value={d.title}
+                          onChange={(e) => setDraft(it.id, { title: e.target.value })}
+                          disabled={busy}
+                        />
+                        <div className="form-text">Project name or headline.</div>
                       </div>
 
                       <div className="col-12 col-md-4">
                         <label className="form-label">Subtitle</label>
-                        <input className="form-control" value={d.subtitle} onChange={(e) => setDraft(it.id, { subtitle: e.target.value })} disabled={busy} />
+                        <input
+                          className="form-control"
+                          placeholder="e.g. Streamlined workflows for a SaaS team"
+                          value={d.subtitle}
+                          onChange={(e) => setDraft(it.id, { subtitle: e.target.value })}
+                          disabled={busy}
+                        />
+                        <div className="form-text">Optional supporting line.</div>
                       </div>
 
                       <div className="col-12 col-md-4">
                         <label className="form-label">Tags</label>
-                        <input className="form-control" value={d.tagsText} onChange={(e) => setDraft(it.id, { tagsText: e.target.value })} disabled={busy} />
+                        <input
+                          className="form-control"
+                          placeholder="Operations, Automation, SaaS"
+                          value={d.tagsText}
+                          onChange={(e) => setDraft(it.id, { tagsText: e.target.value })}
+                          disabled={busy}
+                        />
+                        <div className="form-text">Comma-separated keywords.</div>
                       </div>
 
                       <div className="col-12">
                         <label className="form-label">Description</label>
-                        <textarea className="form-control" rows="3" value={d.description} onChange={(e) => setDraft(it.id, { description: e.target.value })} disabled={busy} />
+                        <textarea
+                          className="form-control"
+                          rows="3"
+                          placeholder="Describe your role, the challenge, and the outcome in 2-4 sentences."
+                          value={d.description}
+                          onChange={(e) => setDraft(it.id, { description: e.target.value })}
+                          disabled={busy}
+                        />
+                        <div className="form-text">Focus on impact and the value you delivered.</div>
                       </div>
 
                       <div className="col-12 col-md-4">
                         <label className="form-label">Project URL</label>
-                        <input className="form-control" value={d.project_url} onChange={(e) => setDraft(it.id, { project_url: e.target.value })} disabled={busy} />
+                        <input
+                          className="form-control"
+                          placeholder="https://client.com/case-study"
+                          value={d.project_url}
+                          onChange={(e) => setDraft(it.id, { project_url: e.target.value })}
+                          disabled={busy}
+                        />
+                        <div className="form-text">Optional link to the live project or case study.</div>
                       </div>
 
                       <div className="col-12 col-md-4">
                         <label className="form-label">Repo URL</label>
-                        <input className="form-control" value={d.repo_url} onChange={(e) => setDraft(it.id, { repo_url: e.target.value })} disabled={busy} />
+                        <input
+                          className="form-control"
+                          placeholder="https://github.com/username/project"
+                          value={d.repo_url}
+                          onChange={(e) => setDraft(it.id, { repo_url: e.target.value })}
+                          disabled={busy}
+                        />
+                        <div className="form-text">Optional if you want to share the code.</div>
                       </div>
 
                       <div className="col-12 col-md-4">
                         <label className="form-label">Results/Metrics</label>
-                        <textarea className="form-control" rows="3" value={d.resultsText} onChange={(e) => setDraft(it.id, { resultsText: e.target.value })} disabled={busy} />
+                        <textarea
+                          className="form-control"
+                          rows="3"
+                          placeholder={"Reduced response time by 40%\nSaved 10 hours/week\nImproved NPS to 9.2"}
+                          value={d.resultsText}
+                          onChange={(e) => setDraft(it.id, { resultsText: e.target.value })}
+                          disabled={busy}
+                        />
+                        <div className="form-text">List measurable wins or outcomes.</div>
                       </div>
 
                       <div className="col-6">
                         <div className="form-check mt-2">
                           <input className="form-check-input" type="checkbox" checked={!!d.is_featured} onChange={(e) => setDraft(it.id, { is_featured: e.target.checked })} disabled={busy} id={`feat_${it.id}`} />
                           <label className="form-check-label" htmlFor={`feat_${it.id}`}>Featured</label>
+                          <div className="form-text">Highlights this project on the portfolio page.</div>
                         </div>
                       </div>
 
@@ -926,6 +1029,7 @@ export default function AdminPortfolioPage() {
                         <div className="form-check mt-2">
                           <input className="form-check-input" type="checkbox" checked={!!d.is_published} onChange={(e) => setDraft(it.id, { is_published: e.target.checked })} disabled={busy} id={`pub_${it.id}`} />
                           <label className="form-check-label" htmlFor={`pub_${it.id}`}>Published</label>
+                          <div className="form-text">Toggle to show or hide this project.</div>
                         </div>
                       </div>
 
@@ -944,8 +1048,8 @@ export default function AdminPortfolioPage() {
                           }}
                         />
                         <div className="form-text">
-                          Uploads to bucket <code>{BUCKET}</code> under <code>portfolio/{it.id}/</code>. Allowed:{" "}
-                          <code>{ACCEPTED_EXT.join(", ")}</code>. Max: <code>{MAX_FILE_MB}MB</code>.
+                          Add screenshots or a short demo video. Allowed: <code>{ACCEPTED_EXT.join(", ")}</code>. Max:{" "}
+                          <code>{MAX_FILE_MB}MB</code>.
                         </div>
                       </div>
 
@@ -968,14 +1072,29 @@ export default function AdminPortfolioPage() {
                                       </div>
 
                                       <div className="mt-2">
-                                        <input className="form-control form-control-sm mb-2" placeholder="Alt text" defaultValue={m.alt || ""} onBlur={(e) => updateMedia(m.id, { alt: e.target.value.trim() || null })} disabled={busy} />
-                                        <input className="form-control form-control-sm mb-2" placeholder="Caption" defaultValue={m.caption || ""} onBlur={(e) => updateMedia(m.id, { caption: e.target.value.trim() || null })} disabled={busy} />
+                                        <input
+                                          className="form-control form-control-sm mb-2"
+                                          placeholder="Alt text"
+                                          defaultValue={m.alt || ""}
+                                          onBlur={(e) => updateMedia(m.id, { alt: e.target.value.trim() || null })}
+                                          disabled={busy}
+                                        />
+                                        <div className="form-text">Describe the image for accessibility and SEO.</div>
+                                        <input
+                                          className="form-control form-control-sm mb-2"
+                                          placeholder="Caption"
+                                          defaultValue={m.caption || ""}
+                                          onBlur={(e) => updateMedia(m.id, { caption: e.target.value.trim() || null })}
+                                          disabled={busy}
+                                        />
+                                        <div className="form-text">Short caption that explains the screenshot or clip.</div>
 
                                         <div className="d-flex flex-wrap gap-2 align-items-center">
                                           <div className="form-check">
                                             <input className="form-check-input" type="checkbox" defaultChecked={!!m.is_published} onChange={(e) => updateMedia(m.id, { is_published: e.target.checked })} disabled={busy} id={`m_pub_${m.id}`} />
-                                            <label className="form-check-label small" htmlFor={`m_pub_${m.id}`}>Published</label>
-                                          </div>
+                                          <label className="form-check-label small" htmlFor={`m_pub_${m.id}`}>Published</label>
+                                          <div className="form-text">Show this media in the gallery.</div>
+                                        </div>
 
                                           <button className="btn btn-sm btn-outline-secondary" onClick={() => moveMedia(it.id, m.id, "up")} disabled={busy}>
                                             <i className="fa-solid fa-arrow-up"></i>
@@ -990,9 +1109,6 @@ export default function AdminPortfolioPage() {
                                         </div>
 
                                         <div className="small text-muted mt-1">Order: {m.sort_order}</div>
-                                        <div className="small text-muted mt-1">
-                                          <code style={{ fontSize: 12 }}>{m.file_path}</code>
-                                        </div>
                                       </div>
                                     </div>
                                   </div>
@@ -1013,10 +1129,7 @@ export default function AdminPortfolioPage() {
           </AdminStep>
         </AdminStepper>
 
-        <div className="small text-muted mt-3">
-          Tip: If previews show broken images, your bucket may be <b>private</b>. This page already attempts signed URLs,
-          but you must ensure your Storage policies allow signed URL creation for authenticated users.
-        </div>
+        {/* Storage tips removed from UI */}
       </div>
       <AdminActionModal modal={modal} onConfirm={onConfirm} onCancel={onCancel} />
     </div>

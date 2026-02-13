@@ -15,6 +15,15 @@ const defaultSocials = {
   youtube: "",
 };
 
+const socialPlaceholders = {
+  facebook: "https://facebook.com/yourpage",
+  linkedin: "https://linkedin.com/in/yourname",
+  github: "https://github.com/yourname",
+  x: "https://x.com/yourhandle",
+  instagram: "https://instagram.com/yourhandle",
+  youtube: "https://youtube.com/@yourchannel",
+};
+
 export default function AdminContactPage() {
   const router = useRouter();
   const mountedRef = useRef(true);
@@ -351,10 +360,12 @@ export default function AdminContactPage() {
                         <label className="form-label">Heading</label>
                         <input
                           className="form-control"
+                          placeholder="Let's work together"
                           value={draft.heading || ""}
                           onChange={(e) => markDirty({ ...draft, heading: e.target.value })}
                           disabled={busy}
                         />
+                        <div className="form-text">Main headline for your contact section.</div>
                       </div>
 
                       <div className="col-12">
@@ -362,71 +373,84 @@ export default function AdminContactPage() {
                         <textarea
                           className="form-control"
                           rows="2"
+                          placeholder="Tell visitors how you can help and what to expect next."
                           value={draft.subheading || ""}
                           onChange={(e) => markDirty({ ...draft, subheading: e.target.value })}
                           disabled={busy}
                         />
+                        <div className="form-text">Short supporting line under the heading.</div>
                       </div>
 
                       <div className="col-12 col-md-6">
                         <label className="form-label">Recipient Email (admin)</label>
                         <input
                           className="form-control"
+                          placeholder="you@yourdomain.com"
                           value={draft.recipient_email || ""}
                           onChange={(e) => markDirty({ ...draft, recipient_email: e.target.value })}
                           disabled={busy}
                         />
-                        <div className="form-text">Display / reference only (no sending without API).</div>
+                        <div className="form-text">Where you want inquiries delivered. Messages also appear in the inbox below.</div>
                       </div>
 
                       <div className="col-12 col-md-6">
                         <label className="form-label">Booking URL (Calendly)</label>
                         <input
                           className="form-control"
+                          placeholder="https://calendly.com/yourname"
                           value={draft.booking_url || ""}
                           onChange={(e) => markDirty({ ...draft, booking_url: e.target.value })}
                           disabled={busy}
                         />
+                        <div className="form-text">Optional link for scheduling calls.</div>
                       </div>
 
                       <div className="col-12 col-md-6">
                         <label className="form-label">Public Email</label>
                         <input
                           className="form-control"
+                          placeholder="hello@yourdomain.com"
                           value={draft.public_email || ""}
                           onChange={(e) => markDirty({ ...draft, public_email: e.target.value })}
                           disabled={busy}
                         />
+                        <div className="form-text">Email address shown publicly on your site.</div>
                       </div>
 
                       <div className="col-12 col-md-6">
                         <label className="form-label">Phone</label>
                         <input
                           className="form-control"
+                          placeholder="+1 (555) 123-4567"
                           value={draft.phone || ""}
                           onChange={(e) => markDirty({ ...draft, phone: e.target.value })}
                           disabled={busy}
                         />
+                        <div className="form-text">Optional phone number for contact.</div>
                       </div>
 
                       <div className="col-12 col-md-6">
                         <label className="form-label">Hours</label>
                         <input
                           className="form-control"
+                          placeholder="Mon-Fri, 9am-5pm"
                           value={draft.hours_text || ""}
                           onChange={(e) => markDirty({ ...draft, hours_text: e.target.value })}
                           disabled={busy}
                         />
+                        <div className="form-text">Let clients know your typical availability.</div>
                       </div>
 
                       <div className="col-12 col-md-6">
                         <label className="form-label">Timezone</label>
                         <input
                           className="form-control"
+                          placeholder="UTC+8 (Manila)"
                           value={draft.timezone || ""}
                           onChange={(e) => markDirty({ ...draft, timezone: e.target.value })}
                           disabled={busy}
                         />
+                        <div className="form-text">Helps clients schedule across time zones.</div>
                       </div>
 
                       <div className="col-12">
@@ -437,6 +461,7 @@ export default function AdminContactPage() {
                               <label className="form-label text-capitalize">{key}</label>
                               <input
                                 className="form-control"
+                                placeholder={socialPlaceholders[key] || "https://"}
                                 value={draftSocials[key] || ""}
                                 onChange={(e) => {
                                   const nextSocials = { ...draftSocials, [key]: e.target.value };
@@ -444,6 +469,7 @@ export default function AdminContactPage() {
                                 }}
                                 disabled={busy}
                               />
+                              <div className="form-text">Paste the full profile or channel link.</div>
                             </div>
                           ))}
                         </div>
@@ -462,6 +488,7 @@ export default function AdminContactPage() {
                           <label className="form-check-label" htmlFor="contactPub">
                             Published
                           </label>
+                          <div className="form-text">Show the Contact section on your site.</div>
                         </div>
 
                         <button className="btn btn-outline-secondary" onClick={reloadInbox} disabled={busy}>
@@ -496,30 +523,36 @@ export default function AdminContactPage() {
                         <label className="form-label">Name *</label>
                         <input
                           className="form-control"
+                          placeholder="e.g. Taylor Smith"
                           value={test.name}
                           onChange={(e) => setTest((p) => ({ ...p, name: e.target.value }))}
                           disabled={busy}
                         />
+                        <div className="form-text">Use a sample name to test the contact flow.</div>
                       </div>
 
                       <div className="col-12 col-md-6">
                         <label className="form-label">Email *</label>
                         <input
                           className="form-control"
+                          placeholder="taylor@example.com"
                           value={test.email}
                           onChange={(e) => setTest((p) => ({ ...p, email: e.target.value }))}
                           disabled={busy}
                         />
+                        <div className="form-text">Use an email you can check.</div>
                       </div>
 
                       <div className="col-12">
                         <label className="form-label">Subject</label>
                         <input
                           className="form-control"
+                          placeholder="Interested in your services"
                           value={test.subject}
                           onChange={(e) => setTest((p) => ({ ...p, subject: e.target.value }))}
                           disabled={busy}
                         />
+                        <div className="form-text">Optional subject line for the test message.</div>
                       </div>
 
                       <div className="col-12">
@@ -527,10 +560,12 @@ export default function AdminContactPage() {
                         <textarea
                           className="form-control"
                           rows="4"
+                          placeholder="Write a sample inquiry to confirm messaging works."
                           value={test.message}
                           onChange={(e) => setTest((p) => ({ ...p, message: e.target.value }))}
                           disabled={busy}
                         />
+                        <div className="form-text">This will appear in the inbox list below.</div>
                       </div>
 
                       <div className="col-12 d-flex justify-content-end">

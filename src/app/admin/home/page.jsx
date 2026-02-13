@@ -333,9 +333,9 @@ export default function AdminHomeEditorPage() {
       <div className="container py-4">
         <div className="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
           <div>
-            <h1 className="h5 mb-1">Home — Hero & Intro</h1>
+            <h1 className="h5 mb-1">Home - Hero & Intro</h1>
             <div className="small text-muted">
-              Last updated: <strong>{row?.updated_at ? new Date(row.updated_at).toLocaleString() : "—"}</strong>
+              Last updated: <strong>{row?.updated_at ? new Date(row.updated_at).toLocaleString() : "-"}</strong>
             </div>
           </div>
 
@@ -389,7 +389,7 @@ export default function AdminHomeEditorPage() {
         ) : null}
 
         <AdminStepper>
-          <AdminStep title="Hero Content" description="Headlines, CTAs, and publish status.">
+          <AdminStep title="Hero Content" description="Headlines, CTAs, and visibility for your hero section.">
             <div className="row g-3">
               <div className="col-12 col-lg-8">
                 <div className="card border-0 shadow-sm">
@@ -398,33 +398,70 @@ export default function AdminHomeEditorPage() {
 
                     <div className="mb-3">
                       <label className="form-label">Headline</label>
-                      <input className="form-control" value={headline} onChange={(e) => setHeadline(e.target.value)} />
+                      <input
+                        className="form-control"
+                        placeholder='e.g. "Helping founders scale operations"'
+                        value={headline}
+                        onChange={(e) => setHeadline(e.target.value)}
+                      />
+                      <div className="form-text">Keep it short and bold. Aim for 4-8 words that describe your value.</div>
                     </div>
 
                     <div className="mb-3">
                       <label className="form-label">Subheadline</label>
-                      <textarea className="form-control" rows="3" value={subheadline} onChange={(e) => setSubheadline(e.target.value)} />
+                      <textarea
+                        className="form-control"
+                        rows="3"
+                        placeholder="One sentence that explains who you help, what you do, and the result."
+                        value={subheadline}
+                        onChange={(e) => setSubheadline(e.target.value)}
+                      />
+                      <div className="form-text">Give a clear promise and who it is for.</div>
                     </div>
 
                     <div className="row g-2">
                       <div className="col-12 col-md-6">
                         <label className="form-label">Primary CTA Label</label>
-                        <input className="form-control" value={primaryCtaLabel} onChange={(e) => setPrimaryCtaLabel(e.target.value)} />
+                        <input
+                          className="form-control"
+                          placeholder="Book a call"
+                          value={primaryCtaLabel}
+                          onChange={(e) => setPrimaryCtaLabel(e.target.value)}
+                        />
+                        <div className="form-text">Use an action verb people will click.</div>
                       </div>
                       <div className="col-12 col-md-6">
                         <label className="form-label">Primary CTA URL</label>
-                        <input className="form-control" value={primaryCtaUrl} onChange={(e) => setPrimaryCtaUrl(e.target.value)} />
+                        <input
+                          className="form-control"
+                          placeholder="https://calendly.com/yourname"
+                          value={primaryCtaUrl}
+                          onChange={(e) => setPrimaryCtaUrl(e.target.value)}
+                        />
+                        <div className="form-text">Paste the full link or use a site anchor like "/#contact".</div>
                       </div>
                     </div>
 
                     <div className="row g-2 mt-1">
                       <div className="col-12 col-md-6">
                         <label className="form-label">Secondary CTA Label</label>
-                        <input className="form-control" value={secondaryCtaLabel} onChange={(e) => setSecondaryCtaLabel(e.target.value)} />
+                        <input
+                          className="form-control"
+                          placeholder="View portfolio"
+                          value={secondaryCtaLabel}
+                          onChange={(e) => setSecondaryCtaLabel(e.target.value)}
+                        />
+                        <div className="form-text">Optional secondary action for browsing.</div>
                       </div>
                       <div className="col-12 col-md-6">
                         <label className="form-label">Secondary CTA URL</label>
-                        <input className="form-control" value={secondaryCtaUrl} onChange={(e) => setSecondaryCtaUrl(e.target.value)} />
+                        <input
+                          className="form-control"
+                          placeholder="/#portfolio"
+                          value={secondaryCtaUrl}
+                          onChange={(e) => setSecondaryCtaUrl(e.target.value)}
+                        />
+                        <div className="form-text">Use a section anchor or full link.</div>
                       </div>
                     </div>
 
@@ -436,19 +473,18 @@ export default function AdminHomeEditorPage() {
                         value={badgesText}
                         onChange={(e) => setBadgesText(e.target.value)}
                       />
+                      <div className="form-text">List 3-6 tools or specialties to show quick credibility.</div>
                     </div>
 
                     <div className="mt-3">
                       <label className="form-label">Intro Video URL (optional)</label>
                       <input
                         className="form-control"
-                        placeholder="https://youtube.com/..."
+                        placeholder="https://youtu.be/your-intro"
                         value={introVideoUrl}
                         onChange={(e) => setIntroVideoUrl(e.target.value)}
                       />
-                      <div className="form-text">
-                        If you upload a video file, the uploaded video will be used first (intro_video_path).
-                      </div>
+                      <div className="form-text">Paste a YouTube/Vimeo link. If you upload a file below, that file is used instead.</div>
                     </div>
 
                     <div className="mt-3 form-check">
@@ -462,6 +498,7 @@ export default function AdminHomeEditorPage() {
                       <label className="form-check-label" htmlFor="publishedCheck">
                         Mark as published (Save required)
                       </label>
+                      <div className="form-text">Publish when you are ready for this section to appear on the site.</div>
                     </div>
                   </div>
                 </div>
@@ -485,7 +522,7 @@ export default function AdminHomeEditorPage() {
             </div>
           </AdminStep>
 
-          <AdminStep title="Media Uploads" description="Hero, profile, and intro video files.">
+          <AdminStep title="Media Uploads" description="Upload hero, profile, and intro video visuals.">
             <div className="row g-3">
               <div className="col-12">
                 <div className="card border-0 shadow-sm mb-3">
@@ -495,15 +532,14 @@ export default function AdminHomeEditorPage() {
                     <div className="mb-3">
                       <label className="form-label">Hero Image</label>
                       <input className="form-control" type="file" accept="image/*" onChange={onHeroFile} disabled={saving} />
+                      <div className="form-text">Use a wide, high-quality image (recommended 1600x900 or larger).</div>
                       {heroUrl ? (
                         <div className="mt-2">
                           <img src={heroUrl} alt="Hero" className="img-fluid rounded border" />
-                          <div className="small text-muted mt-1">
-                            Path: <code>{heroImagePath}</code>
-                          </div>
+                          <div className="small text-muted mt-1">Hero image ready. Click Save to apply.</div>
                         </div>
                       ) : (
-                        <div className="small text-muted mt-2">No hero image uploaded.</div>
+                        <div className="small text-muted mt-2">No hero image yet. Upload a wide banner image.</div>
                       )}
                     </div>
 
@@ -512,15 +548,14 @@ export default function AdminHomeEditorPage() {
                     <div className="mb-3">
                       <label className="form-label">Profile Image</label>
                       <input className="form-control" type="file" accept="image/*" onChange={onProfileFile} disabled={saving} />
+                      <div className="form-text">Choose a clear headshot or brand photo (square works best).</div>
                       {profileUrl ? (
                         <div className="mt-2">
                           <img src={profileUrl} alt="Profile" className="img-fluid rounded border" />
-                          <div className="small text-muted mt-1">
-                            Path: <code>{profileImagePath}</code>
-                          </div>
+                          <div className="small text-muted mt-1">Profile image ready. Click Save to apply.</div>
                         </div>
                       ) : (
-                        <div className="small text-muted mt-2">No profile image uploaded.</div>
+                        <div className="small text-muted mt-2">No profile image yet. Upload a square or portrait photo.</div>
                       )}
                     </div>
 
@@ -536,15 +571,14 @@ export default function AdminHomeEditorPage() {
                         onChange={onIntroVideoFile}
                         disabled={saving}
                       />
+                      <div className="form-text">Short intro video works best (15-60 seconds). Recommended: MP4.</div>
 
                       {introVideoFileUrl ? (
                         <div className="mt-2">
                           <div className="ratio ratio-16x9">
                             <video src={introVideoFileUrl} controls playsInline preload="metadata" />
                           </div>
-                          <div className="small text-muted mt-2">
-                            Path: <code>{introVideoPath}</code>
-                          </div>
+                          <div className="small text-muted mt-2">Intro video ready. Click Save to apply.</div>
 
                           <button
                             type="button"
@@ -555,14 +589,14 @@ export default function AdminHomeEditorPage() {
                               setNotice("Intro video cleared. Click Save to persist.");
                             }}
                           >
-                            <i className="fa-solid fa-trash me-2"></i>Remove Video (clears DB field)
+                            <i className="fa-solid fa-trash me-2"></i>Remove Video
                           </button>
                         </div>
                       ) : (
-                        <div className="small text-muted mt-2">No intro video uploaded.</div>
+                        <div className="small text-muted mt-2">No intro video yet. Upload a short preview or intro.</div>
                       )}
 
-                      <div className="form-text mt-2">Max 50MB (adjust in code). Recommended: mp4 (H.264).</div>
+                      <div className="form-text mt-2">Keep file size under 50MB for faster loading.</div>
                     </div>
                   </div>
                 </div>
@@ -571,9 +605,7 @@ export default function AdminHomeEditorPage() {
           </AdminStep>
         </AdminStepper>
 
-        <div className="small text-muted mt-3">
-          Storage bucket: <code>{MEDIA_BUCKET}</code> — intro videos are uploaded to <code>home/intro/</code>.
-        </div>
+        {/* Storage details removed from UI */}
       </div>
     </div>
   );

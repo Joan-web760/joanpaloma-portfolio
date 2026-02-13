@@ -257,6 +257,7 @@ export default function AdminBlogPage() {
                 <label className="form-label">Title *</label>
                 <input
                   className="form-control"
+                  placeholder="e.g. How I streamlined weekly reporting"
                   value={form.title}
                   onChange={(e) => {
                     const title = e.target.value;
@@ -272,12 +273,13 @@ export default function AdminBlogPage() {
                   }}
                   disabled={busy}
                 />
+                <div className="form-text">Clear, specific titles perform best.</div>
               </div>
 
               <div className="col-12 col-md-6">
                 <label className="form-label">Slug (auto)</label>
                 <input className="form-control" value={form.slug} disabled readOnly />
-                <div className="form-text">Auto-generated from Title (lowercase, numbers, hyphens).</div>
+                <div className="form-text">Auto-generated from the title for the URL.</div>
 
                 {/* optional: let admin unlock + regenerate if you want; remove this block if you want fully forced */}
                 <div className="d-flex gap-2 mt-2">
@@ -308,10 +310,12 @@ export default function AdminBlogPage() {
                 <textarea
                   className="form-control"
                   rows="2"
+                  placeholder="Short summary that appears in blog lists (1-2 sentences)."
                   value={form.excerpt}
                   onChange={(e) => setForm((p) => ({ ...p, excerpt: e.target.value }))}
                   disabled={busy}
                 />
+                <div className="form-text">Keep it tight and benefits-focused.</div>
               </div>
 
               <div className="col-12">
@@ -319,10 +323,12 @@ export default function AdminBlogPage() {
                 <textarea
                   className="form-control"
                   rows="10"
+                  placeholder="Write your post here. Use short paragraphs and clear headings."
                   value={form.content}
                   onChange={(e) => setForm((p) => ({ ...p, content: e.target.value }))}
                   disabled={busy}
                 />
+                <div className="form-text">Use headings, bullets, and short paragraphs for readability.</div>
               </div>
 
               <div className="col-12 col-md-6">
@@ -352,6 +358,7 @@ export default function AdminBlogPage() {
                     }
                   }}
                 />
+                <div className="form-text">Recommended size: 1600x900 or larger for crisp previews.</div>
                 {coverUrl ? (
                   <div className="mt-2">
                     <img src={coverUrl} alt="Cover preview" className="img-fluid rounded border" />
@@ -374,6 +381,7 @@ export default function AdminBlogPage() {
                   <label className="form-check-label" htmlFor="newBlogPub">
                     Publish now
                   </label>
+                  <div className="form-text">Uncheck to keep it as a draft.</div>
                 </div>
 
                 <button className="btn btn-primary" onClick={createPost} disabled={busy}>
@@ -434,6 +442,7 @@ export default function AdminBlogPage() {
                         <label className="form-label">Title</label>
                         <input
                           className="form-control"
+                          placeholder="e.g. How I streamlined weekly reporting"
                           defaultValue={p.title}
                           onBlur={(e) => {
                             const v = e.target.value.trim();
@@ -444,12 +453,13 @@ export default function AdminBlogPage() {
                           }}
                           disabled={busy}
                         />
+                        <div className="form-text">Clear, specific titles perform best.</div>
                       </div>
 
                       <div className="col-12 col-md-4">
                         <label className="form-label">Slug</label>
                         <input className="form-control" value={p.slug} disabled readOnly />
-                        <div className="form-text">Auto-generated from Title.</div>
+                        <div className="form-text">Auto-generated from the title for the URL.</div>
                       </div>
 
                       <div className="col-12">
@@ -457,10 +467,12 @@ export default function AdminBlogPage() {
                         <textarea
                           className="form-control"
                           rows="2"
+                          placeholder="Short summary shown on the blog index."
                           defaultValue={p.excerpt || ""}
                           onBlur={(e) => updatePost(p.id, { excerpt: e.target.value.trim() || null })}
                           disabled={busy}
                         />
+                        <div className="form-text">Keep it to 1-2 sentences.</div>
                       </div>
 
                       <div className="col-12">
@@ -468,14 +480,16 @@ export default function AdminBlogPage() {
                         <textarea
                           className="form-control"
                           rows="10"
+                          placeholder="Write your post here. Use short paragraphs and headings."
                           defaultValue={p.content || ""}
                           onBlur={(e) => updatePost(p.id, { content: e.target.value })}
                           disabled={busy}
                         />
+                        <div className="form-text">Structure with headings and bullets for easy scanning.</div>
                       </div>
 
                       <div className="col-12 col-md-6">
-                        <label className="form-label">Replace Cover</label>
+                        <label className="form-label">Replace Cover Image</label>
                         <input
                           className="form-control"
                           type="file"
@@ -500,6 +514,7 @@ export default function AdminBlogPage() {
                             }
                           }}
                         />
+                        <div className="form-text">Recommended size: 1600x900 or larger.</div>
 
                         {img ? (
                           <div className="mt-2">
@@ -523,6 +538,7 @@ export default function AdminBlogPage() {
                           <label className="form-check-label" htmlFor={`pub_${p.id}`}>
                             Published
                           </label>
+                          <div className="form-text">Toggle to publish or hide this post.</div>
                         </div>
                       </div>
                     </div>

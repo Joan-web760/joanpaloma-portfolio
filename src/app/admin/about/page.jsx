@@ -296,9 +296,9 @@ export default function AdminAboutEditorPage() {
       <div className="container py-4">
         <div className="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
           <div>
-            <h1 className="h5 mb-1">About — Personal Background</h1>
+            <h1 className="h5 mb-1">About - Personal Background</h1>
             <div className="small text-muted">
-              Last updated: <strong>{row?.updated_at ? new Date(row.updated_at).toLocaleString() : "—"}</strong>
+              Last updated: <strong>{row?.updated_at ? new Date(row.updated_at).toLocaleString() : "-"}</strong>
             </div>
           </div>
 
@@ -352,7 +352,7 @@ export default function AdminAboutEditorPage() {
         ) : null}
 
         <AdminStepper>
-          <AdminStep title="Story Details" description="Bios, values, and publish status.">
+          <AdminStep title="Story Details" description="Bios, values, and visibility for your About section.">
             <div className="row g-3">
               <div className="col-12 col-lg-8">
                 <div className="card border-0 shadow-sm">
@@ -361,12 +361,26 @@ export default function AdminAboutEditorPage() {
 
                     <div className="mb-3">
                       <label className="form-label">Short Bio</label>
-                      <textarea className="form-control" rows="3" value={shortBio} onChange={(e) => setShortBio(e.target.value)} />
+                      <textarea
+                        className="form-control"
+                        rows="3"
+                        placeholder="A quick 1-2 sentence intro about who you are and what you do."
+                        value={shortBio}
+                        onChange={(e) => setShortBio(e.target.value)}
+                      />
+                      <div className="form-text">Use this as the quick summary that appears first.</div>
                     </div>
 
                     <div className="mb-3">
                       <label className="form-label">Long Bio</label>
-                      <textarea className="form-control" rows="8" value={longBio} onChange={(e) => setLongBio(e.target.value)} />
+                      <textarea
+                        className="form-control"
+                        rows="8"
+                        placeholder="Tell your story, background, and what makes your approach different."
+                        value={longBio}
+                        onChange={(e) => setLongBio(e.target.value)}
+                      />
+                      <div className="form-text">Include background, strengths, and the outcomes you deliver.</div>
                     </div>
 
                     <div className="mb-3">
@@ -378,22 +392,18 @@ export default function AdminAboutEditorPage() {
                         value={valuesText}
                         onChange={(e) => setValuesText(e.target.value)}
                       />
-                      <div className="form-text">
-                        Stored in <code>values_json</code> as an array.
-                      </div>
+                      <div className="form-text">List 3-6 values that describe how you work.</div>
                     </div>
 
                     <div className="mb-3">
                       <label className="form-label">Extended Video URL (optional)</label>
                       <input
                         className="form-control"
-                        placeholder="https://youtube.com/..."
+                        placeholder="https://youtu.be/your-story"
                         value={extendedVideoUrl}
                         onChange={(e) => setExtendedVideoUrl(e.target.value)}
                       />
-                      <div className="form-text">
-                        If you upload a video file, the uploaded video will be used first (extended_video_path).
-                      </div>
+                      <div className="form-text">Paste a YouTube/Vimeo link. If you upload a file below, that file is used instead.</div>
                     </div>
 
                     <div className="form-check">
@@ -407,6 +417,7 @@ export default function AdminAboutEditorPage() {
                       <label className="form-check-label" htmlFor="aboutPublishedCheck">
                         Mark as published (Save required)
                       </label>
+                      <div className="form-text">Publish when you are ready for this section to appear on the site.</div>
                     </div>
                   </div>
                 </div>
@@ -430,7 +441,7 @@ export default function AdminAboutEditorPage() {
             </div>
           </AdminStep>
 
-          <AdminStep title="Media Uploads" description="Profile image and extended video.">
+          <AdminStep title="Media Uploads" description="Upload a profile image and extended video.">
             <div className="row g-3">
               <div className="col-12">
                 <div className="card border-0 shadow-sm mb-3">
@@ -440,16 +451,15 @@ export default function AdminAboutEditorPage() {
                     <div className="mb-3">
                       <label className="form-label">About Image</label>
                       <input className="form-control" type="file" accept="image/*" onChange={onAboutImageFile} disabled={saving} />
+                      <div className="form-text">Use a clear portrait or lifestyle image (1200px wide or more).</div>
 
                       {aboutImageUrl ? (
                         <div className="mt-2">
                           <img src={aboutImageUrl} alt="About" className="img-fluid rounded border" />
-                          <div className="small text-muted mt-1">
-                            Path: <code>{aboutImagePath}</code>
-                          </div>
+                          <div className="small text-muted mt-1">Image ready. Click Save to apply.</div>
                         </div>
                       ) : (
-                        <div className="small text-muted mt-2">No about image uploaded.</div>
+                        <div className="small text-muted mt-2">No image yet. Upload a portrait or brand photo.</div>
                       )}
                     </div>
 
@@ -465,15 +475,14 @@ export default function AdminAboutEditorPage() {
                         onChange={onAboutVideoFile}
                         disabled={saving}
                       />
+                      <div className="form-text">Share a longer intro or case story (15-90 seconds). Recommended: MP4.</div>
 
                       {extendedVideoFileUrl ? (
                         <div className="mt-2">
                           <div className="ratio ratio-16x9">
                             <video src={extendedVideoFileUrl} controls playsInline preload="metadata" />
                           </div>
-                          <div className="small text-muted mt-2">
-                            Path: <code>{extendedVideoPath}</code>
-                          </div>
+                          <div className="small text-muted mt-2">Video ready. Click Save to apply.</div>
 
                           <button
                             type="button"
@@ -484,14 +493,14 @@ export default function AdminAboutEditorPage() {
                               setNotice("Extended video cleared. Click Save to persist.");
                             }}
                           >
-                            <i className="fa-solid fa-trash me-2"></i>Remove Video (clears DB field)
+                            <i className="fa-solid fa-trash me-2"></i>Remove Video
                           </button>
                         </div>
                       ) : (
-                        <div className="small text-muted mt-2">No extended video uploaded.</div>
+                        <div className="small text-muted mt-2">No extended video yet. Upload a longer intro clip.</div>
                       )}
 
-                      <div className="form-text mt-2">Max 50MB (adjust in code). Recommended: mp4 (H.264).</div>
+                      <div className="form-text mt-2">Keep file size under 50MB for faster loading.</div>
                     </div>
                   </div>
                 </div>
@@ -500,9 +509,7 @@ export default function AdminAboutEditorPage() {
           </AdminStep>
         </AdminStepper>
 
-        <div className="small text-muted mt-3">
-          Storage bucket: <code>{MEDIA_BUCKET}</code> — about videos are uploaded to <code>about/video/</code>.
-        </div>
+        {/* Storage details removed from UI */}
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 // src/components/sections/ContactSection.jsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase-browser";
 import SectionBackground from "@/components/SectionBackground";
 
@@ -14,6 +14,52 @@ const defaultSocials = {
   youtube: "",
 };
 
+const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+const createCaptcha = () => {
+  const isMultiply = Math.random() < 0.5;
+  const a = randomInt(1, 9);
+  const b = randomInt(1, 9);
+  const op = isMultiply ? "x" : "+";
+  const answer = isMultiply ? a * b : a + b;
+
+  return { a, b, op, answer };
+};
+
+const drawCaptcha = (canvas, captcha) => {
+  if (!canvas || !captcha) return;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+
+  const { width, height } = canvas;
+  ctx.clearRect(0, 0, width, height);
+
+  ctx.fillStyle = "#f8f9fa";
+  ctx.fillRect(0, 0, width, height);
+
+  for (let i = 0; i < 3; i += 1) {
+    ctx.strokeStyle = `rgba(0, 0, 0, ${0.15 + Math.random() * 0.2})`;
+    ctx.beginPath();
+    ctx.moveTo(randomInt(0, width), randomInt(0, height));
+    ctx.lineTo(randomInt(0, width), randomInt(0, height));
+    ctx.stroke();
+  }
+
+  for (let i = 0; i < 40; i += 1) {
+    ctx.fillStyle = `rgba(0, 0, 0, ${0.1 + Math.random() * 0.2})`;
+    ctx.beginPath();
+    ctx.arc(randomInt(0, width), randomInt(0, height), 1, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  const text = `${captcha.a} ${captcha.op} ${captcha.b} = ?`;
+  ctx.font = "700 26px Trebuchet MS, Arial, sans-serif";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = "#212529";
+  const textWidth = ctx.measureText(text).width;
+  ctx.fillText(text, (width - textWidth) / 2, height / 2);
+};
+
 export default function ContactSection() {
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState(null);
@@ -23,6 +69,13 @@ export default function ContactSection() {
   const [notice, setNotice] = useState("");
 
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
+  const [captcha, setCaptcha] = useState(() => createCaptcha());
+  const [captchaAnswer, setCaptchaAnswer] = useState("");
+  const [captchaAttempts, setCaptchaAttempts] = useState(0);
+  const [lockUntil, setLockUntil] = useState(0);
+  const [lockRemaining, setLockRemaining] = useState(0);
+  const captchaRef = useRef(null);
+  const isLocked = lockRemaining > 0;
 
   const socials = useMemo(() => ({ ...defaultSocials, ...(settings?.socials || {}) }), [settings]);
 
@@ -57,6 +110,39 @@ export default function ContactSection() {
     };
   }, []);
 
+  useEffect(() => {
+    if (loading || !settings) return;
+    drawCaptcha(captchaRef.current, captcha);
+  }, [captcha, loading, settings]);
+
+  const refreshCaptcha = () => {
+    setCaptcha(createCaptcha());
+    setCaptchaAnswer("");
+  };
+
+  useEffect(() => {
+    if (!lockUntil) {
+      setLockRemaining(0);
+      return;
+    }
+
+    const updateRemaining = () => {
+      const remaining = Math.max(0, Math.ceil((lockUntil - Date.now()) / 1000));
+      setLockRemaining(remaining);
+
+      if (remaining === 0) {
+        setLockUntil(0);
+        setCaptchaAttempts(0);
+        setCaptcha(createCaptcha());
+        setCaptchaAnswer("");
+      }
+    };
+
+    updateRemaining();
+    const timer = setInterval(updateRemaining, 1000);
+    return () => clearInterval(timer);
+  }, [lockUntil]);
+
   const submit = async (e) => {
     e.preventDefault();
 
@@ -65,9 +151,38 @@ export default function ContactSection() {
     setNotice("");
 
     try {
+      const now = Date.now();
+      if (lockUntil && now < lockUntil) {
+        const remaining = Math.max(1, Math.ceil((lockUntil - now) / 1000));
+        throw new Error(`Too many incorrect attempts. Please wait ${remaining}s.`);
+      }
+
+      if (lockUntil && now >= lockUntil) {
+        setLockUntil(0);
+        setCaptchaAttempts(0);
+      }
+
       if (!form.name.trim()) throw new Error("Name is required.");
       if (!form.email.trim()) throw new Error("Email is required.");
       if (!form.message.trim()) throw new Error("Message is required.");
+      const mathAnswer = Number(captchaAnswer.trim());
+      if (!Number.isFinite(mathAnswer)) throw new Error("Math answer is required.");
+      if (mathAnswer !== captcha.answer) {
+        const nextAttempts = captchaAttempts + 1;
+        setCaptchaAttempts(nextAttempts);
+
+        if (nextAttempts >= 3) {
+          const lockMs = 60 * 1000;
+          setLockUntil(Date.now() + lockMs);
+          setLockRemaining(Math.ceil(lockMs / 1000));
+          setCaptcha(createCaptcha());
+          setCaptchaAnswer("");
+          throw new Error("Too many incorrect attempts. Please wait 60s.");
+        }
+
+        refreshCaptcha();
+        throw new Error("Incorrect math answer. Please try again.");
+      }
 
       const payload = {
         name: form.name.trim(),
@@ -82,6 +197,10 @@ export default function ContactSection() {
       if (insErr) throw insErr;
 
       setForm({ name: "", email: "", subject: "", message: "" });
+      refreshCaptcha();
+      setCaptchaAttempts(0);
+      setLockUntil(0);
+      setLockRemaining(0);
       setNotice("Message sent! I’ll get back to you soon.");
       setTimeout(() => setNotice(""), 2500);
     } catch (err) {
@@ -168,8 +287,49 @@ export default function ContactSection() {
                     />
                   </div>
 
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">Captcha *</label>
+                    <div className="d-flex align-items-center gap-2">
+                      <canvas
+                        ref={captchaRef}
+                        width={220}
+                        height={64}
+                        className="border rounded bg-white"
+                        aria-label="Math problem captcha"
+                        onContextMenu={(e) => e.preventDefault()}
+                        onDragStart={(e) => e.preventDefault()}
+                        style={{ userSelect: "none", WebkitUserDrag: "none" }}
+                      />
+                      <button
+                        className="btn btn-outline-secondary"
+                        type="button"
+                        onClick={refreshCaptcha}
+                        disabled={busy || isLocked}
+                        title="New problem"
+                      >
+                        <i className="fa-solid fa-rotate"></i>
+                      </button>
+                    </div>
+                    <div className="form-text">Solve the math problem shown in the image.</div>
+                    {isLocked ? (
+                      <div className="form-text text-danger">Too many attempts. Try again in {lockRemaining}s.</div>
+                    ) : null}
+                  </div>
+
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">Your Answer *</label>
+                    <input
+                      className="form-control"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={captchaAnswer}
+                      onChange={(e) => setCaptchaAnswer(e.target.value)}
+                      disabled={busy || isLocked}
+                    />
+                  </div>
+
                   <div className="col-12 d-flex justify-content-end">
-                    <button className="btn btn-primary" type="submit" disabled={busy}>
+                    <button className="btn btn-primary" type="submit" disabled={busy || isLocked}>
                       <i className="fa-solid fa-paper-plane me-2"></i>
                       {busy ? "Sending..." : "Send Message"}
                     </button>

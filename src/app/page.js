@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import HomeSection from "@/components/sections/HomeSection";
 import ServicesSection from "@/components/sections/ServicesSection";
 import SkillsSection from "@/components/sections/SkillsSection";
+import ToolsSection from "@/components/sections/ToolsSection";
 import PortfolioSection from "@/components/sections/PortfolioSection";
 import CertificationsSection from "@/components/sections/CertificationsSection";
 import ResumeSection from "@/components/sections/ResumeSection";
@@ -19,6 +20,7 @@ export default function Page() {
         <HomeSection />
         <ServicesSection />
         <SkillsSection />
+        <ToolsSection />
         <PortfolioSection />
         <CertificationsSection />
         <ResumeSection />

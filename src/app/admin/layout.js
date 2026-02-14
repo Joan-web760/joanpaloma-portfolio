@@ -14,6 +14,7 @@ const PAGE_TITLES = [
   { href: "/admin/about", label: "About" },
   { href: "/admin/services", label: "Services" },
   { href: "/admin/skills", label: "Skills" },
+  { href: "/admin/tools", label: "Tools" },
   { href: "/admin/experience", label: "Experience" },
   { href: "/admin/portfolio", label: "Portfolio" },
   { href: "/admin/certifications", label: "Certifications" },

@@ -17,6 +17,7 @@ export const ADMIN_NAV_SECTIONS = [
     items: [
       { label: "Services", href: "/admin/services", icon: "fa-briefcase" },
       { label: "Skills", href: "/admin/skills", icon: "fa-wand-magic-sparkles" },
+      { label: "Tools", href: "/admin/tools", icon: "fa-screwdriver-wrench" },
       { label: "Experience", href: "/admin/experience", icon: "fa-timeline" },
       { label: "Portfolio", href: "/admin/portfolio", icon: "fa-image" },
       { label: "Certifications", href: "/admin/certifications", icon: "fa-certificate" },

@@ -11,6 +11,7 @@ const sectionKeys = [
   "about",
   "services",
   "skills",
+  "tools",
   "experience",
   "portfolio",
   "certifications",

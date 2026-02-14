@@ -10,6 +10,7 @@ const SECTIONS = [
 
   { key: "services", label: "Services", route: "/admin/services", table: "service_items", mode: "list" },
   { key: "skills", label: "Skills", route: "/admin/skills", table: "skill_items", mode: "list" },
+  { key: "tools", label: "Tools", route: "/admin/tools", table: "tool_items", mode: "list" },
   { key: "experience", label: "Work Experience", route: "/admin/experience", table: "experience_items", mode: "list" },
 
   { key: "portfolio", label: "Portfolio", route: "/admin/portfolio", table: "portfolio_items", mode: "list" },

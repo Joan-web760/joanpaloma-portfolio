@@ -1,4 +1,4 @@
-// src/app/admin/services/page.jsx
+﻿// src/app/admin/services/page.jsx
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -7,24 +7,23 @@ import { supabase } from "@/lib/supabase-browser";
 import AdminActionModal, { useAdminActionModal } from "@/components/admin/AdminActionModal";
 import AdminStepper, { AdminStep } from "@/components/admin/AdminStepper";
 
-const emptyCategory = { title: "", description: "", is_published: true };
 const emptyService = { title: "", description: "", bulletsText: "", is_published: true };
 
 const bulletsPlaceholder =
   "Example:\n" +
-  "• Inbox + calendar management\n" +
-  "• Data entry / research\n" +
-  "• Weekly progress report";
+  "â€¢ Inbox + calendar management\n" +
+  "â€¢ Data entry / research\n" +
+  "â€¢ Weekly progress report";
 
-const BULLET = "• ";
+const BULLET = "â€¢ ";
 
 const ensureBulletsFormat = (text) => {
-  // Normalize lines so each non-empty line starts with "• "
+  // Normalize lines so each non-empty line starts with "â€¢ "
   const lines = (text || "").replace(/\r\n/g, "\n").split("\n");
   const fixed = lines.map((line) => {
     const t = line.trimStart();
     if (!t) return ""; // keep empty line
-    return t.startsWith("•") ? `• ${t.replace(/^•\s*/, "")}` : `• ${t}`;
+    return t.startsWith("â€¢") ? `â€¢ ${t.replace(/^â€¢\s*/, "")}` : `â€¢ ${t}`;
   });
   return fixed.join("\n");
 };
@@ -69,18 +68,11 @@ export default function AdminServicesPage() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
-  const [categories, setCategories] = useState([]);
   const [items, setItems] = useState([]);
-
-  // Simple UI: pick one category to manage
-  const [selectedCatId, setSelectedCatId] = useState("");
-
-  // Create forms
-  const [newCat, setNewCat] = useState(emptyCategory);
-  const [newItem, setNewItem] = useState({ ...emptyService, category_id: "" });
+  // Create form
+  const [newItem, setNewItem] = useState({ ...emptyService });
 
   // ------- DRAFT EDITING (Save button) -------
-  const [catDraft, setCatDraft] = useState({ title: "", description: "", is_published: true });
   const [serviceDrafts, setServiceDrafts] = useState({}); // { [serviceId]: { title, description, is_published, bulletsText } }
   const [dirty, setDirty] = useState(false);
 
@@ -98,20 +90,24 @@ export default function AdminServicesPage() {
       .filter(Boolean)
       .join("\n");
 
+  const buildServiceDrafts = (list) => {
+    const drafts = {};
+    for (const it of list || []) {
+      drafts[toKey(it.id)] = {
+        title: it.title || "",
+        description: it.description || "",
+        is_published: !!it.is_published,
+        bulletsText: fromBulletsArray(it.bullets),
+      };
+    }
+    return drafts;
+  };
+
   const toast = (msg) => {
     setNotice(msg);
     window.clearTimeout(toast._t);
     toast._t = window.setTimeout(() => setNotice(""), 2500);
   };
-
-  const categoriesSorted = useMemo(() => {
-    return (categories || []).slice().sort((a, b) => {
-      const ao = a.sort_order || 0;
-      const bo = b.sort_order || 0;
-      if (ao !== bo) return ao - bo;
-      return String(a.created_at || "").localeCompare(String(b.created_at || ""));
-    });
-  }, [categories]);
 
   const itemsSorted = useMemo(() => {
     return (items || []).slice().sort((a, b) => {
@@ -121,33 +117,6 @@ export default function AdminServicesPage() {
       return String(a.created_at || "").localeCompare(String(b.created_at || ""));
     });
   }, [items]);
-
-  const itemsByCategory = useMemo(() => {
-    const map = {};
-    for (const c of categoriesSorted) map[toKey(c.id)] = [];
-    for (const it of itemsSorted) {
-      const k = toKey(it.category_id);
-      if (!map[k]) map[k] = [];
-      map[k].push(it);
-    }
-    return map;
-  }, [categoriesSorted, itemsSorted]);
-
-  const selectedCategory = useMemo(() => {
-    if (!selectedCatId) return null;
-    return categoriesSorted.find((c) => toKey(c.id) === toKey(selectedCatId)) || null;
-  }, [categoriesSorted, selectedCatId]);
-
-  const selectedCategoryIndex = useMemo(() => {
-    if (!selectedCatId) return -1;
-    return categoriesSorted.findIndex((c) => toKey(c.id) === toKey(selectedCatId));
-  }, [categoriesSorted, selectedCatId]);
-
-  const selectedServices = useMemo(() => {
-    if (!selectedCatId) return [];
-    const list = itemsByCategory[toKey(selectedCatId)] || [];
-    return list.slice().sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
-  }, [itemsByCategory, selectedCatId]);
 
   // init auth + load
   useEffect(() => {
@@ -175,197 +144,23 @@ export default function AdminServicesPage() {
   }, [router]);
 
   const reloadAll = async () => {
-    const [catRes, itemRes] = await Promise.all([
-      supabase
-        .from("service_categories")
-        .select("*")
-        .order("sort_order", { ascending: true })
-        .order("created_at", { ascending: true }),
-      supabase
-        .from("service_items")
-        .select("*")
-        .order("sort_order", { ascending: true })
-        .order("created_at", { ascending: true }),
-    ]);
+    const { data, error: loadErr } = await supabase
+      .from("service_items")
+      .select("*")
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true });
 
     if (!mountedRef.current) return;
 
-    if (catRes.error) {
-      setError(catRes.error.message || "Failed to load categories.");
+    if (loadErr) {
+      setError(loadErr.message || "Failed to load services.");
       return;
     }
 
-    if (itemRes.error) {
-      setError(itemRes.error.message || "Failed to load services.");
-      return;
-    }
-
-    const nextCats = catRes.data || [];
-    const nextItems = itemRes.data || [];
-
-    setCategories(nextCats);
+    const nextItems = data || [];
     setItems(nextItems);
-
-    const stillExists = selectedCatId && nextCats.some((c) => toKey(c.id) === toKey(selectedCatId));
-    if (!stillExists) {
-      setSelectedCatId(nextCats.length ? toKey(nextCats[0].id) : "");
-    }
-  };
-
-  // When selection changes, reset drafts from DB state (simple and safe)
-  useEffect(() => {
-    if (!selectedCategory) {
-      setCatDraft({ title: "", description: "", is_published: true });
-      setServiceDrafts({});
-      setDirty(false);
-      return;
-    }
-
-    setCatDraft({
-      title: selectedCategory.title || "",
-      description: selectedCategory.description || "",
-      is_published: !!selectedCategory.is_published,
-    });
-
-    const drafts = {};
-    for (const it of selectedServices) {
-      drafts[toKey(it.id)] = {
-        title: it.title || "",
-        description: it.description || "",
-        is_published: !!it.is_published,
-        bulletsText: fromBulletsArray(it.bullets),
-      };
-    }
-    setServiceDrafts(drafts);
+    setServiceDrafts(buildServiceDrafts(nextItems));
     setDirty(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCatId]); // reset drafts only when switching category
-
-  // ---------- CATEGORY CRUD ----------
-  const createCategory = async () => {
-    const ok = await confirm({
-      title: "Add category?",
-      message: "This will create a new service category.",
-      confirmText: "Add",
-      confirmVariant: "primary",
-    });
-    if (!ok) return;
-
-    setBusy(true);
-    setError("");
-    setNotice("");
-
-    try {
-      if (!newCat.title.trim()) throw new Error("Category title is required.");
-
-      const maxOrder = categories.length ? Math.max(...categories.map((c) => c.sort_order || 0)) : 0;
-
-      const payload = {
-        title: newCat.title.trim(),
-        description: newCat.description?.trim() || null,
-        is_published: !!newCat.is_published,
-        sort_order: maxOrder + 10,
-      };
-
-      const { data, error: insErr } = await supabase
-        .from("service_categories")
-        .insert([payload])
-        .select("*")
-        .single();
-
-      if (insErr) throw insErr;
-      if (!mountedRef.current) return;
-
-      setCategories((prev) =>
-        [...prev, data].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
-      );
-      setNewCat(emptyCategory);
-      setSelectedCatId(toKey(data.id));
-      toast("Category created.");
-      success({ title: "Category added", message: "The category was created successfully." });
-    } catch (e) {
-      setError(e.message || "Create category failed.");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const updateCategory = async (id, patch) => {
-    const { data, error: updErr } = await supabase
-      .from("service_categories")
-      .update(patch)
-      .eq("id", id)
-      .select("*")
-      .single();
-
-    if (updErr) throw updErr;
-    if (!mountedRef.current) return null;
-
-    setCategories((prev) =>
-      prev
-        .map((c) => (c.id === id ? data : c))
-        .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
-    );
-
-    return data;
-  };
-
-  const deleteCategory = async (id) => {
-    const ok = await confirm({
-      title: "Delete category?",
-      message: "This will delete the category and all services under it.",
-      confirmText: "Delete",
-      confirmVariant: "danger",
-    });
-    if (!ok) return;
-
-    setBusy(true);
-    setError("");
-    setNotice("");
-
-    try {
-      const { error: delErr } = await supabase.from("service_categories").delete().eq("id", id);
-      if (delErr) throw delErr;
-      if (!mountedRef.current) return;
-
-      setCategories((prev) => prev.filter((c) => c.id !== id));
-      setItems((prev) => prev.filter((it) => toKey(it.category_id) !== toKey(id)));
-
-      const remaining = categoriesSorted.filter((c) => c.id !== id);
-      setSelectedCatId(remaining.length ? toKey(remaining[0].id) : "");
-      toast("Category deleted.");
-      success({ title: "Category deleted", message: "The category and its services were removed." });
-    } catch (e) {
-      setError(e.message || "Delete category failed.");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const moveCategory = async (id, dir) => {
-    const list = categoriesSorted;
-    const idx = list.findIndex((c) => c.id === id);
-    const swapWith = dir === "up" ? idx - 1 : idx + 1;
-    if (idx < 0 || swapWith < 0 || swapWith >= list.length) return;
-
-    const a = list[idx];
-    const b = list[swapWith];
-
-    setBusy(true);
-    setError("");
-    setNotice("");
-
-    try {
-      await Promise.all([
-        updateCategory(a.id, { sort_order: b.sort_order }),
-        updateCategory(b.id, { sort_order: a.sort_order }),
-      ]);
-      toast("Category reordered.");
-    } catch (e) {
-      setError(e.message || "Reorder failed.");
-    } finally {
-      setBusy(false);
-    }
   };
 
   // ---------- SERVICE CRUD ----------
@@ -383,15 +178,11 @@ export default function AdminServicesPage() {
     setNotice("");
 
     try {
-      const catId = newItem.category_id || selectedCatId;
-      if (!catId) throw new Error("Select a category first.");
       if (!newItem.title.trim()) throw new Error("Service title is required.");
 
-      const list = (itemsByCategory[toKey(catId)] || []).slice();
-      const maxOrder = list.length ? Math.max(...list.map((i) => i.sort_order || 0)) : 0;
+      const maxOrder = items.length ? Math.max(...items.map((i) => i.sort_order || 0)) : 0;
 
       const payload = {
-        category_id: catId,
         title: newItem.title.trim(),
         description: newItem.description?.trim() || null,
         bullets: toBulletsArray(newItem.bulletsText),
@@ -412,8 +203,7 @@ export default function AdminServicesPage() {
         [...prev, data].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
       );
 
-      setSelectedCatId(toKey(catId));
-      setNewItem({ ...emptyService, category_id: toKey(catId) });
+      setNewItem({ ...emptyService });
 
       // also seed draft for new service
       setServiceDrafts((prev) => ({
@@ -473,9 +263,7 @@ export default function AdminServicesPage() {
     const it = items.find((x) => x.id === id);
     if (!it) return;
 
-    const list = (itemsByCategory[toKey(it.category_id)] || [])
-      .slice()
-      .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+    const list = itemsSorted;
 
     const idx = list.findIndex((x) => x.id === id);
     const swapWith = dir === "up" ? idx - 1 : idx + 1;
@@ -516,11 +304,9 @@ export default function AdminServicesPage() {
 
   // ------- SAVE (batch update drafts) -------
   const saveChanges = async () => {
-    if (!selectedCategory) return;
-
     const ok = await confirm({
       title: "Save changes?",
-      message: "Apply your edits to the category and its services.",
+      message: "Apply your edits to the services list.",
       confirmText: "Save",
       confirmVariant: "success",
     });
@@ -531,23 +317,9 @@ export default function AdminServicesPage() {
     setNotice("");
 
     try {
-      // category patch (only if changed)
-      const catPatch = {};
-      if ((catDraft.title || "").trim() !== (selectedCategory.title || "").trim()) {
-        if (!(catDraft.title || "").trim()) throw new Error("Category title is required.");
-        catPatch.title = (catDraft.title || "").trim();
-      }
-      if ((catDraft.description || "").trim() !== (selectedCategory.description || "").trim()) {
-        const v = (catDraft.description || "").trim();
-        catPatch.description = v ? v : null;
-      }
-      if (!!catDraft.is_published !== !!selectedCategory.is_published) {
-        catPatch.is_published = !!catDraft.is_published;
-      }
-
       // services patch list
       const serviceUpdates = [];
-      for (const it of selectedServices) {
+      for (const it of itemsSorted) {
         const d = serviceDrafts[toKey(it.id)];
         if (!d) continue;
 
@@ -573,11 +345,6 @@ export default function AdminServicesPage() {
         }
       }
 
-      // execute updates
-      if (Object.keys(catPatch).length) {
-        await updateCategory(selectedCategory.id, catPatch);
-      }
-
       if (serviceUpdates.length) {
         // Run sequentially to keep it simple and avoid rate/locking surprises
         for (const u of serviceUpdates) {
@@ -599,7 +366,7 @@ export default function AdminServicesPage() {
         }
       }
 
-      if (!Object.keys(catPatch).length && !serviceUpdates.length) {
+      if (!serviceUpdates.length) {
         toast("No changes to save.");
         setDirty(false);
         return;
@@ -616,7 +383,6 @@ export default function AdminServicesPage() {
   };
 
   const discardChanges = async () => {
-    if (!selectedCategory) return;
     if (!dirty) return;
     const ok = await confirm({
       title: "Discard changes?",
@@ -626,24 +392,22 @@ export default function AdminServicesPage() {
     });
     if (!ok) return;
 
-    setCatDraft({
-      title: selectedCategory.title || "",
-      description: selectedCategory.description || "",
-      is_published: !!selectedCategory.is_published,
-    });
-
-    const drafts = {};
-    for (const it of selectedServices) {
-      drafts[toKey(it.id)] = {
-        title: it.title || "",
-        description: it.description || "",
-        is_published: !!it.is_published,
-        bulletsText: fromBulletsArray(it.bullets),
-      };
-    }
-    setServiceDrafts(drafts);
+    setServiceDrafts(buildServiceDrafts(itemsSorted));
     setDirty(false);
     toast("Changes discarded.");
+  };
+
+  const requestReload = async () => {
+    if (dirty) {
+      const ok = await confirm({
+        title: "Reload services?",
+        message: "You have unsaved changes. Discard them and reload from the database?",
+        confirmText: "Reload",
+        confirmVariant: "danger",
+      });
+      if (!ok) return;
+    }
+    await reloadAll();
   };
 
   const openPreview = () => window.open("/#services", "_blank");
@@ -655,11 +419,6 @@ export default function AdminServicesPage() {
       <span className="badge text-bg-secondary">Hidden</span>
     );
 
-  const onChangeCatDraft = (patch) => {
-    setCatDraft((p) => ({ ...p, ...patch }));
-    setDirty(true);
-  };
-
   const onChangeServiceDraft = (id, patch) => {
     const k = toKey(id);
     setServiceDrafts((prev) => ({
@@ -667,19 +426,6 @@ export default function AdminServicesPage() {
       [k]: { ...(prev[k] || {}), ...patch },
     }));
     setDirty(true);
-  };
-
-  const onSelectCategory = async (nextId) => {
-    if (dirty) {
-      const ok = await confirm({
-        title: "Switch category?",
-        message: "You have unsaved changes. Discard them and switch category?",
-        confirmText: "Switch",
-        confirmVariant: "danger",
-      });
-      if (!ok) return;
-    }
-    setSelectedCatId(nextId);
   };
 
   if (loading) {
@@ -731,242 +477,104 @@ export default function AdminServicesPage() {
         ) : null}
 
         <AdminStepper>
-          <AdminStep title="Categories" description="Create and name service categories.">
-            {/* Add Category */}
-        <div className="card border-0 shadow-sm mb-3">
-          <div className="card-body">
-            <h2 className="h6 mb-3">Add Category</h2>
-            <div className="row g-2 align-items-end">
-              <div className="col-12 col-md-4">
-                <label className="form-label">Title</label>
-                <input
-                  className="form-control"
-                  placeholder="e.g. Executive Support"
-                  value={newCat.title}
-                  onChange={(e) => setNewCat((p) => ({ ...p, title: e.target.value }))}
-                  disabled={busy}
-                />
-                <div className="form-text">Short category name that groups similar services.</div>
-              </div>
-              <div className="col-12 col-md-6">
-                <label className="form-label">Description (optional)</label>
-                <input
-                  className="form-control"
-                  placeholder="e.g. Ongoing support for busy founders"
-                  value={newCat.description}
-                  onChange={(e) => setNewCat((p) => ({ ...p, description: e.target.value }))}
-                  disabled={busy}
-                />
-                <div className="form-text">One sentence that explains who this category is for.</div>
-              </div>
-              <div className="col-6 col-md-1">
-                <div className="form-check mt-4">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    checked={!!newCat.is_published}
-                    onChange={(e) => setNewCat((p) => ({ ...p, is_published: e.target.checked }))}
-                    disabled={busy}
-                    id="newCatPub"
-                  />
-                  <label className="form-check-label" htmlFor="newCatPub">
-                    Publish
-                  </label>
-                  <div className="form-text">Show this category on your site.</div>
-                </div>
-              </div>
-              <div className="col-6 col-md-1 d-grid">
-                <button className="btn btn-primary" onClick={createCategory} disabled={busy}>
-                  <i className="fa-solid fa-plus me-2"></i>Add
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-          </AdminStep>
-
-          <AdminStep title="Add Services" description="Create services inside a category.">
-            {/* Add Service */}
-        <div className="card border-0 shadow-sm mb-3">
-          <div className="card-body">
-            <h2 className="h6 mb-3">Add Service</h2>
-            <div className="row g-2">
-              <div className="col-12 col-md-3">
-                <label className="form-label">Category</label>
-                <select
-                  className="form-select"
-                  value={newItem.category_id || selectedCatId}
-                  onChange={(e) => setNewItem((p) => ({ ...p, category_id: e.target.value }))}
-                  disabled={busy}
-                >
-                  <option value="">Select...</option>
-                  {categoriesSorted.map((c, idx) => (
-                    <option key={toKey(c.id)} value={toKey(c.id)}>
-                      {idx + 1}. {c.title}
-                    </option>
-                  ))}
-                </select>
-                <div className="form-text">Choose the category this service belongs to.</div>
-              </div>
-
-              <div className="col-12 col-md-3">
-                <label className="form-label">Title</label>
-                <input
-                  className="form-control"
-                  placeholder="e.g. Inbox Management"
-                  value={newItem.title}
-                  onChange={(e) => setNewItem((p) => ({ ...p, title: e.target.value }))}
-                  disabled={busy}
-                />
-                <div className="form-text">Use a short, scannable service name.</div>
-              </div>
-
-              <div className="col-12 col-md-4">
-                <label className="form-label">Description (optional)</label>
-                <input
-                  className="form-control"
-                  placeholder="e.g. Daily triage, responses, and follow-ups"
-                  value={newItem.description}
-                  onChange={(e) => setNewItem((p) => ({ ...p, description: e.target.value }))}
-                  disabled={busy}
-                />
-                <div className="form-text">One sentence that explains the outcome.</div>
-              </div>
-
-              <div className="col-6 col-md-1">
-                <div className="form-check mt-4">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    checked={!!newItem.is_published}
-                    onChange={(e) => setNewItem((p) => ({ ...p, is_published: e.target.checked }))}
-                    disabled={busy}
-                    id="newItemPub"
-                  />
-                  <label className="form-check-label" htmlFor="newItemPub">
-                    Publish
-                  </label>
-                  <div className="form-text">Show this service on your site.</div>
-                </div>
-              </div>
-
-              <div className="col-6 col-md-1 d-grid">
-                <button className="btn btn-primary" onClick={createService} disabled={busy}>
-                  <i className="fa-solid fa-plus me-2"></i>Add
-                </button>
-              </div>
-
-              <div className="col-12">
-                <label className="form-label mt-2">Bullets (one per line)</label>
-                <textarea
-                  className="form-control"
-                  rows="3"
-                  value={newItem.bulletsText}
-                  onChange={(e) => {
-                    // Optional: enforce bullet prefix while typing
-                    setNewItem((p) => ({ ...p, bulletsText: e.target.value }));
-                  }}
-                  onKeyDown={(e) =>
-                    handleBulletsKeyDown(e, newItem.bulletsText, (v) =>
-                      setNewItem((p) => ({ ...p, bulletsText: v }))
-                    )
-                  }
-                  onFocus={() => {
-                    // Optional: if empty, start with a bullet
-                    setNewItem((p) => {
-                      if ((p.bulletsText || "").trim()) return p;
-                      return { ...p, bulletsText: BULLET };
-                    });
-                  }}
-                  onBlur={() => {
-                    // Optional: cleanup/normalize bullets on blur
-                    setNewItem((p) => ({ ...p, bulletsText: ensureBulletsFormat(p.bulletsText) }));
-                  }}
-                  placeholder={bulletsPlaceholder}
-                  disabled={busy}
-                />
-                <div className="form-text">List 2-5 key tasks or outcomes. One bullet per line.</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-          </AdminStep>
-
-          <AdminStep title="Organize and Edit" description="Pick a category, edit services, and save.">
-            {/* Catalog */}
-        <div className="row g-3">
-          {/* Left: Category Picker */}
-          <div className="col-12 col-lg-4">
-            <div className="card border-0 shadow-sm">
+          <AdminStep title="Add Service" description="Create a new service item.">
+            <div className="card border-0 shadow-sm mb-3">
               <div className="card-body">
-                <div className="d-flex align-items-center justify-content-between mb-2">
-                  <h2 className="h6 mb-0">Categories</h2>
-                  <button className="btn btn-sm btn-outline-secondary" onClick={reloadAll} disabled={busy}>
-                    <i className="fa-solid fa-rotate me-2"></i>Reload
-                  </button>
-                </div>
-
-                {categoriesSorted.length === 0 ? (
-                  <div className="text-muted">No categories yet.</div>
-                ) : (
-                  <select
-                    className="form-select"
-                    value={selectedCatId}
-                    onChange={(e) => onSelectCategory(e.target.value)}
-                    disabled={busy}
-                  >
-                    {categoriesSorted.map((c, idx) => (
-                      <option key={toKey(c.id)} value={toKey(c.id)}>
-                        {idx + 1}. {c.title}
-                      </option>
-                    ))}
-                  </select>
-                )}
-
-                <div className="small text-muted mt-2">Pick a category, edit on the right, then click Save.</div>
-
-                {selectedCategory ? (
-                  <div className="d-flex gap-2 mt-3">
-                    <button
-                      className="btn btn-sm btn-outline-secondary"
-                      onClick={() => moveCategory(selectedCategory.id, "up")}
-                      disabled={busy || selectedCategoryIndex <= 0}
-                      type="button"
-                    >
-                      <i className="fa-solid fa-arrow-up me-2"></i>Up
-                    </button>
-                    <button
-                      className="btn btn-sm btn-outline-secondary"
-                      onClick={() => moveCategory(selectedCategory.id, "down")}
-                      disabled={busy || selectedCategoryIndex === categoriesSorted.length - 1}
-                      type="button"
-                    >
-                      <i className="fa-solid fa-arrow-down me-2"></i>Down
-                    </button>
-                    <button
-                      className="btn btn-sm btn-outline-danger ms-auto"
-                      onClick={() => deleteCategory(selectedCategory.id)}
+                <h2 className="h6 mb-3">Add Service</h2>
+                <div className="row g-2">
+                  <div className="col-12 col-md-4">
+                    <label className="form-label">Title</label>
+                    <input
+                      className="form-control"
+                      placeholder="e.g. Inbox Management"
+                      value={newItem.title}
+                      onChange={(e) => setNewItem((p) => ({ ...p, title: e.target.value }))}
                       disabled={busy}
-                      type="button"
-                    >
-                      <i className="fa-solid fa-trash me-2"></i>Delete
+                    />
+                    <div className="form-text">Use a short, scannable service name.</div>
+                  </div>
+
+                  <div className="col-12 col-md-5">
+                    <label className="form-label">Description (optional)</label>
+                    <input
+                      className="form-control"
+                      placeholder="e.g. Daily triage, responses, and follow-ups"
+                      value={newItem.description}
+                      onChange={(e) => setNewItem((p) => ({ ...p, description: e.target.value }))}
+                      disabled={busy}
+                    />
+                    <div className="form-text">One sentence that explains the outcome.</div>
+                  </div>
+
+                  <div className="col-6 col-md-2">
+                    <div className="form-check mt-4">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        checked={!!newItem.is_published}
+                        onChange={(e) => setNewItem((p) => ({ ...p, is_published: e.target.checked }))}
+                        disabled={busy}
+                        id="newItemPub"
+                      />
+                      <label className="form-check-label" htmlFor="newItemPub">
+                        Publish
+                      </label>
+                      <div className="form-text">Show this service on your site.</div>
+                    </div>
+                  </div>
+
+                  <div className="col-6 col-md-1 d-grid">
+                    <button className="btn btn-primary" onClick={createService} disabled={busy}>
+                      <i className="fa-solid fa-plus me-2"></i>Add
                     </button>
                   </div>
-                ) : null}
+
+                  <div className="col-12">
+                    <label className="form-label mt-2">Deliverables (optional, one per line)</label>
+                    <textarea
+                      className="form-control"
+                      rows="3"
+                      value={newItem.bulletsText}
+                      onChange={(e) => {
+                        // Optional: enforce bullet prefix while typing
+                        setNewItem((p) => ({ ...p, bulletsText: e.target.value }));
+                      }}
+                      onKeyDown={(e) =>
+                        handleBulletsKeyDown(e, newItem.bulletsText, (v) =>
+                          setNewItem((p) => ({ ...p, bulletsText: v }))
+                        )
+                      }
+                      onFocus={() => {
+                        // Optional: if empty, start with a bullet
+                        setNewItem((p) => {
+                          if ((p.bulletsText || "").trim()) return p;
+                          return { ...p, bulletsText: BULLET };
+                        });
+                      }}
+                      onBlur={() => {
+                        // Optional: cleanup/normalize bullets on blur
+                        setNewItem((p) => ({ ...p, bulletsText: ensureBulletsFormat(p.bulletsText) }));
+                      }}
+                      placeholder={bulletsPlaceholder}
+                      disabled={busy}
+                    />
+                    <div className="form-text">List 2-5 key tasks or outcomes. One bullet per line.</div>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+          </AdminStep>
 
-          {/* Right: Editor */}
-          <div className="col-12 col-lg-8">
+          <AdminStep title="Organize and Edit" description="Reorder, edit, and save your services.">
             <div className="card border-0 shadow-sm">
               <div className="card-body">
                 <div className="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-2">
-                  <h2 className="h6 mb-0">Editor</h2>
+                  <h2 className="h6 mb-0">Services</h2>
 
                   <div className="d-flex flex-wrap gap-2">
+                    <button className="btn btn-outline-secondary" onClick={requestReload} disabled={busy} type="button">
+                      <i className="fa-solid fa-rotate me-2"></i>Reload
+                    </button>
                     <button
                       className="btn btn-outline-secondary"
                       onClick={discardChanges}
@@ -975,12 +583,7 @@ export default function AdminServicesPage() {
                     >
                       Discard
                     </button>
-                    <button
-                      className="btn btn-primary"
-                      onClick={saveChanges}
-                      disabled={busy || !dirty || !selectedCategory}
-                      type="button"
-                    >
+                    <button className="btn btn-primary" onClick={saveChanges} disabled={busy || !dirty} type="button">
                       {busy ? (
                         <>
                           <span className="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
@@ -996,212 +599,151 @@ export default function AdminServicesPage() {
                   </div>
                 </div>
 
-                {!selectedCategory ? (
-                  <div className="text-muted">Select a category to edit.</div>
+                <div className="d-flex flex-wrap gap-2 align-items-center mb-2">
+                  <span className="badge text-bg-light border text-muted">Services: {itemsSorted.length}</span>
+                  {dirty ? <span className="badge text-bg-warning">Unsaved</span> : null}
+                </div>
+
+                {itemsSorted.length === 0 ? (
+                  <div className="text-muted">No services yet.</div>
                 ) : (
-                  <>
-                    <div className="d-flex flex-wrap gap-2 align-items-center mb-2">
-                      <span className="badge text-bg-light border text-muted">
-                        Category Position: {selectedCategoryIndex + 1}
-                      </span>
-                      <BadgePub pub={!!catDraft.is_published} />
-                      <span className="badge text-bg-light border text-muted">
-                        Services: {selectedServices.length}
-                      </span>
-                      {dirty ? <span className="badge text-bg-warning">Unsaved</span> : null}
-                    </div>
+                  <div className="vstack gap-2">
+                    {itemsSorted.map((it, idx) => {
+                      const d = serviceDrafts[toKey(it.id)] || {
+                        title: it.title || "",
+                        description: it.description || "",
+                        is_published: !!it.is_published,
+                        bulletsText: fromBulletsArray(it.bullets),
+                      };
 
-                    {/* Category Fields */}
-                    <div className="row g-2 align-items-end">
-                      <div className="col-12 col-md-5">
-                        <label className="form-label">Category Title</label>
-                        <input
-                          className="form-control"
-                          placeholder="e.g. Executive Support"
-                          value={catDraft.title}
-                          onChange={(e) => onChangeCatDraft({ title: e.target.value })}
-                          disabled={busy}
-                        />
-                        <div className="form-text">Keep it short and consistent with your service areas.</div>
-                      </div>
+                      return (
+                        <div className="card" key={toKey(it.id)}>
+                          <div className="card-body">
+                            <div className="d-flex flex-wrap gap-2 align-items-center justify-content-between">
+                              <div className="d-flex flex-wrap gap-2 align-items-center">
+                                <div className="fw-semibold">{d.title || "(Untitled service)"}</div>
+                                <BadgePub pub={!!d.is_published} />
+                                <span className="badge text-bg-light border text-muted">Position: {idx + 1}</span>
+                              </div>
 
-                      <div className="col-12 col-md-5">
-                        <label className="form-label">Category Description</label>
-                        <input
-                          className="form-control"
-                          placeholder="e.g. Ongoing operational support for founders"
-                          value={catDraft.description}
-                          onChange={(e) => onChangeCatDraft({ description: e.target.value })}
-                          disabled={busy}
-                        />
-                        <div className="form-text">Optional one-liner that appears under the category.</div>
-                      </div>
-
-                      <div className="col-12 col-md-2">
-                        <label className="form-label d-block">Published</label>
-                        <div className="form-check">
-                          <input
-                            className="form-check-input"
-                            type="checkbox"
-                            id={`catPub_${toKey(selectedCategory.id)}`}
-                            checked={!!catDraft.is_published}
-                            onChange={(e) => onChangeCatDraft({ is_published: e.target.checked })}
-                            disabled={busy}
-                          />
-                          <label className="form-check-label" htmlFor={`catPub_${toKey(selectedCategory.id)}`}>
-                            Visible
-                          </label>
-                          <div className="form-text">Turn on to show this category publicly.</div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <hr className="my-3" />
-
-                    {/* Services List */}
-                    {selectedServices.length === 0 ? (
-                      <div className="text-muted">No services in this category yet.</div>
-                    ) : (
-                      <div className="vstack gap-2">
-                        {selectedServices.map((it, idx) => {
-                          const d = serviceDrafts[toKey(it.id)] || {
-                            title: it.title || "",
-                            description: it.description || "",
-                            is_published: !!it.is_published,
-                            bulletsText: fromBulletsArray(it.bullets),
-                          };
-
-                          return (
-                            <div className="card" key={toKey(it.id)}>
-                              <div className="card-body">
-                                <div className="d-flex flex-wrap gap-2 align-items-center justify-content-between">
-                                  <div className="d-flex flex-wrap gap-2 align-items-center">
-                                    <div className="fw-semibold">{d.title || "(Untitled service)"}</div>
-                                    <BadgePub pub={!!d.is_published} />
-                                    <span className="badge text-bg-light border text-muted">Position: {idx + 1}</span>
-                                  </div>
-
-                                  <div className="d-flex gap-2">
-                                    <button
-                                      className="btn btn-sm btn-outline-secondary"
-                                      onClick={() => moveService(it.id, "up")}
-                                      disabled={busy || idx === 0}
-                                      type="button"
-                                      title="Move up"
-                                    >
-                                      <i className="fa-solid fa-arrow-up"></i>
-                                    </button>
-                                    <button
-                                      className="btn btn-sm btn-outline-secondary"
-                                      onClick={() => moveService(it.id, "down")}
-                                      disabled={busy || idx === selectedServices.length - 1}
-                                      type="button"
-                                      title="Move down"
-                                    >
-                                      <i className="fa-solid fa-arrow-down"></i>
-                                    </button>
-                                    <button
-                                      className="btn btn-sm btn-outline-danger"
-                                      onClick={() => deleteService(it.id)}
-                                      disabled={busy}
-                                      type="button"
-                                      title="Delete"
-                                    >
-                                      <i className="fa-solid fa-trash"></i>
-                                    </button>
-                                  </div>
-                                </div>
-
-                                <div className="row g-2 mt-2">
-                                  <div className="col-12 col-md-4">
-                                    <label className="form-label">Title</label>
-                                    <input
-                                      className="form-control"
-                                      placeholder="e.g. Calendar Management"
-                                      value={d.title}
-                                      onChange={(e) => onChangeServiceDraft(it.id, { title: e.target.value })}
-                                      disabled={busy}
-                                    />
-                                    <div className="form-text">Short, scannable service name.</div>
-                                  </div>
-
-                                  <div className="col-12 col-md-5">
-                                    <label className="form-label">Description</label>
-                                    <input
-                                      className="form-control"
-                                      placeholder="e.g. Schedule optimization and meeting prep"
-                                      value={d.description}
-                                      onChange={(e) => onChangeServiceDraft(it.id, { description: e.target.value })}
-                                      disabled={busy}
-                                    />
-                                    <div className="form-text">Brief outcome-focused summary.</div>
-                                  </div>
-
-                                  <div className="col-12 col-md-3">
-                                    <label className="form-label d-block">Published</label>
-                                    <div className="form-check">
-                                      <input
-                                        className="form-check-input"
-                                        type="checkbox"
-                                        id={`itPub_${toKey(it.id)}`}
-                                        checked={!!d.is_published}
-                                        onChange={(e) => onChangeServiceDraft(it.id, { is_published: e.target.checked })}
-                                        disabled={busy}
-                                      />
-                                      <label className="form-check-label" htmlFor={`itPub_${toKey(it.id)}`}>
-                                        Visible
-                                      </label>
-                                      <div className="form-text">Publish to show this service.</div>
-                                    </div>
-                                  </div>
-
-                                  <div className="col-12">
-                                    <label className="form-label">Bullets (one per line)</label>
-                                    <textarea
-                                      className="form-control"
-                                      rows="3"
-                                      value={d.bulletsText}
-                                      onChange={(e) => onChangeServiceDraft(it.id, { bulletsText: e.target.value })}
-                                      onKeyDown={(e) =>
-                                        handleBulletsKeyDown(e, d.bulletsText, (v) =>
-                                          onChangeServiceDraft(it.id, { bulletsText: v })
-                                        )
-                                      }
-                                      onFocus={() => {
-                                        onChangeServiceDraft(it.id, {
-                                          bulletsText: (d.bulletsText || "").trim() ? d.bulletsText : BULLET,
-                                        });
-                                      }}
-                                      onBlur={() => {
-                                        onChangeServiceDraft(it.id, { bulletsText: ensureBulletsFormat(d.bulletsText) });
-                                      }}
-                                      placeholder={bulletsPlaceholder}
-                                      disabled={busy}
-                                    />
-                                    <div className="form-text">List key tasks or deliverables. One bullet per line.</div>
-                                  </div>
-                                </div>
+                              <div className="d-flex gap-2">
+                                <button
+                                  className="btn btn-sm btn-outline-secondary"
+                                  onClick={() => moveService(it.id, "up")}
+                                  disabled={busy || idx === 0}
+                                  type="button"
+                                  title="Move up"
+                                >
+                                  <i className="fa-solid fa-arrow-up"></i>
+                                </button>
+                                <button
+                                  className="btn btn-sm btn-outline-secondary"
+                                  onClick={() => moveService(it.id, "down")}
+                                  disabled={busy || idx === itemsSorted.length - 1}
+                                  type="button"
+                                  title="Move down"
+                                >
+                                  <i className="fa-solid fa-arrow-down"></i>
+                                </button>
+                                <button
+                                  className="btn btn-sm btn-outline-danger"
+                                  onClick={() => deleteService(it.id)}
+                                  disabled={busy}
+                                  type="button"
+                                  title="Delete"
+                                >
+                                  <i className="fa-solid fa-trash"></i>
+                                </button>
                               </div>
                             </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </>
+
+                            <div className="row g-2 mt-2">
+                              <div className="col-12 col-md-4">
+                                <label className="form-label">Title</label>
+                                <input
+                                  className="form-control"
+                                  placeholder="e.g. Calendar Management"
+                                  value={d.title}
+                                  onChange={(e) => onChangeServiceDraft(it.id, { title: e.target.value })}
+                                  disabled={busy}
+                                />
+                                <div className="form-text">Short, scannable service name.</div>
+                              </div>
+
+                              <div className="col-12 col-md-5">
+                                <label className="form-label">Description</label>
+                                <input
+                                  className="form-control"
+                                  placeholder="e.g. Schedule optimization and meeting prep"
+                                  value={d.description}
+                                  onChange={(e) => onChangeServiceDraft(it.id, { description: e.target.value })}
+                                  disabled={busy}
+                                />
+                                <div className="form-text">Brief outcome-focused summary.</div>
+                              </div>
+
+                              <div className="col-12 col-md-3">
+                                <label className="form-label d-block">Published</label>
+                                <div className="form-check">
+                                  <input
+                                    className="form-check-input"
+                                    type="checkbox"
+                                    id={`itPub_${toKey(it.id)}`}
+                                    checked={!!d.is_published}
+                                    onChange={(e) => onChangeServiceDraft(it.id, { is_published: e.target.checked })}
+                                    disabled={busy}
+                                  />
+                                  <label className="form-check-label" htmlFor={`itPub_${toKey(it.id)}`}>
+                                    Visible
+                                  </label>
+                                  <div className="form-text">Publish to show this service.</div>
+                                </div>
+                              </div>
+
+                              <div className="col-12">
+                                <label className="form-label">Deliverables (optional, one per line)</label>
+                                <textarea
+                                  className="form-control"
+                                  rows="3"
+                                  value={d.bulletsText}
+                                  onChange={(e) => onChangeServiceDraft(it.id, { bulletsText: e.target.value })}
+                                  onKeyDown={(e) =>
+                                    handleBulletsKeyDown(e, d.bulletsText, (v) =>
+                                      onChangeServiceDraft(it.id, { bulletsText: v })
+                                    )
+                                  }
+                                  onFocus={() => {
+                                    onChangeServiceDraft(it.id, {
+                                      bulletsText: (d.bulletsText || "").trim() ? d.bulletsText : BULLET,
+                                    });
+                                  }}
+                                  onBlur={() => {
+                                    onChangeServiceDraft(it.id, { bulletsText: ensureBulletsFormat(d.bulletsText) });
+                                  }}
+                                  placeholder={bulletsPlaceholder}
+                                  disabled={busy}
+                                />
+                                <div className="form-text">List key tasks or deliverables. One bullet per line.</div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 )}
               </div>
             </div>
-          </div>
-        </div>
-
           </AdminStep>
         </AdminStepper>
 
         <div className="small text-muted mt-3">
-          Tip: “Move up/down” reorders immediately. Field edits are saved only when you click <b>Save Changes</b>.
+          Tip: â€œMove up/downâ€ reorders immediately. Field edits are saved only when you click <b>Save Changes</b>.
         </div>
       </div>
       <AdminActionModal modal={modal} onConfirm={onConfirm} onCancel={onCancel} />
     </div>
   );
 }
+
+

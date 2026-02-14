@@ -8,6 +8,7 @@ import SectionBackground from "@/components/SectionBackground";
 export default function CertificationsSection() {
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState([]);
+  const [zoomed, setZoomed] = useState(null);
 
   const publicUrl = (path) => {
     if (!path) return "";
@@ -49,6 +50,26 @@ export default function CertificationsSection() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!zoomed) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setZoomed(null);
+      }
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [zoomed]);
+
   if (loading) {
     return (
       <SectionBackground sectionKey="certifications" id="certifications" className="py-5">
@@ -78,7 +99,8 @@ export default function CertificationsSection() {
                       src={img}
                       alt={c.title}
                       className="card-img-top"
-                      style={{ height: 180, objectFit: "cover" }}
+                      style={{ height: 300, objectFit: "cover", cursor: "zoom-in" }}
+                      onClick={() => setZoomed({ src: img, title: c.title })}
                     />
                   ) : (
                     <div
@@ -116,6 +138,50 @@ export default function CertificationsSection() {
           })}
         </div>
       </div>
+
+      {zoomed ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={zoomed.title || "Certificate image"}
+          onClick={() => setZoomed(null)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0, 0, 0, 0.8)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 24,
+            zIndex: 1050,
+          }}
+        >
+          <div onClick={(event) => event.stopPropagation()} style={{ position: "relative" }}>
+            <button
+              type="button"
+              className="btn btn-light btn-sm"
+              onClick={() => setZoomed(null)}
+              style={{ position: "absolute", top: -12, right: -12 }}
+              aria-label="Close zoom"
+            >
+              Close
+            </button>
+            <img
+              src={zoomed.src}
+              alt={zoomed.title || "Certificate image"}
+              style={{
+                maxWidth: "90vw",
+                maxHeight: "90vh",
+                objectFit: "contain",
+                display: "block",
+                boxShadow: "0 20px 40px rgba(0, 0, 0, 0.35)",
+                borderRadius: 12,
+                background: "white",
+              }}
+            />
+          </div>
+        </div>
+      ) : null}
     </SectionBackground>
   );
 }

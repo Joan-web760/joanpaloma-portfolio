@@ -5,6 +5,30 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase-browser";
 import SectionBackground from "@/components/SectionBackground";
 
+const TOOL_COLORS = [
+  "#1f6feb",
+  "#d946ef",
+  "#f97316",
+  "#22c55e",
+  "#0ea5e9",
+  "#e11d48",
+  "#8b5cf6",
+  "#14b8a6",
+  "#f59e0b",
+  "#10b981",
+];
+
+const hashString = (value) => {
+  const str = String(value || "");
+  let hash = 0;
+  for (let i = 0; i < str.length; i += 1) {
+    hash = (hash * 31 + str.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash);
+};
+
+const pickToolColor = (seed) => TOOL_COLORS[hashString(seed) % TOOL_COLORS.length];
+
 const resolveIcon = (icon) => {
   const raw = String(icon || "").trim();
   if (!raw) return "fa-solid fa-screwdriver-wrench";
@@ -81,6 +105,7 @@ export default function ToolsSection() {
             const category = String(it.category || "").trim();
             const description = String(it.description || "").trim();
             const url = String(it.url || "").trim();
+            const iconColor = pickToolColor(`${it.id || ""}-${name}`);
 
             return (
               <div className="col-12 col-md-6 col-lg-4" key={it.id}>
@@ -91,7 +116,7 @@ export default function ToolsSection() {
                         className="rounded-circle bg-light d-flex align-items-center justify-content-center flex-shrink-0"
                         style={{ width: 48, height: 48 }}
                       >
-                        <i className={`${iconClass} text-primary`} aria-hidden="true"></i>
+                        <i className={iconClass} style={{ color: iconColor }} aria-hidden="true"></i>
                       </div>
 
                       <div className="flex-grow-1">

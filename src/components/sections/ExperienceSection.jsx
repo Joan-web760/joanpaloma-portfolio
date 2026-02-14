@@ -88,7 +88,6 @@ export default function ExperienceSection({ className = "" } = {}) {
       <div className="container">
         <div className="mb-3">
           <h2 className="h3 mb-1">Work Experience</h2>
-          <p className="text-muted mb-0">Roles, responsibilities, and measurable outcomes.</p>
         </div>
 
         <div className="vstack gap-3">

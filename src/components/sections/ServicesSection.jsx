@@ -88,7 +88,8 @@ export default function ServicesSection() {
                     <ul className="small mb-0 list-unstyled">
                       {bullets.map((b, idx) => (
                         <li key={idx}>
-                          {"\u2013"} {b}
+                          <i className="fa-solid fa-check me-2 text-success" aria-hidden="true"></i>
+                          {b}
                         </li>
                       ))}
                     </ul>

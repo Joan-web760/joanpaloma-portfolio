@@ -63,6 +63,7 @@ const drawCaptcha = (canvas, captcha) => {
 export default function ContactSection() {
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState(null);
+  const [phTime, setPhTime] = useState("");
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -142,6 +143,31 @@ export default function ContactSection() {
     const timer = setInterval(updateRemaining, 1000);
     return () => clearInterval(timer);
   }, [lockUntil]);
+
+  useEffect(() => {
+    const dateFormatter = new Intl.DateTimeFormat("en-PH", {
+      timeZone: "Asia/Manila",
+      month: "long",
+      day: "2-digit",
+      year: "numeric",
+    });
+    const timeFormatter = new Intl.DateTimeFormat("en-PH", {
+      timeZone: "Asia/Manila",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    });
+
+    const updateTime = () => {
+      const now = new Date();
+      setPhTime(`${dateFormatter.format(now)} • ${timeFormatter.format(now)}`);
+    };
+
+    updateTime();
+    const timer = setInterval(updateTime, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -365,6 +391,11 @@ export default function ContactSection() {
                     {[settings.hours_text, settings.timezone].filter(Boolean).join(" • ")}
                   </div>
                 ) : null}
+
+                <div className="mb-3 text-muted small">
+                  <i className="fa-regular fa-clock me-2"></i>
+                  Philippines Time (PHT): {phTime || "Loading..."}
+                </div>
 
                 {settings.booking_url ? (
                   <a

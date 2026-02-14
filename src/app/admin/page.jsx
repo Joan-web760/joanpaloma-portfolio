@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 
@@ -52,11 +52,15 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [authEmail, setAuthEmail] = useState("");
   const [error, setError] = useState("");
+  const [chartError, setChartError] = useState("");
 
   const [isAdmin, setIsAdmin] = useState(true);
 
   // section status map: key => { kind, statusText, updatedAt, published, totalCount, publishedCount }
   const [statusMap, setStatusMap] = useState({});
+  const barChartRef = useRef(null);
+  const completionChartRef = useRef(null);
+  const chartInstancesRef = useRef({ bar: null, completion: null });
 
   const completion = useMemo(() => {
     const rows = SECTIONS.map((s) => statusMap[s.key]).filter(Boolean);
@@ -70,6 +74,27 @@ export default function AdminDashboard() {
       published,
     };
   }, [statusMap]);
+
+  const chartData = useMemo(() => {
+    const rows = SECTIONS.map((s) => {
+      const st = statusMap[s.key];
+      const total = st?.totalCount ?? 0;
+      const published = st?.publishedCount ?? 0;
+      return { label: s.label, total, published };
+    });
+
+    const labels = rows.map((r) => r.label);
+    const publishedCounts = rows.map((r) => r.published);
+    const unpublishedCounts = rows.map((r) => Math.max(r.total - r.published, 0));
+    const remaining = Math.max(completion.total - completion.completed, 0);
+
+    return {
+      labels,
+      publishedCounts,
+      unpublishedCounts,
+      completion: [completion.completed, remaining],
+    };
+  }, [statusMap, completion]);
 
   useEffect(() => {
     let alive = true;
@@ -218,12 +243,123 @@ export default function AdminDashboard() {
     };
   }, [router]);
 
+  useEffect(() => {
+    let active = true;
+
+    const teardown = () => {
+      if (chartInstancesRef.current.bar) {
+        chartInstancesRef.current.bar.destroy();
+        chartInstancesRef.current.bar = null;
+      }
+      if (chartInstancesRef.current.completion) {
+        chartInstancesRef.current.completion.destroy();
+        chartInstancesRef.current.completion = null;
+      }
+    };
+
+    if (loading) {
+      teardown();
+      return () => {
+        active = false;
+      };
+    }
+
+    setChartError("");
+
+    (async () => {
+      try {
+        const { default: Chart } = await import("chart.js/auto");
+        if (!active) return;
+        if (!barChartRef.current || !completionChartRef.current) return;
+
+        teardown();
+
+        chartInstancesRef.current.bar = new Chart(barChartRef.current, {
+          type: "bar",
+          data: {
+            labels: chartData.labels,
+            datasets: [
+              {
+                label: "Published",
+                data: chartData.publishedCounts,
+                backgroundColor: "#198754",
+                borderRadius: 6,
+                barThickness: 14,
+              },
+              {
+                label: "Unpublished",
+                data: chartData.unpublishedCounts,
+                backgroundColor: "#e9ecef",
+                borderRadius: 6,
+                barThickness: 14,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                stacked: true,
+                ticks: { maxRotation: 0, autoSkip: true },
+                grid: { display: false },
+              },
+              y: {
+                stacked: true,
+                beginAtZero: true,
+                ticks: { precision: 0 },
+              },
+            },
+            plugins: {
+              legend: { position: "bottom" },
+              tooltip: { enabled: true },
+            },
+          },
+        });
+
+        chartInstancesRef.current.completion = new Chart(completionChartRef.current, {
+          type: "doughnut",
+          data: {
+            labels: ["Ready", "Remaining"],
+            datasets: [
+              {
+                data: chartData.completion,
+                backgroundColor: ["#0d6efd", "#adb5bd"],
+                borderWidth: 0,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: "70%",
+            plugins: {
+              legend: { position: "bottom" },
+              tooltip: { enabled: true },
+            },
+          },
+        });
+      } catch (err) {
+        if (!active) return;
+        setChartError('Charts require the chart.js package. Install it with npm install chart.js.');
+      }
+    })();
+
+    return () => {
+      active = false;
+      teardown();
+    };
+  }, [chartData, loading]);
+
   const logout = async () => {
     await supabase.auth.signOut();
     router.replace("/admin/login");
   };
 
   const openPreview = () => window.open("/", "_blank");
+
+  const chartsReady = !loading && !chartError;
+  const chartPlaceholder = loading ? "Loading charts..." : "Charts unavailable.";
 
   return (
     <div className="bg-light min-vh-100">
@@ -310,13 +446,65 @@ export default function AdminDashboard() {
           </div>
         </div>
 
+        {chartError ? (
+          <div className="alert alert-warning">
+            <i className="fa-solid fa-chart-column me-2"></i>
+            {chartError}
+          </div>
+        ) : null}
+
+        {/* Charts */}
+        <div className="row g-3 mb-3">
+          <div className="col-12 col-lg-4">
+            <div className="card border-0 shadow-sm h-100">
+              <div className="card-body">
+                <div className="d-flex align-items-center justify-content-between mb-2">
+                  <h2 className="h6 mb-0">Completion</h2>
+                  <span className="badge text-bg-light border">
+                    {completion.completed}/{completion.total}
+                  </span>
+                </div>
+                <div style={{ height: 220 }}>
+                  {chartsReady ? (
+                    <canvas ref={completionChartRef} aria-label="Completion chart" role="img"></canvas>
+                  ) : (
+                    <div className="text-muted small">{chartPlaceholder}</div>
+                  )}
+                </div>
+                <div className="small text-muted mt-2">Ready sections vs remaining.</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="col-12 col-lg-8">
+            <div className="card border-0 shadow-sm h-100">
+              <div className="card-body">
+                <div className="d-flex align-items-center justify-content-between mb-2">
+                  <h2 className="h6 mb-0">Published Content</h2>
+                  <span className="small text-muted">Published vs total items</span>
+                </div>
+                <div style={{ height: 260 }}>
+                  {chartsReady ? (
+                    <canvas ref={barChartRef} aria-label="Published content chart" role="img"></canvas>
+                  ) : (
+                    <div className="text-muted small">{chartPlaceholder}</div>
+                  )}
+                </div>
+                <div className="small text-muted mt-2">
+                  Each bar stacks published items against unpublished items per section.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Section Checklist Table */}
         <div className="card border-0 shadow-sm">
+          <div className="card-header bg-white d-flex flex-wrap gap-2 align-items-center justify-content-between">
+            <h2 className="h6 mb-0">Content Status & Shortcuts</h2>
+            <span className="badge text-bg-secondary">Auto-wired from Supabase</span>
+          </div>
           <div className="card-body">
-            <div className="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
-              <h2 className="h6 mb-0">Content Status & Shortcuts</h2>
-              <span className="badge text-bg-secondary">Auto-wired from Supabase</span>
-            </div>
 
             {loading ? (
               <div className="d-flex align-items-center gap-2 text-muted">
@@ -324,72 +512,61 @@ export default function AdminDashboard() {
                 Loading dashboard...
               </div>
             ) : (
-              <div className="table-responsive">
-                <table className="table align-middle mb-0">
-                  <thead>
-                    <tr>
-                      <th style={{ width: 220 }}>Section</th>
-                      <th>Status</th>
-                      <th>Last Updated</th>
-                      <th>Published</th>
-                      <th className="text-end" style={{ width: 220 }}>
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {SECTIONS.map((s) => {
-                      const st = statusMap[s.key];
+              <div className="row g-3">
+                {SECTIONS.map((s) => {
+                  const st = statusMap[s.key];
 
-                      return (
-                        <tr key={s.key}>
-                          <td>
-                            <div className="fw-semibold">{s.label}</div>
-                            <div className="text-muted small">{s.key}</div>
-                            <div className="text-muted small">
-                              <code>{s.table}</code>
+                  return (
+                    <div className="col-12 col-md-6 col-xl-4" key={s.key}>
+                      <div className="card border shadow-sm h-100">
+                        <div className="card-body d-flex flex-column gap-3">
+                          <div className="d-flex align-items-start justify-content-between gap-2">
+                            <div>
+                              <div className="fw-semibold">{s.label}</div>
+                              <div className="text-muted small">{s.key}</div>
+                              <div className="text-muted small">
+                                <code>{s.table}</code>
+                              </div>
                             </div>
-                          </td>
-
-                          <td>
                             <span className={`badge ${badgeClass(st?.kind)}`}>
                               {st?.statusText || "Unknown"}
                             </span>
-                          </td>
+                          </div>
 
-                          <td className="text-muted">{fmtDate(st?.updatedAt)}</td>
-
-                          <td>
+                          <div className="d-flex flex-wrap gap-2 align-items-center">
+                            <span className="badge text-bg-light border">
+                              Updated: {fmtDate(st?.updatedAt)}
+                            </span>
                             {st ? (
                               st.published ? (
-                                <span className="badge text-bg-success">Yes</span>
+                                <span className="badge text-bg-success">Published</span>
                               ) : (
-                                <span className="badge text-bg-light border">No</span>
+                                <span className="badge text-bg-light border">Not Published</span>
                               )
                             ) : (
                               <span className="badge text-bg-light border">—</span>
                             )}
-                          </td>
+                          </div>
 
-                          <td className="text-end">
+                          <div className="mt-auto d-flex gap-2">
                             <button className="btn btn-sm btn-primary" onClick={() => router.push(s.route)}>
                               <i className="fa-solid fa-pen-to-square me-2"></i>
                               Edit
                             </button>
 
                             <button
-                              className="btn btn-sm btn-outline-secondary ms-2"
+                              className="btn btn-sm btn-outline-secondary"
                               onClick={openPreview}
                               title="Preview public site"
                             >
                               <i className="fa-solid fa-up-right-from-square"></i>
                             </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
 
@@ -410,3 +587,5 @@ export default function AdminDashboard() {
     </div>
   );
 }
+
+

@@ -64,7 +64,6 @@ export default function CertificationsSection() {
       <div className="container">
         <div className="mb-3">
           <h2 className="h3 mb-1">Certifications</h2>
-          <p className="text-muted mb-0">Verified learning and proof of expertise.</p>
         </div>
 
         <div className="row g-3">

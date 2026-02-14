@@ -1,29 +1,48 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 
-const primaryLinks = [
-  { label: "Home", href: "/#home" },
-  { label: "About", href: "/about#about" },
-  { label: "Services", href: "/#services" },
-  { label: "Portfolio", href: "/#portfolio" },
-  { label: "Contact", href: "/#contact" },
+const navItems = [
+  { type: "link", label: "Home", href: "/#home" },
+  {
+    type: "dropdown",
+    id: "aboutDropdown",
+    label: "About",
+    href: "/about#about",
+    links: [
+      { label: "Skills", href: "/#skills" },
+      { label: "Experience", href: "/experience#experience" },
+      { label: "Certifications", href: "/#certifications" },
+      { label: "Resume", href: "/#resume" },
+    ],
+  },
+  {
+    type: "dropdown",
+    id: "servicesDropdown",
+    label: "Services",
+    href: "/#services",
+    links: [{ label: "Testimonials", href: "/#testimonials" }],
+  },
+  {
+    type: "dropdown",
+    id: "portfolioDropdown",
+    label: "Portfolio",
+    href: "/#portfolio",
+    links: [{ label: "Pricing", href: "/#pricing" }],
+  },
+  { type: "link", label: "Blog", href: "/#blog" },
+  { type: "link", label: "Contact", href: "/#contact" },
 ];
 
-// put the rest here
-const dropdownLinks = [
-  { label: "Skills", href: "/#skills" },
-  { label: "Experience", href: "/experience#experience" },
-  { label: "Certifications", href: "/#certifications" },
-  { label: "Resume", href: "/#resume" },
-  { label: "Blog", href: "/#blog" },
-  { label: "Testimonials", href: "/#testimonials" },
-  { label: "Pricing", href: "/#pricing" },
-];
+const allLinks = navItems.flatMap((item) => {
+  if (item.type !== "dropdown") return [item];
+  const parent = item.href ? [{ label: item.label, href: item.href }] : [];
+  return [...parent, ...item.links];
+});
 
-const allLinks = [...primaryLinks, ...dropdownLinks];
+const mobileLinks = allLinks;
 
 const getAnchor = (href) => {
   if (!href) return "";
@@ -60,10 +79,7 @@ export default function Navbar() {
   // Brand (from DB)
   const [brand, setBrand] = useState("MyPortfolio");
 
-  const isDropdownActive = useMemo(
-    () => dropdownLinks.some((l) => toActiveHash(l.href) === active),
-    [active]
-  );
+  const isGroupActive = (links) => links.some((l) => toActiveHash(l.href) === active);
 
   useEffect(() => {
     setActive(getDefaultActive(pathname));
@@ -146,19 +162,27 @@ export default function Navbar() {
     instance.hide();
   };
 
-  const closeDropdown = () => {
-    const toggle = document.getElementById("moreDropdown");
-    if (!toggle) return;
-
+  const closeDropdowns = () => {
     const bs = window.bootstrap;
     if (!bs?.Dropdown) return;
 
-    const instance = bs.Dropdown.getOrCreateInstance(toggle);
-    instance.hide();
+    navItems
+      .filter((item) => item.type === "dropdown")
+      .forEach((item) => {
+        const toggle = document.getElementById(item.id);
+        if (!toggle) return;
+        const instance = bs.Dropdown.getOrCreateInstance(toggle);
+        instance.hide();
+      });
   };
 
   const handleLinkClick = (e, href) => {
     e.preventDefault();
+    if (!href) {
+      closeDropdowns();
+      closeMobileMenu();
+      return;
+    }
 
     const anchor = getAnchor(href);
     const targetPath = getPath(href);
@@ -173,7 +197,7 @@ export default function Navbar() {
         const top = el.getBoundingClientRect().top + window.scrollY - navH;
         window.scrollTo({ top, behavior: "smooth" });
         setActive(`#${anchor}`);
-        closeDropdown();
+        closeDropdowns();
         closeMobileMenu();
         return;
       }
@@ -183,7 +207,7 @@ export default function Navbar() {
     if (anchor) setActive(`#${anchor}`);
 
     // close UI
-    closeDropdown();
+    closeDropdowns();
     closeMobileMenu();
   };
 
@@ -216,9 +240,83 @@ export default function Navbar() {
         </button>
 
         <div className="collapse navbar-collapse" id="mainNavbar">
-          <ul className="navbar-nav ms-auto align-items-lg-center">
-            {/* Primary links */}
-            {primaryLinks.map((link) => {
+          <ul className="navbar-nav ms-auto align-items-lg-center d-none d-lg-flex">
+            {navItems.map((item) => {
+              if (item.type === "dropdown") {
+                const dropdownActive =
+                  isGroupActive(item.links) || (item.href && toActiveHash(item.href) === active);
+                const parentActive = item.href && toActiveHash(item.href) === active;
+                return (
+                  <li className="nav-item dropdown d-flex align-items-center gap-1" key={item.id}>
+                    <a
+                      className={`nav-link ${parentActive ? "active" : ""}`}
+                      href={item.href || "#"}
+                      aria-current={parentActive ? "page" : undefined}
+                      onClick={(e) => handleLinkClick(e, item.href)}
+                    >
+                      {item.label}
+                    </a>
+                    <a
+                      id={item.id}
+                      className={`nav-link dropdown-toggle dropdown-toggle-split ${
+                        dropdownActive ? "active" : ""
+                      }`}
+                      href="#"
+                      role="button"
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false"
+                      aria-label={`Toggle ${item.label} menu`}
+                      onClick={(e) => e.preventDefault()} // prevent jump to top
+                    />
+
+                    <ul className="dropdown-menu dropdown-menu-end" aria-labelledby={item.id}>
+                      {item.links.map((link) => (
+                        <li key={link.href}>
+                          <a
+                            className={`dropdown-item ${
+                              toActiveHash(link.href) === active ? "active" : ""
+                            }`}
+                            href={link.href}
+                            onClick={(e) => handleLinkClick(e, link.href)}
+                          >
+                            {link.label}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </li>
+                );
+              }
+
+              const isActive = toActiveHash(item.href) === active;
+              return (
+                <li className="nav-item" key={item.href}>
+                  <a
+                    className={`nav-link ${isActive ? "active" : ""}`}
+                    href={item.href}
+                    aria-current={isActive ? "page" : undefined}
+                    onClick={(e) => handleLinkClick(e, item.href)}
+                  >
+                    {item.label}
+                  </a>
+                </li>
+              );
+            })}
+
+            {/* CTA */}
+            <li className="nav-item ms-lg-2 mt-2 mt-lg-0">
+              <a
+                className="btn btn-primary btn-sm"
+                href="/#contact"
+                onClick={(e) => handleLinkClick(e, "/#contact")}
+              >
+                Let&apos;s talk
+              </a>
+            </li>
+          </ul>
+
+          <ul className="navbar-nav ms-auto align-items-lg-center d-lg-none">
+            {mobileLinks.map((link) => {
               const isActive = toActiveHash(link.href) === active;
               return (
                 <li className="nav-item" key={link.href}>
@@ -234,39 +332,8 @@ export default function Navbar() {
               );
             })}
 
-            {/* Dropdown */}
-            <li className="nav-item dropdown">
-              <a
-                id="moreDropdown"
-                className={`nav-link dropdown-toggle ${isDropdownActive ? "active" : ""}`}
-                href="#"
-                role="button"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-                onClick={(e) => e.preventDefault()} // prevent jump to top
-              >
-                More
-              </a>
-
-              <ul className="dropdown-menu dropdown-menu-end">
-                {dropdownLinks.map((link) => (
-                  <li key={link.href}>
-                    <a
-                      className={`dropdown-item ${
-                        toActiveHash(link.href) === active ? "active" : ""
-                      }`}
-                      href={link.href}
-                      onClick={(e) => handleLinkClick(e, link.href)}
-                    >
-                      {link.label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </li>
-
             {/* CTA */}
-            <li className="nav-item ms-lg-2 mt-2 mt-lg-0">
+            <li className="nav-item mt-2">
               <a
                 className="btn btn-primary btn-sm"
                 href="/#contact"

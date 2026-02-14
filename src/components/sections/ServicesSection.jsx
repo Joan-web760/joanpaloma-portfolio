@@ -64,7 +64,6 @@ export default function ServicesSection() {
         <div className="d-flex align-items-end justify-content-between mb-3">
           <div>
             <h2 className="h3 mb-1">Services</h2>
-            <p className="text-muted mb-0">Clear offerings so clients can self-qualify fast.</p>
           </div>
         </div>
 

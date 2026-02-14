@@ -69,7 +69,12 @@ export default function ServicesSection() {
 
         <div className="row g-3">
           {itemsSorted.map((it) => {
-            const bullets = Array.isArray(it.bullets) ? it.bullets : [];
+            const rawBullets = Array.isArray(it.bullets) ? it.bullets : [];
+            const bullets = rawBullets
+              .map((b) => (typeof b === "string" ? b : b?.text))
+              .filter(Boolean)
+              .map((b) => String(b).replace(/^\s*(â€¢|•|\u2022)\s*/, ""))
+              .filter(Boolean);
 
             return (
               <div className="col-12 col-md-6 col-lg-4" key={it.id}>
@@ -80,13 +85,12 @@ export default function ServicesSection() {
                   ) : null}
 
                   {bullets.length ? (
-                    <ul className="small mb-0">
-                      {bullets
-                        .map((b) => (typeof b === "string" ? b : b?.text))
-                        .filter(Boolean)
-                        .map((b, idx) => (
-                          <li key={idx}>{b}</li>
-                        ))}
+                    <ul className="small mb-0 list-unstyled">
+                      {bullets.map((b, idx) => (
+                        <li key={idx}>
+                          {"\u2013"} {b}
+                        </li>
+                      ))}
                     </ul>
                   ) : null}
                 </div>

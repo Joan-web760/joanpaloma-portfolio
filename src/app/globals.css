@@ -3,23 +3,24 @@
 :root {
   --public-font-body: "EB Garamond", "Garamond", "Times New Roman", serif;
   --public-font-heading: "EB Garamond", "Garamond", "Times New Roman", serif;
-  --admin-bg: #f4efe7;
-  --admin-surface: #ffffff;
-  --admin-surface-2: #efe7dd;
-  --admin-border: #e0d5c7;
-  --admin-text: #1f2a37;
-  --admin-muted: #6b7280;
-  --admin-primary: #1f6f78;
-  --admin-primary-600: #16565d;
-  --admin-accent: #d08b4c;
-  --admin-success: #1f9d55;
-  --admin-warning: #c97a1c;
-  --admin-danger: #b5402b;
-  --admin-info: #2f7bbd;
+  --admin-bg: radial-gradient(circle at top left, rgba(220, 255, 210, 0.55) 0%, rgba(240, 255, 235, 0.65) 35%, #ffffff 90%);
+  --admin-surface: #f6fff9;
+  --admin-surface-2: #e9f9ef;
+  --admin-border: #cfe9d6;
+  --admin-text: #0f1f17;
+  --admin-muted: #4f6a5d;
+  --admin-primary: #2f9f6f;
+  --admin-primary-600: #1f7f53;
+  --admin-primary-700: #145c3d;
+  --admin-accent: #8de8bd;
+  --admin-success: #2fbf7a;
+  --admin-warning: #d1a84c;
+  --admin-danger: #c0584a;
+  --admin-info: #3b8bbf;
   --admin-radius: 16px;
   --admin-radius-sm: 12px;
-  --admin-shadow: 0 18px 36px -28px rgba(31, 42, 55, 0.35), 0 8px 18px -14px rgba(31, 42, 55, 0.25);
-  --admin-shadow-soft: 0 12px 28px -22px rgba(31, 42, 55, 0.28);
+  --admin-shadow: 0 18px 36px -28px rgba(15, 44, 30, 0.28), 0 8px 18px -14px rgba(15, 44, 30, 0.18);
+  --admin-shadow-soft: 0 12px 28px -22px rgba(15, 44, 30, 0.18);
   --admin-font-body: "IBM Plex Sans", "Work Sans", "Helvetica Neue", sans-serif;
   --admin-font-heading: "Fraunces", "Georgia", serif;
 }
@@ -53,18 +54,18 @@ body :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6) {
   --bs-box-shadow: var(--admin-shadow);
   --bs-box-shadow-sm: var(--admin-shadow-soft);
   --bs-link-color: var(--admin-primary);
-  --bs-link-hover-color: var(--admin-primary-600);
+  --bs-link-hover-color: var(--admin-primary-700);
   --bs-primary: var(--admin-primary);
   --bs-success: var(--admin-success);
   --bs-warning: var(--admin-warning);
   --bs-danger: var(--admin-danger);
   --bs-info: var(--admin-info);
-  --bs-secondary: #5f6b78;
+  --bs-secondary: #4f6a5d;
   --bs-light: var(--admin-surface-2);
   --bs-dark: var(--admin-text);
   position: relative;
   min-height: 100dvh;
-  background: var(--admin-bg);
+  background: var(--admin-bg), #ffffff;
   color: var(--admin-text);
   font-family: var(--admin-font-body);
   isolation: isolate;
@@ -74,21 +75,19 @@ body :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6) {
   content: "";
   position: fixed;
   inset: 0;
-  background:
-    radial-gradient(circle at 85% 10%, rgba(208, 139, 76, 0.18), transparent 48%),
-    radial-gradient(circle at 15% 20%, rgba(31, 111, 120, 0.14), transparent 52%),
-    linear-gradient(180deg, #f7f2ea 0%, #fbf8f4 55%, #f4efe7 100%);
+  background: none;
   z-index: 0;
   pointer-events: none;
+  opacity: 0;
 }
 
 .admin-shell::after {
   content: "";
   position: fixed;
   inset: 0;
-  background-image: radial-gradient(rgba(31, 42, 55, 0.06) 1px, transparent 1px);
-  background-size: 26px 26px;
-  opacity: 0.45;
+  background-image: radial-gradient(rgba(31, 127, 83, 0.18) 1px, transparent 1px);
+  background-size: 28px 28px;
+  opacity: 0.18;
   z-index: 0;
   pointer-events: none;
 }
@@ -129,7 +128,7 @@ body :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6) {
 }
 
 .admin-shell a:hover {
-  color: var(--admin-primary-600);
+  color: var(--admin-primary-700);
 }
 
 .admin-shell code {
@@ -141,7 +140,7 @@ body :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6) {
 }
 
 .admin-shell .card {
-  background: var(--admin-surface);
+  background: linear-gradient(180deg, #fbfffd 0%, #f1fff7 100%);
   border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius);
   box-shadow: var(--admin-shadow);
@@ -183,7 +182,7 @@ body :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6) {
 }
 
 .admin-shell .table tbody tr:hover > * {
-  background: rgba(208, 139, 76, 0.08);
+  background: rgba(47, 159, 111, 0.08);
 }
 
 .admin-shell .btn {
@@ -194,38 +193,42 @@ body :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6) {
 }
 
 .admin-shell .btn-primary {
-  background: var(--admin-primary);
-  border-color: var(--admin-primary);
-  box-shadow: 0 12px 22px -18px rgba(31, 111, 120, 0.7);
+  color: #0f1f17;
+  background: linear-gradient(135deg, #8ff0c1 0%, #59d998 55%, #2fa968 100%);
+  border-color: var(--admin-primary-600);
+  box-shadow: 0 12px 22px -18px rgba(47, 169, 104, 0.6);
 }
 
 .admin-shell .btn-primary:hover,
 .admin-shell .btn-primary:focus {
-  background: var(--admin-primary-600);
-  border-color: var(--admin-primary-600);
+  color: #0b1a13;
+  background: linear-gradient(135deg, #74e4ae 0%, #3cc784 55%, #238a58 100%);
+  border-color: var(--admin-primary-700);
 }
 
 .admin-shell .btn-outline-primary {
-  color: var(--admin-primary);
-  border-color: var(--admin-primary);
+  color: var(--admin-primary-600);
+  border-color: var(--admin-primary-700);
+  background: #ffffff;
 }
 
 .admin-shell .btn-outline-primary:hover {
-  background: var(--admin-primary);
-  color: #ffffff;
+  color: #0f1f17;
+  background: linear-gradient(135deg, #8ff0c1 0%, #59d998 55%, #2fa968 100%);
+  border-color: var(--admin-primary-700);
 }
 
 .admin-shell .btn-outline-secondary,
 .admin-shell .btn-outline-dark {
-  color: var(--admin-text);
-  border-color: var(--admin-border);
-  background: #ffffff;
+  color: var(--admin-primary-700);
+  border-color: var(--admin-primary-700);
+  background: transparent;
 }
 
 .admin-shell .btn-outline-secondary:hover,
 .admin-shell .btn-outline-dark:hover {
   background: var(--admin-surface-2);
-  border-color: var(--admin-border);
+  border-color: var(--admin-primary-700);
 }
 
 .admin-shell .btn-outline-success {
@@ -249,12 +252,12 @@ body :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6) {
 }
 
 .admin-shell .btn-link {
-  color: var(--admin-primary);
+  color: var(--admin-primary-600);
   text-decoration: none;
 }
 
 .admin-shell .btn-link:hover {
-  color: var(--admin-primary-600);
+  color: var(--admin-primary-700);
 }
 
 .admin-shell .badge {
@@ -284,7 +287,7 @@ body :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6) {
 }
 
 .admin-shell .text-bg-secondary {
-  background-color: #5f6b78 !important;
+  background-color: #2f4036 !important;
   color: #ffffff !important;
 }
 
@@ -295,8 +298,8 @@ body :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6) {
 }
 
 .admin-shell .text-bg-dark {
-  background-color: var(--admin-text) !important;
-  color: #ffffff !important;
+  background-color: #00040d !important;
+  color: #e9fff2 !important;
 }
 
 .admin-shell .form-label {
@@ -318,7 +321,7 @@ body :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6) {
 .admin-shell .form-select:focus,
 .admin-shell .form-check-input:focus {
   border-color: var(--admin-primary);
-  box-shadow: 0 0 0 0.2rem rgba(31, 111, 120, 0.18);
+  box-shadow: 0 0 0 0.2rem rgba(47, 159, 111, 0.2);
 }
 
 .admin-shell .form-check-input:checked {
@@ -364,8 +367,8 @@ body :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6) {
 }
 
 .admin-shell .modal-backdrop {
-  background-color: #1f2a37;
-  opacity: 0.55;
+  background-color: #05140e;
+  opacity: 0.6;
 }
 
 .admin-shell .btn-close {
@@ -373,9 +376,19 @@ body :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6) {
 }
 
 .admin-shell .navbar {
-  border-bottom: 1px solid var(--admin-border);
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
+  border-bottom: 1px solid #0e1624;
+  background: #00040d;
+  color: #e9fff2;
+  backdrop-filter: none;
+}
+
+.admin-shell .navbar .navbar-brand,
+.admin-shell .navbar .nav-link {
+  color: #e9fff2;
+}
+
+.admin-shell .navbar .nav-link:hover {
+  color: #bff5d8;
 }
 
 .admin-layout {
@@ -404,8 +417,8 @@ body :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6) {
   margin-bottom: 18px;
   border-radius: var(--admin-radius);
   border: 1px solid var(--admin-border);
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(8px);
+  background: rgba(246, 255, 249, 0.92);
+  backdrop-filter: blur(6px);
   box-shadow: var(--admin-shadow-soft);
 }
 
@@ -506,8 +519,8 @@ body :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6) {
 }
 
 .admin-nav-link.active {
-  background: rgba(31, 111, 120, 0.12);
-  border-color: rgba(31, 111, 120, 0.25);
+  background: rgba(47, 159, 111, 0.12);
+  border-color: rgba(47, 159, 111, 0.3);
   color: var(--admin-primary);
 }
 
@@ -528,9 +541,10 @@ body :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6) {
   margin-bottom: 16px;
   padding: 12px 14px;
   border-radius: var(--admin-radius);
-  border: 1px solid var(--admin-border);
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(8px);
+  border: 1px solid #0e1624;
+  background: #00040d;
+  color: #e9fff2;
+  backdrop-filter: none;
   box-shadow: var(--admin-shadow-soft);
 }
 
@@ -554,12 +568,27 @@ body :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6) {
 }
 
 .admin-topnav-brand-sub {
-  color: var(--admin-muted);
+  color: #b7e8d0;
   font-size: 0.8rem;
 }
 
 .admin-topnav-toggle {
   border-radius: 999px;
+}
+
+.admin-topnav .btn-outline-secondary,
+.admin-topnav .btn-outline-dark,
+.admin-topnav-toggle {
+  color: #e9fff2;
+  border-color: rgba(183, 232, 208, 0.6);
+}
+
+.admin-topnav .btn-outline-secondary:hover,
+.admin-topnav .btn-outline-dark:hover,
+.admin-topnav-toggle:hover {
+  background: rgba(143, 240, 193, 0.2);
+  color: #e9fff2;
+  border-color: rgba(183, 232, 208, 0.75);
 }
 
 .admin-topnav-panel {
@@ -572,15 +601,15 @@ body :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6) {
   gap: 10px;
   padding: 12px;
   border-radius: 12px;
-  background: var(--admin-surface);
-  border: 1px solid var(--admin-border);
+  background: #0b1220;
+  border: 1px solid rgba(183, 232, 208, 0.2);
 }
 
 .admin-topnav-title {
   font-size: 0.65rem;
   text-transform: uppercase;
   letter-spacing: 0.22em;
-  color: var(--admin-muted);
+  color: #b7e8d0;
   font-weight: 700;
 }
 
@@ -606,21 +635,21 @@ body :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6) {
   border-radius: 10px;
   border: 1px solid transparent;
   background: transparent;
-  color: var(--admin-text);
+  color: #e9fff2;
   font-weight: 600;
   font-size: 0.9rem;
 }
 
 .admin-topnav-link:hover {
-  background: var(--admin-surface-2);
-  color: var(--admin-text);
-  border-color: var(--admin-border);
+  background: rgba(143, 240, 193, 0.14);
+  color: #e9fff2;
+  border-color: rgba(183, 232, 208, 0.25);
 }
 
 .admin-topnav-link.active {
-  background: rgba(31, 111, 120, 0.12);
-  border-color: rgba(31, 111, 120, 0.25);
-  color: var(--admin-primary);
+  background: rgba(143, 240, 193, 0.2);
+  border-color: rgba(143, 240, 193, 0.35);
+  color: #e9fff2;
   font-weight: 700;
 }
 
@@ -663,8 +692,19 @@ body :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6) {
 
 .admin-shell footer,
 .admin-shell .footer {
-  border-top: 1px solid var(--admin-border);
-  color: var(--admin-muted);
+  border-top: 1px solid #0e1624;
+  background: #00040d;
+  color: #cfe9d6;
+}
+
+.admin-shell footer a,
+.admin-shell .footer a {
+  color: #e9fff2;
+}
+
+.admin-shell footer a:hover,
+.admin-shell .footer a:hover {
+  color: #bff5d8;
 }
 
 .admin-shell .spinner-border,
@@ -699,7 +739,7 @@ body :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6) {
 }
 
 .admin-shell .admin-stepper-item:hover {
-  border-color: rgba(31, 111, 120, 0.45);
+  border-color: rgba(47, 159, 111, 0.45);
   transform: translateY(-1px);
 }
 

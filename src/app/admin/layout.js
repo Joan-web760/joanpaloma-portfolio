@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import AdminNav from "@/components/admin/AdminNav";
 import AdminTopNav from "@/components/admin/AdminTopNav";
+import AdminNotificationBell from "@/components/admin/AdminNotificationBell";
 
 const HIDE_SHELL_ROUTES = ["/admin/login", "/admin/register"];
 
@@ -67,6 +68,7 @@ export default function AdminLayout({ children }) {
             </div>
 
             <div className="admin-header-actions">
+              <AdminNotificationBell />
               <Link className="btn btn-outline-dark btn-sm" href="/" target="_blank" rel="noreferrer">
                 <i className="fa-solid fa-eye me-2"></i>
                 Preview

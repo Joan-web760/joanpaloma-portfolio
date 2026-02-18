@@ -420,6 +420,8 @@ body :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6) {
   background: rgba(246, 255, 249, 0.92);
   backdrop-filter: blur(6px);
   box-shadow: var(--admin-shadow-soft);
+  position: relative;
+  z-index: 5;
 }
 
 .admin-header-left {
@@ -449,6 +451,246 @@ body :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6) {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.admin-shell .admin-bell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 36px;
+  height: 34px;
+  padding: 0 10px;
+}
+
+.admin-shell .admin-bell i {
+  font-size: 0.95rem;
+}
+
+.admin-shell .admin-bell.has-unread {
+  background: rgba(143, 240, 193, 0.25);
+  border-color: var(--admin-primary-700);
+  color: var(--admin-primary-700);
+  box-shadow: 0 8px 16px -12px rgba(47, 169, 104, 0.5);
+}
+
+.admin-shell .admin-bell-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #2fa968;
+  color: #0b1a13;
+  border: 1px solid #1f7f53;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  box-shadow: 0 6px 12px -8px rgba(15, 44, 30, 0.5);
+}
+
+.admin-shell .admin-notify-toast {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 1085;
+  width: min(360px, calc(100vw - 36px));
+  border-radius: 14px;
+  border: 1px solid rgba(183, 232, 208, 0.28);
+  border-left: 4px solid #59d998;
+  background: #0b1220;
+  color: #e9fff2;
+  padding: 12px 12px 10px;
+  box-shadow: 0 20px 40px -24px rgba(5, 20, 14, 0.6);
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.admin-shell .admin-notify-toast.show {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.admin-shell .admin-notify-toast-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.admin-shell .admin-notify-toast-close {
+  background: transparent;
+  border: 0;
+  color: #b7e8d0;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0;
+}
+
+.admin-shell .admin-notify-toast-body {
+  margin-top: 6px;
+  font-size: 0.85rem;
+  color: #d9f6e6;
+}
+
+.admin-shell .admin-notify-toast-meta {
+  font-size: 0.75rem;
+  color: #9fd8bd;
+}
+
+.admin-shell .admin-notify-toast-subject {
+  margin-top: 4px;
+  font-weight: 600;
+  color: #e9fff2;
+}
+
+.admin-shell .admin-notify-toast-snippet {
+  margin-top: 6px;
+  color: #e9fff2;
+}
+
+.admin-shell .admin-notify-toast-actions {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.admin-shell .admin-notify-dropdown {
+  position: relative;
+  display: inline-flex;
+  z-index: 2000;
+}
+
+.admin-shell .admin-notify-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: min(360px, calc(100vw - 32px));
+  border-radius: 12px;
+  border: 1px solid var(--admin-border);
+  background: #ffffff;
+  box-shadow: var(--admin-shadow);
+  overflow: hidden;
+  z-index: 2000;
+}
+
+.admin-shell .admin-notify-panel-header {
+  padding: 10px 12px;
+  font-weight: 700;
+  border-bottom: 1px solid var(--admin-border);
+  background: #f7fffb;
+}
+
+.admin-shell .admin-notify-panel-body {
+  padding: 12px;
+}
+
+.admin-shell .admin-notify-panel-footer {
+  padding: 8px 12px;
+  border-top: 1px solid var(--admin-border);
+  background: #f7fffb;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.admin-shell .admin-notify-viewall {
+  background: none;
+  border: none;
+  color: var(--admin-primary-700);
+  font-weight: 600;
+  padding: 0;
+}
+
+.admin-shell .admin-notify-viewall:hover {
+  color: var(--admin-primary-600);
+  text-decoration: underline;
+}
+
+.admin-shell .admin-notify-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--admin-muted);
+  font-size: 0.85rem;
+}
+
+.admin-shell .admin-notify-empty {
+  color: var(--admin-muted);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.admin-shell .admin-notify-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 240px;
+  overflow: auto;
+}
+
+.admin-shell .admin-notify-item {
+  border: 1px solid var(--admin-border);
+  background: var(--admin-surface);
+  border-radius: 10px;
+  padding: 8px 10px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.admin-shell .admin-notify-item:hover {
+  border-color: rgba(47, 159, 111, 0.45);
+}
+
+.admin-shell .admin-notify-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.admin-shell .admin-notify-item-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.admin-shell .admin-notify-item-time {
+  margin-top: 4px;
+  font-size: 0.72rem;
+  color: var(--admin-muted);
+}
+
+.admin-shell .admin-notify-item-meta {
+  margin-top: 6px;
+  font-size: 0.75rem;
+  color: var(--admin-muted);
+}
+
+.admin-shell .admin-notify-item-snippet {
+  margin-top: 4px;
+  font-size: 0.8rem;
+  color: var(--admin-muted);
+}
+
+.admin-shell .admin-notify-new {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: #59d998;
+  color: #0b1a13;
 }
 
 .admin-nav {
@@ -555,6 +797,12 @@ body :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6) {
   gap: 12px;
 }
 
+.admin-topnav-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .admin-topnav-brand {
   display: flex;
   flex-direction: column;
@@ -574,6 +822,22 @@ body :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6) {
 
 .admin-topnav-toggle {
   border-radius: 999px;
+}
+
+.admin-topnav .admin-bell {
+  color: #e9fff2;
+  border-color: rgba(183, 232, 208, 0.6);
+}
+
+.admin-bell--topnav {
+  height: 32px;
+  padding: 0 8px;
+}
+
+.admin-topnav .admin-bell.has-unread {
+  background: rgba(143, 240, 193, 0.22);
+  color: #e9fff2;
+  border-color: rgba(183, 232, 208, 0.75);
 }
 
 .admin-topnav .btn-outline-secondary,
@@ -675,6 +939,13 @@ body :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6) {
   .admin-header-actions {
     width: 100%;
   }
+
+  .admin-notify-panel {
+    left: 0;
+    right: auto;
+    width: min(320px, calc(100vw - 24px));
+  }
+
 }
 
 @media (min-width: 768px) {

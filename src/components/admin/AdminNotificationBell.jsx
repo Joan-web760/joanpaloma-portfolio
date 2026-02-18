@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 
 const STORAGE_KEY = "adminContactLastSeenAt";
-const CONTACT_ROUTE = "/admin/contact";
+const CONTACT_ROUTE = "/admin/contact/inbox";
 const TOAST_TIMEOUT_MS = 5200;
 const DROPDOWN_LIMIT = 6;
 

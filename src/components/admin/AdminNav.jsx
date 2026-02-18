@@ -31,6 +31,7 @@ export const ADMIN_NAV_SECTIONS = [
     items: [
       { label: "Pricing", href: "/admin/pricing", icon: "fa-tags" },
       { label: "Contact", href: "/admin/contact", icon: "fa-envelope-open-text" },
+      { label: "Contact Inbox", href: "/admin/contact/inbox", icon: "fa-inbox" },
     ],
   },
   {

@@ -31,7 +31,7 @@ export default function AdminContactPage() {
 
   const [loading, setLoading] = useState(true);
 
-  // busy = only for async actions (save, reload inbox, send test, delete)
+  // busy = only for async actions (save)
   const [busy, setBusy] = useState(false);
 
   // staged edits
@@ -42,10 +42,6 @@ export default function AdminContactPage() {
   const [notice, setNotice] = useState("");
 
   const [settings, setSettings] = useState(null);
-  const [inbox, setInbox] = useState([]);
-
-  // test form
-  const [test, setTest] = useState({ name: "", email: "", subject: "", message: "" });
 
   const draftSocials = useMemo(() => {
     const base = settings?.socials || {};
@@ -71,12 +67,6 @@ export default function AdminContactPage() {
         .limit(1)
         .maybeSingle();
 
-      const { data: m } = await supabase
-        .from("contact_messages")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(25);
-
       if (!mountedRef.current) return;
 
       if (sErr) {
@@ -89,7 +79,6 @@ export default function AdminContactPage() {
       setDraft(s ? { ...s } : null); // init draft from DB
       setDirty(false);
 
-      setInbox(m || []);
       setLoading(false);
     })();
 
@@ -176,98 +165,8 @@ export default function AdminContactPage() {
     toast("Discarded changes.");
   };
 
-  const reloadInbox = async () => {
-    setBusy(true);
-    setError("");
-    setNotice("");
-
-    try {
-      const { data, error: rErr } = await supabase
-        .from("contact_messages")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(25);
-
-      if (rErr) throw rErr;
-      setInbox(data || []);
-      toast("Inbox refreshed.");
-    } catch (e) {
-      setError(e.message || "Failed to refresh inbox.");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const submitTest = async () => {
-    const ok = await confirm({
-      title: "Send test message?",
-      message: "This will add a test message to the inbox.",
-      confirmText: "Send",
-      confirmVariant: "primary",
-    });
-    if (!ok) return;
-
-    setBusy(true);
-    setError("");
-    setNotice("");
-
-    try {
-      if (!test.name.trim()) throw new Error("Name is required.");
-      if (!test.email.trim()) throw new Error("Email is required.");
-      if (!test.message.trim()) throw new Error("Message is required.");
-
-      const { error: insErr } = await supabase.from("contact_messages").insert([
-        {
-          name: test.name.trim(),
-          email: test.email.trim(),
-          subject: test.subject.trim() || null,
-          message: test.message.trim(),
-          page_url: "/admin/contact (test)",
-          user_agent: navigator.userAgent,
-        },
-      ]);
-
-      if (insErr) throw insErr;
-
-      setTest({ name: "", email: "", subject: "", message: "" });
-      toast("Test message sent.");
-      success({ title: "Message sent", message: "The test message was added to the inbox." });
-      await reloadInbox();
-    } catch (e) {
-      setError(e.message || "Send failed.");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const deleteMessage = async (id) => {
-    const ok = await confirm({
-      title: "Delete message?",
-      message: "This will permanently remove the message.",
-      confirmText: "Delete",
-      confirmVariant: "danger",
-    });
-    if (!ok) return;
-
-    setBusy(true);
-    setError("");
-    setNotice("");
-
-    try {
-      const { error: delErr } = await supabase.from("contact_messages").delete().eq("id", id);
-      if (delErr) throw delErr;
-
-      toast("Deleted.");
-      success({ title: "Message deleted", message: "The message was removed from the inbox." });
-      await reloadInbox();
-    } catch (e) {
-      setError(e.message || "Delete failed.");
-    } finally {
-      setBusy(false);
-    }
-  };
-
   const openPreview = () => window.open("/#contact", "_blank");
+  const openInbox = () => router.push("/admin/contact/inbox");
 
   if (loading) {
     return (
@@ -319,6 +218,9 @@ export default function AdminContactPage() {
 
             <button className="btn btn-outline-dark" onClick={openPreview} disabled={busy}>
               <i className="fa-solid fa-eye me-2"></i>Preview
+            </button>
+            <button className="btn btn-outline-secondary" onClick={openInbox} disabled={busy}>
+              <i className="fa-solid fa-inbox me-2"></i>Inbox
             </button>
             <button className="btn btn-outline-primary" onClick={() => router.push("/admin")} disabled={busy}>
               <i className="fa-solid fa-arrow-left me-2"></i>Dashboard
@@ -390,7 +292,7 @@ export default function AdminContactPage() {
                           onChange={(e) => markDirty({ ...draft, recipient_email: e.target.value })}
                           disabled={busy}
                         />
-                        <div className="form-text">Where you want inquiries delivered. Messages also appear in the inbox below.</div>
+                        <div className="form-text">Where you want inquiries delivered. Messages also appear in the inbox page.</div>
                       </div>
 
                       <div className="col-12 col-md-6">
@@ -491,133 +393,10 @@ export default function AdminContactPage() {
                           <div className="form-text">Show the Contact section on your site.</div>
                         </div>
 
-                        <button className="btn btn-outline-secondary" onClick={reloadInbox} disabled={busy}>
-                          {busy ? (
-                            <>
-                              <span className="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
-                              Refreshing...
-                            </>
-                          ) : (
-                            <>
-                              <i className="fa-solid fa-rotate me-2"></i>Refresh Inbox
-                            </>
-                          )}
+                        <button className="btn btn-outline-secondary" onClick={openInbox} disabled={busy}>
+                          <i className="fa-solid fa-inbox me-2"></i>Open Inbox
                         </button>
                       </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </AdminStep>
-
-          <AdminStep title="Test and Inbox" description="Send a test message and review submissions.">
-            <div className="row g-3">
-              <div className="col-12">
-                <div className="card border-0 shadow-sm mb-3">
-                  <div className="card-body">
-                    <h2 className="h6 mb-3">Test Form (writes to inbox)</h2>
-
-                    <div className="row g-2">
-                      <div className="col-12 col-md-6">
-                        <label className="form-label">Name *</label>
-                        <input
-                          className="form-control"
-                          placeholder="e.g. Taylor Smith"
-                          value={test.name}
-                          onChange={(e) => setTest((p) => ({ ...p, name: e.target.value }))}
-                          disabled={busy}
-                        />
-                        <div className="form-text">Use a sample name to test the contact flow.</div>
-                      </div>
-
-                      <div className="col-12 col-md-6">
-                        <label className="form-label">Email *</label>
-                        <input
-                          className="form-control"
-                          placeholder="taylor@example.com"
-                          value={test.email}
-                          onChange={(e) => setTest((p) => ({ ...p, email: e.target.value }))}
-                          disabled={busy}
-                        />
-                        <div className="form-text">Use an email you can check.</div>
-                      </div>
-
-                      <div className="col-12">
-                        <label className="form-label">Subject</label>
-                        <input
-                          className="form-control"
-                          placeholder="Interested in your services"
-                          value={test.subject}
-                          onChange={(e) => setTest((p) => ({ ...p, subject: e.target.value }))}
-                          disabled={busy}
-                        />
-                        <div className="form-text">Optional subject line for the test message.</div>
-                      </div>
-
-                      <div className="col-12">
-                        <label className="form-label">Message *</label>
-                        <textarea
-                          className="form-control"
-                          rows="4"
-                          placeholder="Write a sample inquiry to confirm messaging works."
-                          value={test.message}
-                          onChange={(e) => setTest((p) => ({ ...p, message: e.target.value }))}
-                          disabled={busy}
-                        />
-                        <div className="form-text">This will appear in the inbox list below.</div>
-                      </div>
-
-                      <div className="col-12 d-flex justify-content-end">
-                        <button className="btn btn-primary" onClick={submitTest} disabled={busy}>
-                          {busy ? (
-                            <>
-                              <span className="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
-                              Sending...
-                            </>
-                          ) : (
-                            <>
-                              <i className="fa-solid fa-paper-plane me-2"></i>Send Test
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="card border-0 shadow-sm">
-                  <div className="card-body">
-                    <h2 className="h6 mb-3">Inbox (latest 25)</h2>
-
-                    {!inbox.length ? <div className="text-muted">No messages yet.</div> : null}
-
-                    <div className="vstack gap-2">
-                      {inbox.map((m) => (
-                        <div key={m.id} className="border rounded p-3 bg-white">
-                          <div className="d-flex justify-content-between gap-2">
-                            <div>
-                              <div className="fw-semibold">
-                                {m.name} <span className="text-muted small">({m.email})</span>
-                              </div>
-                              <div className="text-muted small">{new Date(m.created_at).toLocaleString()}</div>
-                              {m.subject ? (
-                                <div className="small mt-1">
-                                  <span className="fw-semibold">Subject:</span> {m.subject}
-                                </div>
-                              ) : null}
-                            </div>
-
-                            <button className="btn btn-sm btn-outline-danger" onClick={() => deleteMessage(m.id)} disabled={busy}>
-                              <i className="fa-solid fa-trash"></i>
-                            </button>
-                          </div>
-
-                          <div className="small text-muted mt-2" style={{ whiteSpace: "pre-wrap" }}>
-                            {m.message}
-                          </div>
-                        </div>
-                      ))}
                     </div>
                   </div>
                 </div>

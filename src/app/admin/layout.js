@@ -24,6 +24,7 @@ const PAGE_TITLES = [
   { href: "/admin/testimonials", label: "Testimonials" },
   { href: "/admin/pricing", label: "Pricing" },
   { href: "/admin/contact", label: "Contact" },
+  { href: "/admin/contact/inbox", label: "Contact Inbox" },
   { href: "/admin/settings", label: "Settings" },
 ];
 

@@ -110,18 +110,27 @@ export default function HomeSection() {
   const hasFileVideo = !!introVideoFileUrl;
   const hasEmbedVideo = !!introVideoEmbedUrl;
 
+  const titleId = "home-hero-title";
+  const subtitleId = "home-hero-subtitle";
+
   return (
     <SectionBackground
       sectionKey="home"
       id="home"
       className={`py-5 ${NAVBAR_SPACER_CLASS}`}
+      aria-labelledby={titleId}
+      aria-describedby={subtitleId}
     >
       <div className="container">
         <div className="row align-items-center g-4">
           <div className="col-12 col-lg-7">
-            <div className="p-4 rounded bg-white bg-opacity-75 border">
-              <h1 className="display-6 fw-bold mb-2">{row.headline}</h1>
-              <p className="lead mb-3">{row.subheadline}</p>
+            <header className="p-4 rounded bg-white bg-opacity-75 border">
+              <h1 id={titleId} className="display-6 fw-bold mb-2">
+                {row.headline}
+              </h1>
+              <p id={subtitleId} className="lead mb-3">
+                {row.subheadline}
+              </p>
 
               {badges.length ? (
                 <div className="d-flex flex-wrap gap-2 mb-3">
@@ -141,7 +150,7 @@ export default function HomeSection() {
                   {row.secondary_cta_label || "Secondary CTA"}
                 </a>
               </div>
-            </div>
+            </header>
           </div>
 
           <div className="col-12 col-lg-5">
@@ -150,8 +159,11 @@ export default function HomeSection() {
                 {profileUrl ? (
                   <img
                     src={profileUrl}
-                    alt="Profile"
+                    alt="Profile portrait"
                     className="img-fluid rounded mb-3"
+                    loading="eager"
+                    decoding="async"
+                    fetchPriority="high"
                   />
                 ) : null}
 

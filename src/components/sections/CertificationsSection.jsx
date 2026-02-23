@@ -101,6 +101,8 @@ export default function CertificationsSection() {
                       className="card-img-top"
                       style={{ height: 300, objectFit: "cover", cursor: "zoom-in" }}
                       onClick={() => setZoomed({ src: img, title: c.title })}
+                      loading="lazy"
+                      decoding="async"
                     />
                   ) : (
                     <div
@@ -178,6 +180,8 @@ export default function CertificationsSection() {
                 borderRadius: 12,
                 background: "white",
               }}
+              loading="lazy"
+              decoding="async"
             />
           </div>
         </div>

@@ -2,12 +2,6 @@
 import "./globals.css";
 import Script from "next/script";
 
-export const metadata = {
-  title: "Portfolio",
-  description: "Portfolio",
-  icons: { icon: "/favicon.ico" },
-};
-
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
@@ -38,9 +32,9 @@ export default function RootLayout({ children }) {
           fontFamily: '"Open Sans", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif',
         }}
       >
-        <main id="app" style={{ minHeight: "100dvh" }}>
+        <div id="app" style={{ minHeight: "100dvh" }}>
           {children}
-        </main>
+        </div>
 
         <Script
           src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"

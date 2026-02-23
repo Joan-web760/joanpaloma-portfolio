@@ -102,6 +102,8 @@ export default function TestimonialsSection() {
                             src={img}
                             alt={t.name}
                             style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                            loading="lazy"
+                            decoding="async"
                           />
                         ) : (
                           <i className="fa-solid fa-user text-muted"></i>

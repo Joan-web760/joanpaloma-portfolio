@@ -118,7 +118,13 @@ export default function AboutSection({ className = "" } = {}) {
         <div className="row g-4 align-items-start">
           <div className="col-12 col-lg-5">
             {aboutImageUrl ? (
-              <img src={aboutImageUrl} alt="About" className="img-fluid rounded shadow-sm border" />
+              <img
+                src={aboutImageUrl}
+                alt="About portrait"
+                className="img-fluid rounded shadow-sm border"
+                loading="lazy"
+                decoding="async"
+              />
             ) : (
               <div className="p-4 border rounded bg-light text-muted">About image not set.</div>
             )}

@@ -116,6 +116,8 @@ export default function PortfolioSection() {
                       alt={cover?.alt || it.title}
                       className="card-img-top"
                       style={{ height: 180, objectFit: "cover" }}
+                      loading="lazy"
+                      decoding="async"
                     />
                   ) : (
                     <div
@@ -204,6 +206,8 @@ export default function PortfolioSection() {
                                     src={url}
                                     alt={m.alt || activeItem.title}
                                     style={{ width: "100%" }}
+                                    loading="lazy"
+                                    decoding="async"
                                   />
                                 )}
                                 {m.caption ? (

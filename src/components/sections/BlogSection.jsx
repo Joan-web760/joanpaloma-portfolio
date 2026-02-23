@@ -84,6 +84,8 @@ export default function BlogSection() {
                       alt={p.title}
                       className="card-img-top"
                       style={{ height: 180, objectFit: "cover" }}
+                      loading="lazy"
+                      decoding="async"
                     />
                   ) : (
                     <div

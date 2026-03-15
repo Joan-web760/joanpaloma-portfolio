@@ -6,7 +6,6 @@ import ServicesSection from "@/components/sections/ServicesSection";
 import SkillsSection from "@/components/sections/SkillsSection";
 import PortfolioSection from "@/components/sections/PortfolioSection";
 import CertificationsSection from "@/components/sections/CertificationsSection";
-import ResumeSection from "@/components/sections/ResumeSection";
 import BlogSection from "@/components/sections/BlogSection";
 import TestimonialsSection from "@/components/sections/TestimonialsSection";
 import PricingSection from "@/components/sections/PricingSection";
@@ -58,7 +57,6 @@ export default async function Page() {
         <CertificationsSection />
         <ServicesSection />
         <SkillsSection />
-        <ResumeSection />
         <BlogSection />
         <TestimonialsSection />
         <PricingSection />

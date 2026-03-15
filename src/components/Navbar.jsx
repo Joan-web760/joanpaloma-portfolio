@@ -13,7 +13,7 @@ const navItems = [
     href: "/about#about",
     links: [
       { label: "Skills", href: "/#skills" },
-      { label: "Tools", href: "/#tools" },
+      { label: "Tools", href: "/tools" },
       { label: "Experience", href: "/experience#experience" },
       { label: "Certifications", href: "/#certifications" },
       { label: "Resume", href: "/#resume" },
@@ -59,16 +59,17 @@ const getPath = (href) => {
   return href.slice(0, hashIndex) || "/";
 };
 
-const toActiveHash = (href) => {
+const getActiveKey = (href) => {
+  if (!href) return "";
   const anchor = getAnchor(href);
-  return anchor ? `#${anchor}` : "";
+  return anchor ? href : getPath(href);
 };
 
 const getDefaultActive = (path) => {
   if (!path) return "#home";
-  if (path === "/") return "#home";
-  const match = allLinks.find((l) => getPath(l.href) === path && getAnchor(l.href));
-  return match ? `#${getAnchor(match.href)}` : "#home";
+  if (path === "/") return "/#home";
+  const match = allLinks.find((l) => getPath(l.href) === path);
+  return match ? getActiveKey(match.href) : "/#home";
 };
 
 export default function Navbar() {
@@ -80,7 +81,7 @@ export default function Navbar() {
   // Brand (from DB)
   const [brand, setBrand] = useState("MyPortfolio");
 
-  const isGroupActive = (links) => links.some((l) => toActiveHash(l.href) === active);
+  const isGroupActive = (links) => links.some((l) => getActiveKey(l.href) === active);
 
   useEffect(() => {
     setActive(getDefaultActive(pathname));
@@ -141,7 +142,7 @@ export default function Navbar() {
         if (!el) continue;
 
         const top = el.getBoundingClientRect().top + window.scrollY;
-        if (y >= top) current = `#${anchor}`;
+        if (y >= top) current = link.href;
       }
 
       setActive(current);
@@ -197,7 +198,7 @@ export default function Navbar() {
       if (el) {
         const top = el.getBoundingClientRect().top + window.scrollY - navH;
         window.scrollTo({ top, behavior: "smooth" });
-        setActive(`#${anchor}`);
+        setActive(href);
         closeDropdowns();
         closeMobileMenu();
         return;
@@ -205,7 +206,7 @@ export default function Navbar() {
     }
 
     router.push(href);
-    if (anchor) setActive(`#${anchor}`);
+    setActive(getActiveKey(href));
 
     // close UI
     closeDropdowns();
@@ -245,8 +246,8 @@ export default function Navbar() {
             {navItems.map((item) => {
               if (item.type === "dropdown") {
                 const dropdownActive =
-                  isGroupActive(item.links) || (item.href && toActiveHash(item.href) === active);
-                const parentActive = item.href && toActiveHash(item.href) === active;
+                  isGroupActive(item.links) || (item.href && getActiveKey(item.href) === active);
+                const parentActive = item.href && getActiveKey(item.href) === active;
                 return (
                   <li className="nav-item dropdown d-flex align-items-center gap-1" key={item.id}>
                     <a
@@ -275,7 +276,7 @@ export default function Navbar() {
                         <li key={link.href}>
                           <a
                             className={`dropdown-item ${
-                              toActiveHash(link.href) === active ? "active" : ""
+                              getActiveKey(link.href) === active ? "active" : ""
                             }`}
                             href={link.href}
                             onClick={(e) => handleLinkClick(e, link.href)}
@@ -289,7 +290,7 @@ export default function Navbar() {
                 );
               }
 
-              const isActive = toActiveHash(item.href) === active;
+              const isActive = getActiveKey(item.href) === active;
               return (
                 <li className="nav-item" key={item.href}>
                   <a
@@ -318,7 +319,7 @@ export default function Navbar() {
 
           <ul className="navbar-nav ms-auto align-items-lg-center d-lg-none">
             {mobileLinks.map((link) => {
-              const isActive = toActiveHash(link.href) === active;
+              const isActive = getActiveKey(link.href) === active;
               return (
                 <li className="nav-item" key={link.href}>
                   <a

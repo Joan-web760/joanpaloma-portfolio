@@ -4,7 +4,6 @@ import { buildPageMetadata, getContactSettings, getSiteDefaults, getSiteSettings
 import HomeSection from "@/components/sections/HomeSection";
 import ServicesSection from "@/components/sections/ServicesSection";
 import SkillsSection from "@/components/sections/SkillsSection";
-import ToolsSection from "@/components/sections/ToolsSection";
 import PortfolioSection from "@/components/sections/PortfolioSection";
 import CertificationsSection from "@/components/sections/CertificationsSection";
 import ResumeSection from "@/components/sections/ResumeSection";
@@ -55,11 +54,10 @@ export default async function Page() {
       <Navbar />
       <main className="pt-5 pt-lg-5">
         <HomeSection />
-        <ServicesSection />
-        <SkillsSection />
-        <ToolsSection />
         <PortfolioSection />
         <CertificationsSection />
+        <ServicesSection />
+        <SkillsSection />
         <ResumeSection />
         <BlogSection />
         <TestimonialsSection />

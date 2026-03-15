@@ -8,6 +8,7 @@ export default async function sitemap() {
     "",
     "/about",
     "/experience",
+    "/tools",
   ].map((path) => ({
     url: `${siteUrl}${path}`,
     lastModified: now,

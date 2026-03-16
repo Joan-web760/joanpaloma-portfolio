@@ -1,4 +1,6 @@
-import { getSiteDefaults, getSiteSettings, getSiteUrl } from "@/lib/seo";
+import PublicFooter from "@/components/PublicFooter";
+import PublicAosProvider from "@/components/PublicAosProvider";
+import { getContactSettings, getSiteDefaults, getSiteSettings, getSiteUrl } from "@/lib/seo";
 
 export async function generateMetadata() {
   const site = await getSiteSettings();
@@ -26,6 +28,14 @@ export async function generateMetadata() {
   };
 }
 
-export default function PublicLayout({ children }) {
-  return children;
+export default async function PublicLayout({ children }) {
+  const [site, contact] = await Promise.all([getSiteSettings(), getContactSettings()]);
+
+  return (
+    <>
+      <PublicAosProvider />
+      {children}
+      <PublicFooter site={site} contact={contact} />
+    </>
+  );
 }

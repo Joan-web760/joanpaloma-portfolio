@@ -84,12 +84,17 @@ export default function TestimonialsSection() {
         </div>
 
         <div className="row g-3">
-          {sorted.map((t) => {
+          {sorted.map((t, index) => {
             const img = t.avatar_path ? publicUrl(t.avatar_path) : "";
             const meta = [t.role, t.company].filter(Boolean).join(" • ");
 
             return (
-              <div className="col-12 col-md-6 col-lg-4" key={t.id}>
+              <div
+                className="col-12 col-md-6 col-lg-4"
+                key={t.id}
+                data-aos="fade-up"
+                data-aos-delay={index % 3 === 0 ? 0 : (index % 3) * 90}
+              >
                 <div className="card border-0 shadow-sm h-100">
                   <div className="card-body d-flex flex-column">
                     <div className="d-flex gap-3 align-items-center mb-2">

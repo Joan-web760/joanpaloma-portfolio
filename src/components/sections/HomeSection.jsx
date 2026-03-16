@@ -137,7 +137,7 @@ export default function HomeSection() {
     >
       <div className="container">
         <div className="row align-items-center g-4">
-          <div className="col-12 col-lg-7">
+          <div className="col-12 col-lg-7" data-aos="fade-up">
             <header className="p-4 rounded bg-white bg-opacity-75 border">
               <h1 id={titleId} className="display-6 fw-bold mb-2">
                 {homeRow.headline}
@@ -190,7 +190,7 @@ export default function HomeSection() {
             </header>
           </div>
 
-          <div className="col-12 col-lg-5">
+          <div className="col-12 col-lg-5" data-aos="fade-up" data-aos-delay="120">
             <div className="card border-0 shadow-sm">
               <div className="card-body">
                 {profileUrl ? (

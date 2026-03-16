@@ -75,6 +75,7 @@ export default function AdminSettingsPage() {
     site_description: "",
     site_keywords: "",
     footer_text: "",
+    footer_tagline: "",
     is_published: true,
   });
 
@@ -123,6 +124,7 @@ export default function AdminSettingsPage() {
       site_description: site.site_description || "",
       site_keywords: site.site_keywords || "",
       footer_text: site.footer_text || "",
+      footer_tagline: site.footer_tagline || "",
       is_published: !!site.is_published,
     });
     setDirtySite(false);
@@ -304,6 +306,7 @@ export default function AdminSettingsPage() {
                         site_description: siteUi.site_description.trim() || null,
                         site_keywords: siteUi.site_keywords.trim() || null,
                         footer_text: siteUi.footer_text.trim() || null,
+                        footer_tagline: siteUi.footer_tagline.trim() || null,
                         is_published: !!siteUi.is_published,
                       });
                     }}
@@ -381,6 +384,21 @@ export default function AdminSettingsPage() {
                       disabled={busy}
                     />
                     <div className="form-text">Short line that appears at the bottom of the site.</div>
+                  </div>
+
+                  <div className="col-12">
+                    <label className="form-label">Footer Bottom Line</label>
+                    <input
+                      className="form-control"
+                      placeholder="e.g. Built for clarity, trust, and momentum."
+                      value={siteUi.footer_tagline}
+                      onChange={(e) => {
+                        setSiteUi((p) => ({ ...p, footer_tagline: e.target.value }));
+                        setDirtySite(true);
+                      }}
+                      disabled={busy}
+                    />
+                    <div className="form-text">Secondary line shown in the footer bar.</div>
                   </div>
 
                   <div className="col-12 d-flex align-items-center justify-content-between">

@@ -68,7 +68,7 @@ export default function ServicesSection() {
         </div>
 
         <div className="row g-3">
-          {itemsSorted.map((it) => {
+          {itemsSorted.map((it, index) => {
             const rawBullets = Array.isArray(it.bullets) ? it.bullets : [];
             const bullets = rawBullets
               .map((b) => (typeof b === "string" ? b : b?.text))
@@ -77,7 +77,12 @@ export default function ServicesSection() {
               .filter(Boolean);
 
             return (
-              <div className="col-12 col-md-6 col-lg-4" key={it.id}>
+              <div
+                className="col-12 col-md-6 col-lg-4"
+                key={it.id}
+                data-aos="fade-up"
+                data-aos-delay={index % 3 === 0 ? 0 : (index % 3) * 90}
+              >
                 <div className="border rounded p-3 h-100 bg-white">
                   <div className="fw-semibold mb-1">{it.title}</div>
                   {it.description ? (

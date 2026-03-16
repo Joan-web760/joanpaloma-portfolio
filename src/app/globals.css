@@ -33,7 +33,7 @@ body {
 }
 
 body {
-  overflow-y: auto;
+  overflow-y: visible;
   background: var(--background);
   color: var(--foreground);
   font-family: var(--public-font-body);
@@ -41,6 +41,124 @@ body {
 
 body :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6) {
   font-family: var(--public-font-heading);
+}
+
+body[data-aos-easing="ease-out-cubic"] [data-aos] {
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-aos] {
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+.public-footer {
+  position: relative;
+  padding: 4rem 0 1.5rem;
+  background:
+    radial-gradient(circle at top left, rgba(16, 78, 139, 0.12), transparent 38%),
+    linear-gradient(180deg, #fbfaf7 0%, #f2ede4 100%);
+  border-top: 1px solid rgba(30, 41, 59, 0.08);
+  color: #1f2937;
+}
+
+.public-footer-inner {
+  display: grid;
+  gap: 2rem;
+}
+
+.public-footer-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 2rem;
+  align-items: start;
+}
+
+.public-footer-kicker {
+  font-size: 0.75rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #8a6d3b;
+  font-weight: 700;
+  margin-bottom: 0.7rem;
+}
+
+.public-footer-title {
+  margin: 0 0 0.75rem;
+  font-size: clamp(1.9rem, 2vw, 2.5rem);
+  line-height: 1;
+}
+
+.public-footer-copy {
+  max-width: 34rem;
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #4b5563;
+}
+
+.public-footer-heading {
+  margin-bottom: 0.9rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #6b7280;
+  font-weight: 700;
+}
+
+.public-footer-links,
+.public-footer-meta {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.public-footer-link {
+  color: #243447;
+  text-decoration: none;
+}
+
+.public-footer-link:hover {
+  color: #0f62fe;
+}
+
+.public-footer-socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.public-footer-social {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(36, 52, 71, 0.14);
+  background: rgba(255, 255, 255, 0.72);
+  color: #243447;
+  text-decoration: none;
+  transition: transform 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.public-footer-social:hover {
+  transform: translateY(-2px);
+  color: #0f62fe;
+  border-color: rgba(15, 98, 254, 0.38);
+}
+
+.public-footer-bar {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(30, 41, 59, 0.08);
+  color: #6b7280;
+  font-size: 0.92rem;
 }
 
 .admin-shell {
@@ -918,6 +1036,10 @@ body :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6) {
 }
 
 @media (max-width: 991px) {
+  .public-footer-grid {
+    grid-template-columns: 1fr;
+  }
+
   .admin-layout {
     grid-template-columns: 1fr;
     padding: 20px;
@@ -981,6 +1103,50 @@ body :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6) {
 .admin-shell .spinner-border,
 .admin-shell .spinner-grow {
   color: var(--admin-primary);
+}
+
+.admin-panel-footer {
+  margin-top: 18px;
+  padding: 14px 18px;
+  border-radius: var(--admin-radius);
+  border: 1px solid var(--admin-border);
+  background: rgba(246, 255, 249, 0.92);
+  box-shadow: var(--admin-shadow-soft);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.admin-panel-footer-copy {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  color: var(--admin-muted);
+  font-size: 0.88rem;
+}
+
+.admin-panel-footer-copy span:first-child {
+  color: var(--admin-text);
+  font-weight: 700;
+}
+
+.admin-panel-footer-links {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.admin-panel-footer-links a {
+  color: var(--admin-primary-700);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.admin-panel-footer-links a:hover {
+  color: var(--admin-primary-600);
 }
 
 .admin-shell .admin-stepper {

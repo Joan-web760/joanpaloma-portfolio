@@ -96,7 +96,7 @@ export default function SectionBackground({ sectionKey, children, className = ""
     <section
       {...rest}
       className={`position-relative ${className}`}
-      style={{ ...(bgStyle || {}), ...(styleProp || {}) }}
+      style={{ minHeight: "100dvh", ...(bgStyle || {}), ...(styleProp || {}) }}
     >
       {enabled ? <div style={overlayStyle || undefined} /> : null}
       <div style={{ position: "relative" }}>{children}</div>

@@ -102,13 +102,18 @@ export default function PortfolioSection() {
         </div>
 
         <div className="row g-3">
-          {items.map((it) => {
+          {items.map((it, index) => {
             const list = mediaByItem[it.id] || [];
             const cover = list.find((m) => m.media_type === "image") || list[0];
             const coverUrl = cover ? publicUrl(cover.file_path) : "";
 
             return (
-              <div className="col-12 col-md-6 col-lg-4" key={it.id}>
+              <div
+                className="col-12 col-md-6 col-lg-4"
+                key={it.id}
+                data-aos="fade-up"
+                data-aos-delay={index % 3 === 0 ? 0 : (index % 3) * 90}
+              >
                 <div className="card border-0 shadow-sm h-100">
                   {coverUrl ? (
                     <img

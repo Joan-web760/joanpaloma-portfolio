@@ -71,12 +71,17 @@ export default function BlogSection() {
         </div>
 
         <div className="row g-3">
-          {sorted.map((p) => {
+          {sorted.map((p, index) => {
             const img = p.cover_image_path ? publicUrl(p.cover_image_path) : "";
             const dateLabel = p.published_at ? new Date(p.published_at).toLocaleDateString() : "";
 
             return (
-              <div className="col-12 col-md-6 col-lg-4" key={p.id}>
+              <div
+                className="col-12 col-md-6 col-lg-4"
+                key={p.id}
+                data-aos="fade-up"
+                data-aos-delay={index % 3 === 0 ? 0 : (index % 3) * 90}
+              >
                 <div className="card border-0 shadow-sm h-100">
                   {img ? (
                     <img

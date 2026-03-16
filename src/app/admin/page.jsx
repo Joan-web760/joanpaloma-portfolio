@@ -25,6 +25,7 @@ const SECTIONS = [
 
   // Contact has 2 related tables: settings + messages. We'll wire settings here.
   { key: "contact", label: "Contact", route: "/admin/contact", table: "section_contact_settings", mode: "list" },
+  { key: "footer", label: "Footer", route: "/admin/footer", table: "site_settings", mode: "list" },
 
   // Backgrounds/settings are lists
   { key: "settings", label: "Site Settings + Backgrounds", route: "/admin/settings", table: "site_settings", mode: "list" },

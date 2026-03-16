@@ -71,12 +71,17 @@ export default function PricingSection() {
         </div>
 
         <div className="row g-3">
-          {sorted.map((p) => {
+          {sorted.map((p, index) => {
             const inclusions = asArr(p.inclusions);
             const addons = asArr(p.addons);
 
             return (
-              <div className="col-12 col-md-6 col-lg-4" key={p.id}>
+              <div
+                className="col-12 col-md-6 col-lg-4"
+                key={p.id}
+                data-aos="fade-up"
+                data-aos-delay={index % 3 === 0 ? 0 : (index % 3) * 90}
+              >
                 <div className={`card border-0 shadow-sm h-100 ${p.is_featured ? "border border-warning" : ""}`}>
                   <div className="card-body d-flex flex-column">
                     <div className="d-flex align-items-center gap-2">

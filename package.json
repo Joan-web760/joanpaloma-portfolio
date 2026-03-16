@@ -12,6 +12,7 @@
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.90.1",
     "@vercel/analytics": "^2.0.0",
+    "aos": "^2.3.4",
     "chart.js": "^4.5.1",
     "next": "16.0.10",
     "react": "19.2.1",

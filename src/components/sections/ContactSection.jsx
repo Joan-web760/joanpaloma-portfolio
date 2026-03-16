@@ -265,7 +265,7 @@ export default function ContactSection() {
 
         <div className="row g-3">
           {/* Form */}
-          <div className="col-12 col-lg-7">
+          <div className="col-12 col-lg-7" data-aos="fade-up">
             {error ? <div className="alert alert-danger py-2">{error}</div> : null}
             {notice ? <div className="alert alert-success py-2">{notice}</div> : null}
 
@@ -366,7 +366,7 @@ export default function ContactSection() {
           </div>
 
           {/* Contact info */}
-          <div className="col-12 col-lg-5">
+          <div className="col-12 col-lg-5" data-aos="fade-up" data-aos-delay="120">
             <div className="card border-0 shadow-sm">
               <div className="card-body">
                 <div className="fw-semibold mb-2">Contact Info</div>

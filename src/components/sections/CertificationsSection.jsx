@@ -88,11 +88,16 @@ export default function CertificationsSection() {
         </div>
 
         <div className="row g-3">
-          {sorted.map((c) => {
+          {sorted.map((c, index) => {
             const img = c.certificate_image_path ? publicUrl(c.certificate_image_path) : "";
 
             return (
-              <div className="col-12 col-md-6 col-lg-4" key={c.id}>
+              <div
+                className="col-12 col-md-6 col-lg-4"
+                key={c.id}
+                data-aos="fade-up"
+                data-aos-delay={index % 3 === 0 ? 0 : (index % 3) * 90}
+              >
                 <div className="card border-0 shadow-sm h-100">
                   {img ? (
                     <img

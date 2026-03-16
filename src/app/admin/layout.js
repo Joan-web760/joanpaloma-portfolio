@@ -3,6 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import AdminFooter from "@/components/admin/AdminFooter";
 import AdminNav from "@/components/admin/AdminNav";
 import AdminTopNav from "@/components/admin/AdminTopNav";
 import AdminNotificationBell from "@/components/admin/AdminNotificationBell";
@@ -24,6 +25,7 @@ const PAGE_TITLES = [
   { href: "/admin/testimonials", label: "Testimonials" },
   { href: "/admin/pricing", label: "Pricing" },
   { href: "/admin/contact", label: "Contact" },
+  { href: "/admin/footer", label: "Footer" },
   { href: "/admin/contact/inbox", label: "Contact Inbox" },
   { href: "/admin/settings", label: "Settings" },
 ];
@@ -43,7 +45,12 @@ export default function AdminLayout({ children }) {
   );
 
   if (hideShell) {
-    return <div className="admin-shell">{children}</div>;
+    return (
+      <div className="admin-shell">
+        {children}
+        <AdminFooter />
+      </div>
+    );
   }
 
   const pageTitle = resolvePageTitle(pathname);
@@ -82,6 +89,7 @@ export default function AdminLayout({ children }) {
           </div>
 
           <div className="admin-content">{children}</div>
+          <AdminFooter />
         </main>
       </div>
     </div>

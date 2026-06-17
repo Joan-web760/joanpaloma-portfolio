@@ -1,3 +1,4 @@
+// src/app/(public)/about/page.js
 import Navbar from "@/components/Navbar";
 import AboutSection from "@/components/sections/AboutSection";
 import { buildPageMetadata, getSiteDefaults, getSiteSettings } from "@/lib/seo";

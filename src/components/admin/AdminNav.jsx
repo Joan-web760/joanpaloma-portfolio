@@ -33,6 +33,8 @@ export const ADMIN_NAV_SECTIONS = [
       { label: "Contact", href: "/admin/contact", icon: "fa-envelope-open-text" },
       { label: "Footer", href: "/admin/footer", icon: "fa-table-cells-large" },
       { label: "Contact Inbox", href: "/admin/contact/inbox", icon: "fa-inbox" },
+      { label: "Chatbot Knowledge", href: "/admin/chatbot-knowledge", icon: "fa-brain" },
+      { label: "Chatbot Logs", href: "/admin/chatbot-logs", icon: "fa-robot" },
     ],
   },
   {

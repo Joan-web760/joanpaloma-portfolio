@@ -1,5 +1,6 @@
 import PublicFooter from "@/components/PublicFooter";
 import PublicAosProvider from "@/components/PublicAosProvider";
+import ChatbotWidget from "@/components/chatbot/ChatbotWidget";
 import { getContactSettings, getSiteDefaults, getSiteSettings, getSiteUrl } from "@/lib/seo";
 
 export async function generateMetadata() {
@@ -36,6 +37,21 @@ export default async function PublicLayout({ children }) {
       <PublicAosProvider />
       {children}
       <PublicFooter site={site} contact={contact} />
+      <ChatbotWidget
+        projectName="Joan Paloma Portfolio"
+        contextConfig={[
+          { name: "site_settings", limit: 1 },
+          { name: "section_home", limit: 1 },
+          { name: "section_about", limit: 1 },
+          { name: "services", limit: 8, orderBy: "sort_order", ascending: true },
+          { name: "skills", limit: 8, orderBy: "sort_order", ascending: true },
+          { name: "portfolio", limit: 6, orderBy: "sort_order", ascending: true },
+          { name: "experience", limit: 6, orderBy: "sort_order", ascending: true },
+          { name: "pricing", limit: 6, orderBy: "sort_order", ascending: true },
+          { name: "contact", limit: 1 },
+          { name: "chatbot_knowledge", limit: 10, orderBy: "priority", ascending: false },
+        ]}
+      />
     </>
   );
 }

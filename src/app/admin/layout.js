@@ -27,6 +27,8 @@ const PAGE_TITLES = [
   { href: "/admin/contact", label: "Contact" },
   { href: "/admin/footer", label: "Footer" },
   { href: "/admin/contact/inbox", label: "Contact Inbox" },
+  { href: "/admin/chatbot-knowledge", label: "Chatbot Knowledge" },
+  { href: "/admin/chatbot-logs", label: "Chatbot Logs" },
   { href: "/admin/settings", label: "Settings" },
 ];
 

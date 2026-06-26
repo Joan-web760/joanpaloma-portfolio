@@ -574,7 +574,7 @@ export default function AdminCertificationsPage() {
             {!items.length ? <div className="text-muted">No certifications yet.</div> : null}
 
             <div className="vstack gap-2">
-              {items.map((it) => {
+              {items.map((it, index) => {
                 const img = it.certificate_image_path ? publicUrl(it.certificate_image_path) : "";
 
                 const titleVal = getValue(it, "title") || "";
@@ -612,7 +612,7 @@ export default function AdminCertificationsPage() {
                     </div>
 
                     <div className="text-muted small">
-                      {(providerVal || "—") + " • " + (issuedVal || "—") + " • Order: " + it.sort_order}
+                      {(providerVal || "—") + " • " + (issuedVal || "—") + " • Position: " + (index + 1)}
                     </div>
 
                     <div className="row g-2 mt-2">

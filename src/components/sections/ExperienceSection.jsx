@@ -11,8 +11,7 @@ const asTextArr = (arr) =>
     .filter(Boolean);
 
 const fmtDate = (d) => {
-  if (!d) return "—";
-  // d comes as "YYYY-MM-DD"
+  if (!d) return "-";
   const [y, m, day] = String(d).split("-");
   if (!y || !m) return d;
   const date = new Date(Number(y), Number(m) - 1, Number(day || 1));
@@ -24,7 +23,6 @@ export default function ExperienceSection({ className = "" } = {}) {
   const [items, setItems] = useState([]);
 
   const sorted = useMemo(() => {
-    // Sort by sort_order first (admin controlled), fallback by start_date desc
     return (items || []).slice().sort((a, b) => {
       const so = (a.sort_order || 0) - (b.sort_order || 0);
       if (so !== 0) return so;
@@ -79,83 +77,137 @@ export default function ExperienceSection({ className = "" } = {}) {
 
   if (!sorted.length) return null;
 
+  const totalRoles = sorted.length;
+  const currentRoles = sorted.filter((it) => it.is_current).length;
+  const featuredTools = Array.from(
+    new Set(sorted.flatMap((it) => asTextArr(it.tools)).filter(Boolean))
+  ).slice(0, 6);
+
   return (
     <SectionBackground
       sectionKey="experience"
       id="experience"
       className={["py-5", className].filter(Boolean).join(" ")}
     >
-      <div className="container">
-        <div className="mb-3">
-          <h2 className="h3 mb-1">Work Experience</h2>
+      <div className="container experience-public">
+        <div className="experience-public-header" data-aos="fade-up">
+          <div>
+            <div className="experience-public-kicker">Career Timeline</div>
+            <h2 className="experience-public-title">Work Experience</h2>
+          </div>
+
+          <div className="experience-public-stats" aria-label="Experience overview">
+            <div className="experience-public-stat">
+              <span>{totalRoles}</span>
+              <small>{totalRoles === 1 ? "Role" : "Roles"}</small>
+            </div>
+            {currentRoles ? (
+              <div className="experience-public-stat">
+                <span>{currentRoles}</span>
+                <small>Current</small>
+              </div>
+            ) : null}
+            {featuredTools.length ? (
+              <div className="experience-public-stat experience-public-stat-wide">
+                <span>{featuredTools.length}</span>
+                <small>Core tools</small>
+              </div>
+            ) : null}
+          </div>
         </div>
 
-        <div className="vstack gap-3">
-          {sorted.map((it) => {
+        {featuredTools.length ? (
+          <div className="experience-public-tool-strip" data-aos="fade-up" data-aos-delay="80">
+            {featuredTools.map((tool, idx) => (
+              <span key={`${tool}_${idx}`}>{tool}</span>
+            ))}
+          </div>
+        ) : null}
+
+        <div className="experience-public-timeline">
+          {sorted.map((it, index) => {
             const responsibilities = asTextArr(it.responsibilities);
             const achievements = asTextArr(it.achievements);
             const tools = asTextArr(it.tools);
             const tags = asTextArr(it.tags);
+            const org = [it.company, it.client].filter(Boolean).join(" / ");
+            const period = `${fmtDate(it.start_date)} - ${it.is_current ? "Present" : fmtDate(it.end_date)}`;
 
             return (
-              <div key={it.id} className="card border-0 shadow-sm">
-                <div className="card-body">
-                  <div className="d-flex flex-wrap gap-2 align-items-start justify-content-between">
-                    <div>
-                      <div className="h5 mb-1">{it.role_title}</div>
-                      <div className="text-muted">{[it.company, it.client].filter(Boolean).join(" • ")}</div>
+              <article
+                key={it.id}
+                className="experience-public-item"
+                data-aos="fade-up"
+                data-aos-delay={Math.min(index * 70, 280)}
+              >
+                <div className="experience-public-marker" aria-hidden="true">
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                </div>
+
+                <div className="experience-public-card">
+                  <div className="experience-public-card-top">
+                    <div className="experience-public-role">
+                      {it.is_current ? <span className="experience-public-status">Current</span> : null}
+                      <h3>{it.role_title}</h3>
+                      {org ? <p>{org}</p> : null}
                     </div>
 
-                    <div className="text-muted small text-end">
+                    <div className="experience-public-meta">
                       <div>
-                        {fmtDate(it.start_date)} → {it.is_current ? "Present" : fmtDate(it.end_date)}
+                        <i className="fa-regular fa-calendar"></i>
+                        <span>{period}</span>
                       </div>
-                      {it.location ? <div>{it.location}</div> : null}
+                      {it.location ? (
+                        <div>
+                          <i className="fa-solid fa-location-dot"></i>
+                          <span>{it.location}</span>
+                        </div>
+                      ) : null}
                     </div>
                   </div>
 
-                  {it.summary ? <p className="mt-3 mb-2">{it.summary}</p> : null}
+                  {it.summary ? <p className="experience-public-summary">{it.summary}</p> : null}
 
-                  <div className="row g-3 mt-1">
+                  <div className="experience-public-details">
                     {responsibilities.length ? (
-                      <div className="col-12 col-lg-6">
-                        <div className="fw-semibold mb-2">Responsibilities</div>
-                        <ul className="mb-0">
+                      <section className="experience-public-detail">
+                        <h4>Responsibilities</h4>
+                        <ul>
                           {responsibilities.map((r, idx) => (
                             <li key={idx}>{r}</li>
                           ))}
                         </ul>
-                      </div>
+                      </section>
                     ) : null}
 
                     {achievements.length ? (
-                      <div className="col-12 col-lg-6">
-                        <div className="fw-semibold mb-2">Achievements</div>
-                        <ul className="mb-0">
+                      <section className="experience-public-detail">
+                        <h4>Achievements</h4>
+                        <ul>
                           {achievements.map((a, idx) => (
                             <li key={idx}>{a}</li>
                           ))}
                         </ul>
-                      </div>
+                      </section>
                     ) : null}
                   </div>
 
                   {tools.length || tags.length ? (
-                    <div className="mt-3 d-flex flex-wrap gap-2">
+                    <div className="experience-public-chips">
                       {tools.map((t, idx) => (
-                        <span key={`tool_${idx}`} className="badge text-bg-dark">
+                        <span key={`tool_${idx}`} className="experience-public-chip experience-public-chip-tool">
                           {t}
                         </span>
                       ))}
                       {tags.map((t, idx) => (
-                        <span key={`tag_${idx}`} className="badge text-bg-secondary">
+                        <span key={`tag_${idx}`} className="experience-public-chip">
                           {t}
                         </span>
                       ))}
                     </div>
                   ) : null}
                 </div>
-              </div>
+              </article>
             );
           })}
         </div>

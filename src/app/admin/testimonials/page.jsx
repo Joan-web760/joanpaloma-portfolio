@@ -581,7 +581,7 @@ export default function AdminTestimonialsPage() {
             {!items.length ? <div className="text-muted">No testimonials yet.</div> : null}
 
             <div className="vstack gap-2">
-              {items.map((it) => {
+              {items.map((it, index) => {
                 const img = it.avatar_path ? publicUrl(it.avatar_path) : "";
                 const meta = [it.role, it.company].filter(Boolean).join(" • ");
                 const isDirty = dirtyIds.has(it.id);
@@ -621,7 +621,7 @@ export default function AdminTestimonialsPage() {
                             {isDirty ? <span className="badge text-bg-warning ms-2">Unsaved</span> : null}
                           </div>
                           <div className="text-muted small">{meta || "—"}</div>
-                          <div className="text-muted small">Order: {it.sort_order}</div>
+                          <div className="text-muted small">Position: {index + 1}</div>
                         </div>
                       </div>
 

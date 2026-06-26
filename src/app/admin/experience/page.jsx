@@ -783,7 +783,7 @@ export default function AdminExperiencePage() {
             {!items.length ? <div className="text-muted">No items yet.</div> : null}
 
             <div className="vstack gap-2">
-              {items.map((it) => {
+              {items.map((it, index) => {
                 const v = mergedDraft(it);
                 const isDirty = dirtyIds.has(it.id);
 
@@ -804,7 +804,7 @@ export default function AdminExperiencePage() {
                         ) : (
                           <span className="badge text-bg-secondary">Hidden</span>
                         )}
-                        <span className="text-muted small">Order: {it.sort_order}</span>
+                        <span className="text-muted small">Position: {index + 1}</span>
                       </div>
                     </div>
 

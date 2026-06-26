@@ -584,7 +584,7 @@ export default function AdminPricingPage() {
             {!items.length ? <div className="text-muted">No packages yet.</div> : null}
 
             <div className="vstack gap-2">
-              {items.map((it) => {
+              {items.map((it, index) => {
                 const d = getDraft(it);
                 const isDirty = dirtyIds.has(it.id);
                 const isSaving = savingIds.has(it.id);
@@ -642,7 +642,7 @@ export default function AdminPricingPage() {
                       </div>
                     </div>
 
-                    <div className="text-muted small">Order: {it.sort_order}</div>
+                    <div className="text-muted small">Position: {index + 1}</div>
 
                     <div className="row g-2 mt-2">
                       <div className="col-12 col-md-4">

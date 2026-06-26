@@ -1,39 +1,30 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 
 const navItems = [
   { type: "link", label: "Home", href: "/#home" },
+  { type: "link", label: "About", href: "/about#about" },
+  { type: "link", label: "Services", href: "/#services" },
+  { type: "link", label: "Portfolio", href: "/#portfolio" },
+  { type: "link", label: "Experience", href: "/experience#experience" },
+  { type: "link", label: "Blog", href: "/#blog" },
+  { type: "link", label: "Contact", href: "/#contact" },
   {
     type: "dropdown",
-    id: "aboutDropdown",
-    label: "About",
-    href: "/about#about",
+    id: "moreDropdown",
+    label: "More",
     links: [
       { label: "Skills", href: "/#skills" },
       { label: "Tools", href: "/tools" },
-      { label: "Experience", href: "/experience#experience" },
       { label: "Certifications", href: "/#certifications" },
+      { label: "Testimonials", href: "/#testimonials" },
+      { label: "Pricing", href: "/#pricing" },
     ],
   },
-  {
-    type: "dropdown",
-    id: "servicesDropdown",
-    label: "Services",
-    href: "/#services",
-    links: [{ label: "Testimonials", href: "/#testimonials" }],
-  },
-  {
-    type: "dropdown",
-    id: "portfolioDropdown",
-    label: "Portfolio",
-    href: "/#portfolio",
-    links: [{ label: "Pricing", href: "/#pricing" }],
-  },
-  { type: "link", label: "Blog", href: "/#blog" },
-  { type: "link", label: "Contact", href: "/#contact" },
 ];
 
 const allLinks = navItems.flatMap((item) => {
@@ -220,13 +211,13 @@ export default function Navbar() {
       }`}
     >
       <div className="container">
-        <a
+        <Link
           className="navbar-brand fw-bold"
           href="/#home"
           onClick={(e) => handleLinkClick(e, "/#home")}
         >
           {brand}
-        </a>
+        </Link>
 
         <button
           className="navbar-toggler"
@@ -244,36 +235,27 @@ export default function Navbar() {
           <ul className="navbar-nav ms-auto align-items-lg-center d-none d-lg-flex">
             {navItems.map((item) => {
               if (item.type === "dropdown") {
-                const dropdownActive =
-                  isGroupActive(item.links) || (item.href && getActiveKey(item.href) === active);
-                const parentActive = item.href && getActiveKey(item.href) === active;
+                const dropdownActive = isGroupActive(item.links);
                 return (
-                  <li className="nav-item dropdown d-flex align-items-center gap-1" key={item.id}>
-                    <a
-                      className={`nav-link ${parentActive ? "active" : ""}`}
-                      href={item.href || "#"}
-                      aria-current={parentActive ? "page" : undefined}
-                      onClick={(e) => handleLinkClick(e, item.href)}
-                    >
-                      {item.label}
-                    </a>
-                    <a
+                  <li className="nav-item dropdown" key={item.id}>
+                    <button
                       id={item.id}
-                      className={`nav-link dropdown-toggle dropdown-toggle-split ${
+                      className={`nav-link dropdown-toggle btn btn-link ${
                         dropdownActive ? "active" : ""
                       }`}
-                      href="#"
+                      type="button"
                       role="button"
                       data-bs-toggle="dropdown"
                       aria-expanded="false"
-                      aria-label={`Toggle ${item.label} menu`}
-                      onClick={(e) => e.preventDefault()} // prevent jump to top
-                    />
+                      aria-current={dropdownActive ? "page" : undefined}
+                    >
+                      {item.label}
+                    </button>
 
                     <ul className="dropdown-menu dropdown-menu-end" aria-labelledby={item.id}>
                       {item.links.map((link) => (
                         <li key={link.href}>
-                          <a
+                          <Link
                             className={`dropdown-item ${
                               getActiveKey(link.href) === active ? "active" : ""
                             }`}
@@ -281,7 +263,7 @@ export default function Navbar() {
                             onClick={(e) => handleLinkClick(e, link.href)}
                           >
                             {link.label}
-                          </a>
+                          </Link>
                         </li>
                       ))}
                     </ul>
@@ -292,27 +274,27 @@ export default function Navbar() {
               const isActive = getActiveKey(item.href) === active;
               return (
                 <li className="nav-item" key={item.href}>
-                  <a
+                  <Link
                     className={`nav-link ${isActive ? "active" : ""}`}
                     href={item.href}
                     aria-current={isActive ? "page" : undefined}
                     onClick={(e) => handleLinkClick(e, item.href)}
                   >
                     {item.label}
-                  </a>
+                  </Link>
                 </li>
               );
             })}
 
             {/* CTA */}
             <li className="nav-item ms-lg-2 mt-2 mt-lg-0">
-              <a
+              <Link
                 className="btn btn-primary btn-sm"
                 href="/#contact"
                 onClick={(e) => handleLinkClick(e, "/#contact")}
               >
-                Let&apos;s talk
-              </a>
+                Hire Joan
+              </Link>
             </li>
           </ul>
 
@@ -321,27 +303,27 @@ export default function Navbar() {
               const isActive = getActiveKey(link.href) === active;
               return (
                 <li className="nav-item" key={link.href}>
-                  <a
+                  <Link
                     className={`nav-link ${isActive ? "active" : ""}`}
                     href={link.href}
                     aria-current={isActive ? "page" : undefined}
                     onClick={(e) => handleLinkClick(e, link.href)}
                   >
                     {link.label}
-                  </a>
+                  </Link>
                 </li>
               );
             })}
 
             {/* CTA */}
             <li className="nav-item mt-2">
-              <a
+              <Link
                 className="btn btn-primary btn-sm"
                 href="/#contact"
                 onClick={(e) => handleLinkClick(e, "/#contact")}
               >
-                Let&apos;s talk
-              </a>
+                Hire Joan
+              </Link>
             </li>
           </ul>
         </div>

@@ -161,6 +161,393 @@ body[data-aos-easing="ease-out-cubic"] [data-aos] {
   font-size: 0.92rem;
 }
 
+#siteNavbar .navbar-brand {
+  letter-spacing: 0.01em;
+}
+
+#siteNavbar .nav-link {
+  border-radius: 8px;
+  font-family: var(--admin-font-body);
+  font-weight: 600;
+}
+
+#siteNavbar .nav-link:hover,
+#siteNavbar .nav-link:focus-visible {
+  background: rgba(13, 110, 253, 0.08);
+}
+
+#siteNavbar .nav-link.active {
+  color: #0d6efd;
+  background: rgba(13, 110, 253, 0.1);
+}
+
+#siteNavbar button.nav-link {
+  border: 0;
+  text-decoration: none;
+}
+
+#siteNavbar .dropdown-menu {
+  border-radius: 8px;
+  border: 1px solid rgba(24, 34, 53, 0.12);
+  box-shadow: 0 18px 42px -28px rgba(24, 34, 53, 0.4);
+}
+
+#siteNavbar .dropdown-item {
+  font-family: var(--admin-font-body);
+  font-weight: 600;
+}
+
+.experience-public {
+  --experience-ink: #182235;
+  --experience-muted: #607086;
+  --experience-line: rgba(24, 34, 53, 0.16);
+  --experience-surface: rgba(255, 255, 255, 0.86);
+  --experience-surface-strong: rgba(255, 255, 255, 0.96);
+  --experience-accent: #146b5c;
+  --experience-accent-soft: rgba(20, 107, 92, 0.12);
+  color: var(--experience-ink);
+}
+
+.experience-public-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.experience-public-kicker {
+  margin-bottom: 0.35rem;
+  color: var(--experience-accent);
+  font-family: var(--admin-font-body);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.experience-public-title {
+  margin: 0;
+  font-size: clamp(2.2rem, 4vw, 4rem);
+  line-height: 0.95;
+}
+
+.experience-public-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(74px, 1fr));
+  gap: 0.6rem;
+  min-width: min(100%, 320px);
+}
+
+.experience-public-stat {
+  min-height: 72px;
+  display: grid;
+  align-content: center;
+  gap: 0.1rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid rgba(20, 107, 92, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(8px);
+}
+
+.experience-public-stat span {
+  font-family: var(--admin-font-body);
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.experience-public-stat small {
+  color: var(--experience-muted);
+  font-family: var(--admin-font-body);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.experience-public-tool-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-bottom: 1.8rem;
+}
+
+.experience-public-tool-strip span,
+.experience-public-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid rgba(24, 34, 53, 0.12);
+  background: rgba(255, 255, 255, 0.74);
+  color: var(--experience-ink);
+  font-family: var(--admin-font-body);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.experience-public-timeline {
+  position: relative;
+  display: grid;
+  gap: 1.25rem;
+}
+
+.experience-public-timeline::before {
+  content: "";
+  position: absolute;
+  top: 1.25rem;
+  bottom: 1.25rem;
+  left: 26px;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, var(--experience-line) 10%, var(--experience-line) 90%, transparent);
+}
+
+.experience-public-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  gap: 1rem;
+}
+
+.experience-public-marker {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  padding-top: 1rem;
+}
+
+.experience-public-marker span {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(20, 107, 92, 0.2);
+  background: #ffffff;
+  color: var(--experience-accent);
+  font-family: var(--admin-font-body);
+  font-size: 0.82rem;
+  font-weight: 800;
+  box-shadow: 0 14px 32px -22px rgba(24, 34, 53, 0.38);
+}
+
+.experience-public-card {
+  overflow: hidden;
+  border: 1px solid rgba(24, 34, 53, 0.1);
+  border-radius: 8px;
+  background: var(--experience-surface);
+  box-shadow: 0 24px 60px -42px rgba(24, 34, 53, 0.42), 0 8px 22px -18px rgba(24, 34, 53, 0.24);
+  backdrop-filter: blur(10px);
+}
+
+.experience-public-card-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(190px, 260px);
+  gap: 1.25rem;
+  padding: 1.25rem 1.3rem;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(246, 251, 248, 0.76));
+  border-bottom: 1px solid rgba(24, 34, 53, 0.08);
+}
+
+.experience-public-role {
+  min-width: 0;
+}
+
+.experience-public-status {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 0.55rem;
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+  background: var(--experience-accent-soft);
+  color: var(--experience-accent);
+  font-family: var(--admin-font-body);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.experience-public-role h3 {
+  margin: 0;
+  font-size: clamp(1.45rem, 2.2vw, 2rem);
+  line-height: 1.05;
+}
+
+.experience-public-role p {
+  margin: 0.35rem 0 0;
+  color: var(--experience-muted);
+  font-family: var(--admin-font-body);
+  font-size: 0.98rem;
+  font-weight: 500;
+}
+
+.experience-public-meta {
+  display: grid;
+  gap: 0.45rem;
+  align-content: start;
+  justify-items: end;
+  color: var(--experience-muted);
+  font-family: var(--admin-font-body);
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-align: right;
+}
+
+.experience-public-meta div {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+
+.experience-public-meta i {
+  width: 1rem;
+  color: var(--experience-accent);
+  text-align: center;
+}
+
+.experience-public-summary {
+  margin: 0;
+  padding: 1.1rem 1.3rem 0;
+  color: #374151;
+  font-size: 1.08rem;
+  line-height: 1.65;
+}
+
+.experience-public-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  padding: 1.15rem 1.3rem 1.2rem;
+}
+
+.experience-public-detail {
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid rgba(24, 34, 53, 0.08);
+  border-radius: 8px;
+  background: var(--experience-surface-strong);
+}
+
+.experience-public-detail h4 {
+  margin: 0 0 0.75rem;
+  color: var(--experience-accent);
+  font-family: var(--admin-font-body);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.experience-public-detail ul {
+  display: grid;
+  gap: 0.58rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.experience-public-detail li {
+  position: relative;
+  padding-left: 1.05rem;
+  color: #1f2937;
+  font-size: 1rem;
+  line-height: 1.45;
+}
+
+.experience-public-detail li::before {
+  content: "";
+  position: absolute;
+  top: 0.62em;
+  left: 0;
+  width: 0.38rem;
+  height: 0.38rem;
+  border-radius: 999px;
+  background: var(--experience-accent);
+}
+
+.experience-public-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  padding: 0 1.3rem 1.3rem;
+}
+
+.experience-public-chip-tool {
+  background: #172033;
+  color: #ffffff;
+  border-color: #172033;
+}
+
+@media (max-width: 991px) {
+  .experience-public-header {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .experience-public-stats {
+    width: 100%;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .experience-public-card-top,
+  .experience-public-details {
+    grid-template-columns: 1fr;
+  }
+
+  .experience-public-meta {
+    justify-items: start;
+    text-align: left;
+  }
+
+  .experience-public-meta div {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 575px) {
+  .experience-public-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .experience-public-stat-wide {
+    grid-column: 1 / -1;
+  }
+
+  .experience-public-timeline::before {
+    left: 18px;
+  }
+
+  .experience-public-item {
+    grid-template-columns: 38px minmax(0, 1fr);
+    gap: 0.7rem;
+  }
+
+  .experience-public-marker span {
+    width: 38px;
+    height: 38px;
+    font-size: 0.72rem;
+  }
+
+  .experience-public-card-top,
+  .experience-public-summary,
+  .experience-public-details,
+  .experience-public-chips {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .experience-public-detail {
+    padding: 0.9rem;
+  }
+}
+
 .admin-shell {
   --bs-body-font-family: var(--admin-font-body);
   --bs-body-color: var(--admin-text);

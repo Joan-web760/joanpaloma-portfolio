@@ -556,7 +556,7 @@ export default function AdminSkillsPage() {
                   </div>
 
                   <div className="vstack gap-2">
-                    {list.map((s) => {
+                    {list.map((s, index) => {
                       const lvl = clamp(Number(s.level) || 0, 0, 100);
 
                       return (
@@ -657,7 +657,7 @@ export default function AdminSkillsPage() {
                                 >
                                   <i className="fa-solid fa-arrow-down me-2"></i>Move down
                                 </button>
-                                <span className="ms-auto text-muted small">Order: {s.sort_order}</span>
+                                <span className="ms-auto text-muted small">Position: {index + 1}</span>
                               </div>
                             </div>
                           </div>

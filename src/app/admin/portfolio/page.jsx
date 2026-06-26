@@ -862,7 +862,7 @@ export default function AdminPortfolioPage() {
             {!items.length ? <div className="text-muted">No portfolio items yet.</div> : null}
 
             <div className="vstack gap-3">
-              {items.map((it) => {
+              {items.map((it, index) => {
                 const list = mediaByItem[it.id] || [];
                 const cover = list.find((m) => m.media_type === "image") || list[0];
                 const coverUrl = cover ? publicUrl(cover.file_path) : "";
@@ -901,7 +901,7 @@ export default function AdminPortfolioPage() {
                             {d.is_published ? <span className="badge text-bg-success ms-2">Published</span> : <span className="badge text-bg-secondary ms-2">Hidden</span>}
                             {dirtyIds.has(it.id) ? <span className="badge text-bg-info ms-2">Unsaved</span> : null}
                           </div>
-                          <div className="text-muted small">Order: {it.sort_order} • Media: {list.length}</div>
+                          <div className="text-muted small">Position: {index + 1} • Media: {list.length}</div>
                         </div>
                       </div>
 
@@ -1058,7 +1058,7 @@ export default function AdminPortfolioPage() {
                           <div className="mt-3">
                             <div className="fw-semibold mb-2">Media</div>
                             <div className="row g-2">
-                              {list.map((m) => {
+                              {list.map((m, mediaIndex) => {
                                 const url = publicUrl(m.file_path);
                                 return (
                                   <div className="col-12 col-md-6 col-lg-4" key={m.id}>
@@ -1108,7 +1108,7 @@ export default function AdminPortfolioPage() {
                                           </button>
                                         </div>
 
-                                        <div className="small text-muted mt-1">Order: {m.sort_order}</div>
+                                        <div className="small text-muted mt-1">Position: {mediaIndex + 1}</div>
                                       </div>
                                     </div>
                                   </div>

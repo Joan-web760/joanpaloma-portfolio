@@ -10,8 +10,8 @@ const LIMITS = {
   MAX_REQUESTS_PER_WINDOW: 8,
   MAX_MESSAGES_PER_REQUEST: 14,
   MAX_CHARS_PER_MESSAGE: 1800,
-  MAX_TABLES_PER_REQUEST: 10,
-  MAX_ROWS_PER_TABLE: 8,
+  MAX_TABLES_PER_REQUEST: 13,
+  MAX_ROWS_PER_TABLE: 12,
 }
 
 const SAFE_CONTEXT_SOURCES = {
@@ -107,6 +107,28 @@ const SAFE_CONTEXT_SOURCES = {
     allowedOrderBy: ['is_featured', 'sort_order', 'created_at', 'updated_at', 'id'],
     defaultOrderBy: 'sort_order',
     defaultAscending: true,
+    filters: [{ column: 'is_published', value: true }],
+  },
+  testimonials: {
+    label: 'Testimonials',
+    columns:
+      'id, quote, name, role, company, rating, is_featured, is_published, sort_order, created_at, updated_at',
+    table: 'testimonial_items',
+    defaultLimit: 10,
+    allowedOrderBy: ['is_featured', 'sort_order', 'created_at', 'updated_at', 'id'],
+    defaultOrderBy: 'sort_order',
+    defaultAscending: true,
+    filters: [{ column: 'is_published', value: true }],
+  },
+  blogs: {
+    label: 'Blog Posts',
+    columns:
+      'id, title, slug, excerpt, content, is_published, published_at, created_at, updated_at',
+    table: 'blog_posts',
+    defaultLimit: 8,
+    allowedOrderBy: ['published_at', 'created_at', 'updated_at', 'id'],
+    defaultOrderBy: 'published_at',
+    defaultAscending: false,
     filters: [{ column: 'is_published', value: true }],
   },
   contact: {

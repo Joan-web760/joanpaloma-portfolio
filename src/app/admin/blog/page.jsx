@@ -15,6 +15,9 @@ const emptyForm = {
   is_published: false,
 };
 
+const defaultBlogBrief =
+  "Automatically create a useful blog draft for Joan Paloma's portfolio using the full Supabase context. Pick the strongest topic based on Joan's services, skills, experience, pricing, testimonials, and existing posts. Avoid repeating an existing blog topic too closely.";
+
 function slugify(input) {
   return String(input || "")
     .toLowerCase()
@@ -23,6 +26,20 @@ function slugify(input) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .replace(/-+/g, "-");
+}
+
+function extractJsonObject(text) {
+  const raw = String(text || "").trim();
+  const fenced = raw.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  const candidate = fenced?.[1] || raw;
+  const start = candidate.indexOf("{");
+  const end = candidate.lastIndexOf("}");
+
+  if (start === -1 || end === -1 || end <= start) {
+    throw new Error("The assistant did not return a usable draft.");
+  }
+
+  return JSON.parse(candidate.slice(start, end + 1));
 }
 
 export default function AdminBlogPage() {
@@ -37,6 +54,8 @@ export default function AdminBlogPage() {
 
   const [posts, setPosts] = useState([]);
   const [form, setForm] = useState(emptyForm);
+  const [aiBrief, setAiBrief] = useState("");
+  const [aiBusy, setAiBusy] = useState(false);
 
   // if user edits title after initial slug generation, keep slug synced unless explicitly locked
   const [slugLocked, setSlugLocked] = useState(false);
@@ -201,6 +220,78 @@ export default function AdminBlogPage() {
 
   const openPreviewList = () => window.open("/#blog", "_blank");
 
+  const generateBlogDraft = async () => {
+    const brief = aiBrief.trim() || form.title.trim() || form.excerpt.trim() || defaultBlogBrief;
+
+    setAiBusy(true);
+    setError("");
+    setNotice("");
+
+    try {
+      const response = await fetch("/api/chatbot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectName: "Joan Paloma Admin Blog Assistant",
+          systemPrompt:
+            "You help Joan Paloma draft admin blog content. Return only valid JSON. Do not wrap it in markdown. Use the supplied Supabase context as the source of truth for Joan's portfolio content. If the admin gives no idea, choose a strong topic automatically from the site content. Use a professional, practical, human tone for a virtual assistant portfolio.",
+          messages: [
+            {
+              role: "user",
+              content: `Create a blog draft from this brief: ${brief}
+
+Return this exact JSON shape:
+{
+  "title": "clear SEO-friendly blog title",
+  "excerpt": "1-2 sentence summary",
+  "content": "markdown-style blog body with headings, short paragraphs, and bullets"
+}
+
+Keep the content useful for clients who may need virtual assistant, admin, operations, organization, or support services.`,
+            },
+          ],
+          contextConfig: [
+            { name: "site_settings", limit: 1 },
+            { name: "section_home", limit: 1 },
+            { name: "section_about", limit: 1 },
+            { name: "services", limit: 12, orderBy: "sort_order", ascending: true },
+            { name: "skills", limit: 12, orderBy: "sort_order", ascending: true },
+            { name: "experience", limit: 12, orderBy: "sort_order", ascending: true },
+            { name: "portfolio", limit: 12, orderBy: "sort_order", ascending: true },
+            { name: "certifications", limit: 12, orderBy: "sort_order", ascending: true },
+            { name: "pricing", limit: 12, orderBy: "sort_order", ascending: true },
+            { name: "testimonials", limit: 12, orderBy: "sort_order", ascending: true },
+            { name: "blogs", limit: 12, orderBy: "published_at", ascending: false },
+            { name: "contact", limit: 1 },
+            { name: "chatbot_knowledge", limit: 12, orderBy: "priority", ascending: false },
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.error || "AI assistant failed to generate a blog draft.");
+      }
+
+      const draft = extractJsonObject(await response.text());
+      const title = String(draft.title || form.title || "").trim();
+
+      setSlugLocked(false);
+      setForm((prev) => ({
+        ...prev,
+        title,
+        slug: slugify(title),
+        excerpt: String(draft.excerpt || prev.excerpt || "").trim(),
+        content: String(draft.content || prev.content || "").trim(),
+      }));
+      toast("AI blog draft added.");
+    } catch (e) {
+      setError(e.message || "AI assistant failed.");
+    } finally {
+      setAiBusy(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="container py-5">
@@ -251,6 +342,41 @@ export default function AdminBlogPage() {
         <div className="card border-0 shadow-sm mb-3">
           <div className="card-body">
             <h2 className="h6 mb-3">Create Post</h2>
+
+            <div className="border rounded bg-white p-3 mb-3">
+              <div className="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-2">
+                <div>
+                  <div className="fw-semibold">
+                    <i className="fa-solid fa-wand-magic-sparkles me-2"></i>
+                    AI Assistant
+                  </div>
+                  <div className="small text-muted">Generate a title, excerpt, and editable blog body automatically or add optional guidance.</div>
+                </div>
+                <button className="btn btn-sm btn-primary" onClick={generateBlogDraft} disabled={busy || aiBusy}>
+                  {aiBusy ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+                      Drafting...
+                    </>
+                  ) : (
+                    <>
+                      <i className="fa-solid fa-sparkles me-2"></i>
+                      Generate Draft
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <textarea
+                className="form-control"
+                rows="3"
+                placeholder="Optional: mention a topic, service, client type, or tone. Leave blank to generate automatically from the portfolio content."
+                value={aiBrief}
+                onChange={(e) => setAiBrief(e.target.value)}
+                disabled={busy || aiBusy}
+              />
+              <div className="form-text">Leave this blank for an automatic draft based on the current portfolio content. Review and edit before publishing.</div>
+            </div>
 
             <div className="row g-2">
               <div className="col-12 col-md-6">

@@ -17,6 +17,9 @@ const emptyForm = {
   is_published: true,
 };
 
+const defaultPricingBrief =
+  "Automatically create a useful pricing package draft for Joan Paloma's portfolio using the full Supabase context. Pick a package that fits Joan's services, skills, experience, testimonials, and current pricing. Avoid duplicating an existing package too closely.";
+
 const toLines = (text) =>
   (text || "")
     .split("\n")
@@ -28,6 +31,20 @@ const fromArr = (arr) =>
     .map((v) => (typeof v === "string" ? v : v?.text))
     .filter(Boolean)
     .join("\n");
+
+function extractJsonObject(text) {
+  const raw = String(text || "").trim();
+  const fenced = raw.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  const candidate = fenced?.[1] || raw;
+  const start = candidate.indexOf("{");
+  const end = candidate.lastIndexOf("}");
+
+  if (start === -1 || end === -1 || end <= start) {
+    throw new Error("The assistant did not return a usable package draft.");
+  }
+
+  return JSON.parse(candidate.slice(start, end + 1));
+}
 
 const sortPackages = (list) =>
   [...(list || [])].sort((a, b) => {
@@ -49,6 +66,8 @@ export default function AdminPricingPage() {
 
   const [items, setItems] = useState([]);
   const [form, setForm] = useState(emptyForm);
+  const [aiBrief, setAiBrief] = useState("");
+  const [aiBusy, setAiBusy] = useState(false);
 
   /**
    * Save button UX for inline edits:
@@ -128,6 +147,86 @@ export default function AdminPricingPage() {
     setDrafts({});
     setDirtyIds(new Set());
     toast("Changes discarded.");
+  };
+
+  const generatePricingDraft = async () => {
+    const brief =
+      aiBrief.trim() ||
+      [form.name, form.price, form.billing_type, form.description].filter(Boolean).join(" - ") ||
+      defaultPricingBrief;
+
+    setAiBusy(true);
+    setError("");
+    setNotice("");
+
+    try {
+      const response = await fetch("/api/chatbot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectName: "Joan Paloma Admin Pricing Assistant",
+          systemPrompt:
+            "You help Joan Paloma draft admin pricing packages. Return only valid JSON. Do not wrap it in markdown. Use the supplied Supabase context as the source of truth for Joan's portfolio content. If the admin gives no package idea, choose a strong package automatically from the site content. Keep wording clear, specific, and client-friendly for virtual assistant services.",
+          messages: [
+            {
+              role: "user",
+              content: `Create a pricing package draft from this brief: ${brief}
+
+Return this exact JSON shape:
+{
+  "name": "package or tier name",
+  "price": "price text, or blank if not specified",
+  "billing_type": "per month, per project, hourly, or another clear billing label",
+  "description": "1-2 sentence offer summary",
+  "inclusions": ["one inclusion per item"],
+  "addons": ["optional add-on per item"]
+}
+
+The package should fit Joan Paloma's virtual assistant, admin support, operations, organization, and client support services.`,
+            },
+          ],
+          contextConfig: [
+            { name: "site_settings", limit: 1 },
+            { name: "section_home", limit: 1 },
+            { name: "section_about", limit: 1 },
+            { name: "services", limit: 12, orderBy: "sort_order", ascending: true },
+            { name: "skills", limit: 12, orderBy: "sort_order", ascending: true },
+            { name: "experience", limit: 12, orderBy: "sort_order", ascending: true },
+            { name: "portfolio", limit: 12, orderBy: "sort_order", ascending: true },
+            { name: "certifications", limit: 12, orderBy: "sort_order", ascending: true },
+            { name: "pricing", limit: 12, orderBy: "sort_order", ascending: true },
+            { name: "testimonials", limit: 12, orderBy: "sort_order", ascending: true },
+            { name: "blogs", limit: 12, orderBy: "published_at", ascending: false },
+            { name: "contact", limit: 1 },
+            { name: "chatbot_knowledge", limit: 12, orderBy: "priority", ascending: false },
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.error || "AI assistant failed to generate a pricing draft.");
+      }
+
+      const draft = extractJsonObject(await response.text());
+      const inclusions = Array.isArray(draft.inclusions) ? draft.inclusions : [];
+      const addons = Array.isArray(draft.addons) ? draft.addons : [];
+
+      setForm((prev) => ({
+        ...prev,
+        name: String(draft.name || prev.name || "").trim(),
+        price: String(draft.price || prev.price || "").trim(),
+        billing_type: String(draft.billing_type || prev.billing_type || "").trim(),
+        description: String(draft.description || prev.description || "").trim(),
+        inclusionsText: inclusions.map((item) => String(item).trim()).filter(Boolean).join("\n") || prev.inclusionsText,
+        addonsText: addons.map((item) => String(item).trim()).filter(Boolean).join("\n") || prev.addonsText,
+      }));
+      toast("AI pricing draft added.");
+    } catch (e) {
+      setError(e.message || "AI assistant failed.");
+    } finally {
+      setAiBusy(false);
+    }
   };
 
   const createItem = async () => {
@@ -438,6 +537,41 @@ export default function AdminPricingPage() {
         <div className="card border-0 shadow-sm mb-3">
           <div className="card-body">
             <h2 className="h6 mb-3">Add Package</h2>
+
+            <div className="border rounded bg-white p-3 mb-3">
+              <div className="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-2">
+                <div>
+                  <div className="fw-semibold">
+                    <i className="fa-solid fa-wand-magic-sparkles me-2"></i>
+                    AI Assistant
+                  </div>
+                  <div className="small text-muted">Generate a package draft automatically or add optional guidance.</div>
+                </div>
+                <button className="btn btn-sm btn-primary" onClick={generatePricingDraft} disabled={busy || aiBusy}>
+                  {aiBusy ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+                      Drafting...
+                    </>
+                  ) : (
+                    <>
+                      <i className="fa-solid fa-sparkles me-2"></i>
+                      Generate Package
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <textarea
+                className="form-control"
+                rows="3"
+                placeholder="Optional: mention a package type, client need, price range, or tone. Leave blank to generate automatically from the portfolio content."
+                value={aiBrief}
+                onChange={(e) => setAiBrief(e.target.value)}
+                disabled={busy || aiBusy}
+              />
+              <div className="form-text">Leave this blank for an automatic package based on the current portfolio content. Review and adjust before saving.</div>
+            </div>
 
             <div className="row g-2">
               <div className="col-12 col-md-4">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 import AdminActionModal, { useAdminActionModal } from "@/components/admin/AdminActionModal";
@@ -17,6 +17,19 @@ const emptyForm = {
   is_published: true,
 };
 
+const testimonialBotRoles = [
+  "Happy Client",
+  "Busy Founder",
+  "Operations Manager",
+  "Insurance Adviser",
+  "Executive Partner",
+  "Agency Lead",
+  "Small Business Owner",
+];
+
+const defaultTestimonialScenario =
+  "Generate a polished fictional testimonial for Joan Paloma's virtual admin assistant portfolio. Focus on reliable administrative support, CRM updates, scheduling, documentation, quotations, renewals, client follow-ups, claims coordination, inbox support, reporting, and smoother operations for a busy client team.";
+
 export default function AdminTestimonialsPage() {
   const router = useRouter();
   const { modal, confirm, success, onConfirm, onCancel } = useAdminActionModal();
@@ -29,6 +42,9 @@ export default function AdminTestimonialsPage() {
 
   const [items, setItems] = useState([]);
   const [form, setForm] = useState(emptyForm);
+  const [botBrief, setBotBrief] = useState("");
+  const [botRole, setBotRole] = useState(testimonialBotRoles[0]);
+  const [botBusy, setBotBusy] = useState(false);
 
   // NEW: draft edits + save UX
   const [drafts, setDrafts] = useState({}); // { [id]: {quote,name,role,company,rating,is_featured,is_published} }
@@ -347,6 +363,60 @@ export default function AdminTestimonialsPage() {
 
   const openPreview = () => window.open("/#testimonials", "_blank");
 
+  const runTestimonialBot = async () => {
+    const brief =
+      botBrief.trim() ||
+      [form.quote, form.role, form.company].filter(Boolean).join(" - ") ||
+      defaultTestimonialScenario;
+
+    setBotBusy(true);
+    setError("");
+    setNotice("");
+
+    try {
+      const { data: sessionRes } = await supabase.auth.getSession();
+      const token = sessionRes?.session?.access_token;
+      if (!token) throw new Error("Please sign in again before running the testimonial bot.");
+
+      const response = await fetch("/api/admin/testimonial-bot/run", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          brief,
+          role: botRole,
+          ratingPreference: "balanced_4_5",
+        }),
+      });
+
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(payload?.error || "Testimonial bot could not generate a draft.");
+      }
+
+      const draft = payload?.draft || {};
+      setForm((prev) => ({
+        ...prev,
+        quote: String(draft.quote || prev.quote || "").trim(),
+        name: String(draft.name || prev.name || "").trim(),
+        role: String(draft.role || prev.role || "").trim(),
+        company: Object.prototype.hasOwnProperty.call(draft, "company")
+          ? String(draft.company || "").trim()
+          : String(prev.company || "").trim(),
+        rating: Number(draft.rating) || prev.rating || 5,
+        is_published: false,
+      }));
+
+      toast("Testimonial bot draft added.");
+    } catch (e) {
+      setError(e.message || "Testimonial bot failed.");
+    } finally {
+      setBotBusy(false);
+    }
+  };
+
   const dirtyCount = dirtyIds.size;
 
   if (loading) {
@@ -428,6 +498,63 @@ export default function AdminTestimonialsPage() {
         <div className="card border-0 shadow-sm mb-3">
           <div className="card-body">
             <h2 className="h6 mb-3">Add Testimonial</h2>
+
+            <div className="border rounded bg-white p-3 mb-3">
+              <div className="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-2">
+                <div>
+                  <div className="fw-semibold">
+                    <i className="fa-solid fa-wand-magic-sparkles me-2"></i>
+                    Testimonial Bot
+                  </div>
+                  <div className="small text-muted">Generate an editable testimonial draft automatically or add optional guidance.</div>
+                </div>
+                <button className="btn btn-sm btn-primary" onClick={runTestimonialBot} disabled={busy || botBusy}>
+                  {botBusy ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+                      Drafting...
+                    </>
+                  ) : (
+                    <>
+                      <i className="fa-solid fa-sparkles me-2"></i>
+                      Generate Draft
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <div className="row g-2">
+                <div className="col-12 col-md-4">
+                  <label className="form-label">Voice</label>
+                  <select
+                    className="form-select"
+                    value={botRole}
+                    onChange={(e) => setBotRole(e.target.value)}
+                    disabled={busy || botBusy}
+                  >
+                    {testimonialBotRoles.map((role) => (
+                      <option key={role} value={role}>
+                        {role}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="col-12 col-md-8">
+                  <label className="form-label">Optional guidance</label>
+                  <textarea
+                    className="form-control"
+                    rows="3"
+                    placeholder="Optional: mention a client type, service, tone, or result. Leave blank to generate automatically."
+                    value={botBrief}
+                    onChange={(e) => setBotBrief(e.target.value)}
+                    disabled={busy || botBusy}
+                  />
+                </div>
+              </div>
+              <div className="form-text">
+                Leave the guidance blank to let the bot create a testimonial automatically. The draft stays unpublished for review.
+              </div>
+            </div>
 
             <div className="row g-2">
               <div className="col-12">

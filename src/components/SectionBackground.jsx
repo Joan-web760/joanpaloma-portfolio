@@ -46,11 +46,6 @@ const FALLBACK_BACKGROUNDS = {
     backgroundImage:
       "radial-gradient(circle at 18% 20%, rgba(245, 158, 11, 0.16), transparent 28%), radial-gradient(circle at 82% 18%, rgba(59, 130, 246, 0.14), transparent 24%), linear-gradient(180deg, #fffef9 0%, #f3efe2 100%)",
   },
-  resume: {
-    backgroundColor: "#f6f9f8",
-    backgroundImage:
-      "radial-gradient(circle at 14% 18%, rgba(34, 197, 94, 0.14), transparent 28%), radial-gradient(circle at 84% 16%, rgba(71, 85, 105, 0.12), transparent 22%), linear-gradient(180deg, #fdfffe 0%, #eef5f2 100%)",
-  },
   blog: {
     backgroundColor: "#f9f6f3",
     backgroundImage:

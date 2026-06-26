@@ -603,7 +603,7 @@ export default function AdminExperiencePage() {
                   onChange={(e) => setForm((p) => ({ ...p, role_title: e.target.value }))}
                   disabled={busy}
                 />
-                <div className="form-text">Use the job title or role name shown on your resume.</div>
+                <div className="form-text">Use the job title or role name you want clients to see.</div>
               </div>
               <div className="col-12 col-md-4">
                 <label className="form-label">Company</label>

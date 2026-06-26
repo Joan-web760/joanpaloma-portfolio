@@ -15,10 +15,6 @@ const SECTIONS = [
 
   { key: "portfolio", label: "Portfolio", route: "/admin/portfolio", table: "portfolio_items", mode: "list" },
   { key: "certifications", label: "Certifications", route: "/admin/certifications", table: "certification_items", mode: "list" },
-
-  // section_resume is NOT a singleton in your schema (uuid PK) so treat as list
-  { key: "resume", label: "Resume / CV", route: "/admin/resume", table: "section_resume", mode: "list" },
-
   { key: "blog", label: "Blog", route: "/admin/blog", table: "blog_posts", mode: "list" },
   { key: "testimonials", label: "Testimonials", route: "/admin/testimonials", table: "testimonial_items", mode: "list" },
   { key: "pricing", label: "Pricing", route: "/admin/pricing", table: "package_items", mode: "list" },

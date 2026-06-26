@@ -21,7 +21,6 @@ export const ADMIN_NAV_SECTIONS = [
       { label: "Experience", href: "/admin/experience", icon: "fa-timeline" },
       { label: "Portfolio", href: "/admin/portfolio", icon: "fa-image" },
       { label: "Certifications", href: "/admin/certifications", icon: "fa-certificate" },
-      { label: "Resume", href: "/admin/resume", icon: "fa-file-lines" },
       { label: "Blog", href: "/admin/blog", icon: "fa-pen-nib" },
       { label: "Testimonials", href: "/admin/testimonials", icon: "fa-comment-dots" },
     ],

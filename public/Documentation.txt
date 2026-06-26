@@ -103,13 +103,6 @@ Use these options when creating the project:
 | Actions | View | CRUD + reorder | 1→many |
 
 
-8️⃣ Resume / CV
-| Area | Frontend (Public) | Admin Panel | Supabase (DB/Storage) |
-|---|---|---|---|
-| Section / Route | /#resume | /admin/resume | DB: section_resume |
-| Purpose | Let clients download your CV quickly | Upload/replace CV + keep summary updated | Storage: portfolio-docs |
-| Content | Summary + Download CV button | PDF upload + button label + summary editor | cv_file_path in bucket |
-| Actions | Download | Upload/replace/publish | 1→1 |
 
 
 9️⃣ Blog
@@ -157,9 +150,8 @@ Use these options when creating the project:
 | Actions | Applied globally | Upload/replace/remove per section + preview | Updates settings rows |
 
 Suggested section keys for section_backgrounds.section_key:
-- home, about, services, skills, experience, portfolio, certifications, resume, blog, testimonials, pricing, contact
+- home, about, services, skills, experience, portfolio, certifications, blog, testimonials, pricing, contact
 
 Recommended Supabase Storage Buckets:
 - portfolio-backgrounds: all section background images
 - portfolio-media: images for portfolio, avatars, certificates, blog covers, hero images
-- portfolio-docs: resume/CV PDFs and other documents

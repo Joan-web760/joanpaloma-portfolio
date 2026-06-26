@@ -571,7 +571,7 @@ export default function AdminSkillsPage() {
                                 onChange={(e) => setDraftField(s.id, { name: e.target.value })}
                                 disabled={busy}
                               />
-                              <div className="form-text">Use the exact skill name that appears on your resume.</div>
+                              <div className="form-text">Use the exact skill name clients might recognize.</div>
                             </div>
 
                             <div className="col-12 col-md-3">

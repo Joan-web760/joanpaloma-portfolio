@@ -45,7 +45,11 @@ export default function AdminTopNav() {
                 return (
                   <li key={item.href}>
                     <Link href={item.href} className={`admin-topnav-link${active ? " active" : ""}`}>
-                      {item.label}
+                      <i className={`fa-solid ${item.icon}`} aria-hidden="true"></i>
+                      <span>
+                        <span>{item.label}</span>
+                        {item.hint ? <small>{item.hint}</small> : null}
+                      </span>
                     </Link>
                   </li>
                 );

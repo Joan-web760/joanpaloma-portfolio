@@ -5,40 +5,40 @@ import { usePathname } from "next/navigation";
 
 export const ADMIN_NAV_SECTIONS = [
   {
-    title: "Overview",
+    title: "Start Here",
     items: [
-      { label: "Dashboard", href: "/admin", icon: "fa-gauge-high" },
-      { label: "Home", href: "/admin/home", icon: "fa-house" },
-      { label: "About", href: "/admin/about", icon: "fa-user-pen" },
+      { label: "Dashboard", href: "/admin", icon: "fa-gauge-high", hint: "Site overview" },
+      { label: "Home", href: "/admin/home", icon: "fa-house", hint: "Hero section" },
+      { label: "About", href: "/admin/about", icon: "fa-user-pen", hint: "Bio and media" },
     ],
   },
   {
-    title: "Content",
+    title: "Public Sections",
     items: [
-      { label: "Services", href: "/admin/services", icon: "fa-briefcase" },
-      { label: "Skills", href: "/admin/skills", icon: "fa-wand-magic-sparkles" },
-      { label: "Tools", href: "/admin/tools", icon: "fa-screwdriver-wrench" },
-      { label: "Experience", href: "/admin/experience", icon: "fa-timeline" },
-      { label: "Portfolio", href: "/admin/portfolio", icon: "fa-image" },
-      { label: "Certifications", href: "/admin/certifications", icon: "fa-certificate" },
-      { label: "Blog", href: "/admin/blog", icon: "fa-pen-nib" },
-      { label: "Testimonials", href: "/admin/testimonials", icon: "fa-comment-dots" },
+      { label: "Services", href: "/admin/services", icon: "fa-briefcase", hint: "What you offer" },
+      { label: "Skills", href: "/admin/skills", icon: "fa-wand-magic-sparkles", hint: "Capabilities" },
+      { label: "Tools", href: "/admin/tools", icon: "fa-screwdriver-wrench", hint: "Software stack" },
+      { label: "Experience", href: "/admin/experience", icon: "fa-timeline", hint: "Work history" },
+      { label: "Portfolio", href: "/admin/portfolio", icon: "fa-image", hint: "Projects" },
+      { label: "Certifications", href: "/admin/certifications", icon: "fa-certificate", hint: "Credentials" },
+      { label: "Blog", href: "/admin/blog", icon: "fa-pen-nib", hint: "Articles" },
+      { label: "Testimonials", href: "/admin/testimonials", icon: "fa-comment-dots", hint: "Social proof" },
     ],
   },
   {
-    title: "Business",
+    title: "Business Tools",
     items: [
-      { label: "Pricing", href: "/admin/pricing", icon: "fa-tags" },
-      { label: "Contact", href: "/admin/contact", icon: "fa-envelope-open-text" },
-      { label: "Footer", href: "/admin/footer", icon: "fa-table-cells-large" },
-      { label: "Contact Inbox", href: "/admin/contact/inbox", icon: "fa-inbox" },
-      { label: "Chatbot Knowledge", href: "/admin/chatbot-knowledge", icon: "fa-brain" },
-      { label: "Chatbot Logs", href: "/admin/chatbot-logs", icon: "fa-robot" },
+      { label: "Pricing", href: "/admin/pricing", icon: "fa-tags", hint: "Packages" },
+      { label: "Contact", href: "/admin/contact", icon: "fa-envelope-open-text", hint: "Contact section" },
+      { label: "Footer", href: "/admin/footer", icon: "fa-table-cells-large", hint: "Footer links" },
+      { label: "Contact Inbox", href: "/admin/contact/inbox", icon: "fa-inbox", hint: "Messages" },
+      { label: "Chatbot Knowledge", href: "/admin/chatbot-knowledge", icon: "fa-brain", hint: "Bot answers" },
+      { label: "Chatbot Logs", href: "/admin/chatbot-logs", icon: "fa-robot", hint: "Visitor chats" },
     ],
   },
   {
     title: "System",
-    items: [{ label: "Settings", href: "/admin/settings", icon: "fa-gear" }],
+    items: [{ label: "Settings", href: "/admin/settings", icon: "fa-gear", hint: "Site setup" }],
   },
 ];
 
@@ -79,7 +79,10 @@ export default function AdminNav({
                   {...(closeOnSelect ? { "data-bs-dismiss": "offcanvas" } : {})}
                 >
                   <i className={`fa-solid ${item.icon}`}></i>
-                  <span>{item.label}</span>
+                  <span className="admin-nav-link-copy">
+                    <span>{item.label}</span>
+                    {item.hint ? <small>{item.hint}</small> : null}
+                  </span>
                 </Link>
               );
             })}

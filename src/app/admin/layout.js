@@ -11,32 +11,32 @@ import AdminNotificationBell from "@/components/admin/AdminNotificationBell";
 const HIDE_SHELL_ROUTES = ["/admin/login", "/admin/register"];
 
 const PAGE_TITLES = [
-  { href: "/admin", label: "Dashboard" },
-  { href: "/admin/home", label: "Home" },
-  { href: "/admin/about", label: "About" },
-  { href: "/admin/services", label: "Services" },
-  { href: "/admin/skills", label: "Skills" },
-  { href: "/admin/tools", label: "Tools" },
-  { href: "/admin/experience", label: "Experience" },
-  { href: "/admin/portfolio", label: "Portfolio" },
-  { href: "/admin/certifications", label: "Certifications" },
-  { href: "/admin/blog", label: "Blog" },
-  { href: "/admin/testimonials", label: "Testimonials" },
-  { href: "/admin/pricing", label: "Pricing" },
-  { href: "/admin/contact", label: "Contact" },
-  { href: "/admin/footer", label: "Footer" },
-  { href: "/admin/contact/inbox", label: "Contact Inbox" },
-  { href: "/admin/chatbot-knowledge", label: "Chatbot Knowledge" },
-  { href: "/admin/chatbot-logs", label: "Chatbot Logs" },
-  { href: "/admin/settings", label: "Settings" },
+  { href: "/admin", label: "Dashboard", help: "Review site status and jump to the section you need." },
+  { href: "/admin/home", label: "Home", help: "Edit the first section visitors see on the public site." },
+  { href: "/admin/about", label: "About", help: "Update bio, values, profile media, and story details." },
+  { href: "/admin/services", label: "Services", help: "Add, edit, reorder, and publish service cards." },
+  { href: "/admin/skills", label: "Skills", help: "Manage skills, levels, categories, and display order." },
+  { href: "/admin/tools", label: "Tools", help: "Manage the software and tools shown publicly." },
+  { href: "/admin/experience", label: "Experience", help: "Create work entries, then organize and publish them." },
+  { href: "/admin/portfolio", label: "Portfolio", help: "Manage public projects, media, links, and results." },
+  { href: "/admin/certifications", label: "Certifications", help: "Add credentials and control their public order." },
+  { href: "/admin/blog", label: "Blog", help: "Draft posts, use AI assistance, and manage published articles." },
+  { href: "/admin/testimonials", label: "Testimonials", help: "Create social proof, review AI drafts, and choose what is public." },
+  { href: "/admin/pricing", label: "Pricing", help: "Build packages, inclusions, add-ons, and featured offers." },
+  { href: "/admin/contact", label: "Contact", help: "Edit contact copy, email, socials, booking link, and hours." },
+  { href: "/admin/footer", label: "Footer", help: "Update footer links, contact details, and closing text." },
+  { href: "/admin/contact/inbox", label: "Contact Inbox", help: "Review messages sent from the public contact form." },
+  { href: "/admin/chatbot-knowledge", label: "Chatbot Knowledge", help: "Teach the public assistant approved answers." },
+  { href: "/admin/chatbot-logs", label: "Chatbot Logs", help: "Review visitor conversations with the assistant." },
+  { href: "/admin/settings", label: "Settings", help: "Manage site-wide SEO, branding, backgrounds, and system options." },
 ];
 
-function resolvePageTitle(pathname) {
-  if (!pathname) return "Admin";
+function resolvePageMeta(pathname) {
+  if (!pathname) return { label: "Admin", help: "Manage the public portfolio content." };
   const match =
     PAGE_TITLES.find((entry) => entry.href === pathname) ||
     PAGE_TITLES.find((entry) => pathname.startsWith(`${entry.href}/`));
-  return match?.label || "Admin";
+  return match || { label: "Admin", help: "Manage the public portfolio content." };
 }
 
 export default function AdminLayout({ children }) {
@@ -54,7 +54,7 @@ export default function AdminLayout({ children }) {
     );
   }
 
-  const pageTitle = resolvePageTitle(pathname);
+  const pageMeta = resolvePageMeta(pathname);
 
   return (
     <div className="admin-shell">
@@ -70,9 +70,13 @@ export default function AdminLayout({ children }) {
 
           <div className="admin-header">
             <div className="admin-header-left">
+              <div className="admin-header-icon" aria-hidden="true">
+                <i className="fa-solid fa-pen-to-square"></i>
+              </div>
               <div>
-                <div className="admin-header-crumb">Admin / {pageTitle}</div>
-                <div className="admin-header-title">{pageTitle}</div>
+                <div className="admin-header-crumb">Admin workspace</div>
+                <div className="admin-header-title">{pageMeta.label}</div>
+                <div className="admin-header-help">{pageMeta.help}</div>
               </div>
             </div>
 

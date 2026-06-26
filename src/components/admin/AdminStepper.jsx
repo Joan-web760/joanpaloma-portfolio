@@ -1,6 +1,6 @@
 "use client";
 
-import { Children, isValidElement, useEffect, useId, useMemo, useState } from "react";
+import { Children, isValidElement, useId, useMemo, useState } from "react";
 
 export function AdminStep({ children }) {
   return children;
@@ -17,30 +17,41 @@ export default function AdminStepper({ children, initialStep = 0, className = ""
     return Math.min(Math.max(initialStep, 0), total - 1);
   });
 
-  useEffect(() => {
-    if (!total) return;
-    setActive((prev) => Math.min(Math.max(prev, 0), total - 1));
-  }, [total]);
-
   const baseId = useId();
 
   if (!total) return null;
+
+  const activeIndex = Math.min(Math.max(active, 0), total - 1);
 
   const goTo = (idx) => {
     const next = Math.min(Math.max(idx, 0), total - 1);
     setActive(next);
   };
 
-  const goPrev = () => goTo(active - 1);
-  const goNext = () => goTo(active + 1);
+  const goPrev = () => goTo(activeIndex - 1);
+  const goNext = () => goTo(activeIndex + 1);
+  const activeStep = steps[activeIndex];
+  const activeTitle = activeStep?.props?.title || `Step ${activeIndex + 1}`;
+  const activeDescription = activeStep?.props?.description || "";
 
   return (
     <div className={`admin-stepper ${className}`.trim()}>
+      <div className="admin-stepper-guide">
+        <div>
+          <div className="admin-stepper-kicker">You are editing</div>
+          <div className="admin-stepper-current">{activeTitle}</div>
+          {activeDescription ? <div className="admin-stepper-current-desc">{activeDescription}</div> : null}
+        </div>
+        <div className="admin-stepper-count">
+          {activeIndex + 1} / {total}
+        </div>
+      </div>
+
       <div className="admin-stepper-nav" role="tablist" aria-label="Form steps">
         {steps.map((step, idx) => {
           const { title, description } = step.props || {};
-          const isActive = idx === active;
-          const isComplete = idx < active;
+          const isActive = idx === activeIndex;
+          const isComplete = idx < activeIndex;
           const tabId = `${baseId}-tab-${idx}`;
           const panelId = `${baseId}-panel-${idx}`;
 
@@ -67,7 +78,7 @@ export default function AdminStepper({ children, initialStep = 0, className = ""
 
       <div className="admin-stepper-panels">
         {steps.map((step, idx) => {
-          const isActive = idx === active;
+          const isActive = idx === activeIndex;
           const tabId = `${baseId}-tab-${idx}`;
           const panelId = `${baseId}-panel-${idx}`;
 
@@ -88,17 +99,17 @@ export default function AdminStepper({ children, initialStep = 0, className = ""
 
       {total > 1 ? (
         <div className="admin-stepper-footer">
-          <button className="btn btn-outline-secondary" type="button" onClick={goPrev} disabled={active === 0}>
+          <button className="btn btn-outline-secondary" type="button" onClick={goPrev} disabled={activeIndex === 0}>
             <i className="fa-solid fa-arrow-left me-2"></i>Back
           </button>
 
           <div className="admin-stepper-progress small text-muted">
-            Step {active + 1} of {total}
+            Step {activeIndex + 1} of {total}
           </div>
 
-          <button className="btn btn-primary" type="button" onClick={goNext} disabled={active === total - 1}>
-            {active === total - 1 ? "Done" : "Next"}
-            {active === total - 1 ? null : <i className="fa-solid fa-arrow-right ms-2"></i>}
+          <button className="btn btn-primary" type="button" onClick={goNext} disabled={activeIndex === total - 1}>
+            {activeIndex === total - 1 ? "Last step" : "Next"}
+            {activeIndex === total - 1 ? null : <i className="fa-solid fa-arrow-right ms-2"></i>}
           </button>
         </div>
       ) : null}

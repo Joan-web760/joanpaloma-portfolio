@@ -1,6 +1,6 @@
 import PublicFooter from "@/components/PublicFooter";
 import PublicAosProvider from "@/components/PublicAosProvider";
-import ChatbotWidget from "@/components/chatbot/ChatbotWidget";
+import PublicChatbotGate from "@/components/chatbot/PublicChatbotGate";
 import { getContactSettings, getSiteDefaults, getSiteSettings, getSiteUrl } from "@/lib/seo";
 
 export async function generateMetadata() {
@@ -37,7 +37,7 @@ export default async function PublicLayout({ children }) {
       <PublicAosProvider />
       {children}
       <PublicFooter site={site} contact={contact} />
-      <ChatbotWidget
+      <PublicChatbotGate
         projectName="Joan Paloma Portfolio"
         contextConfig={[
           { name: "site_settings", limit: 1 },

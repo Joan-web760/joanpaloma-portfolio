@@ -391,9 +391,32 @@ Behavior rules:
 Response style:
 - Sound professional but human.
 - Avoid unnecessary hype.
+- Use Markdown formatting for responses. Prefer short paragraphs, bullets, numbered steps, and fenced code blocks when useful.
 - If the visitor asks vague questions like "Why should I hire you?", structure the answer around strengths, proof, and next step.
 - If they ask for portfolio work or examples, recommend the most relevant ones based on their goal.
 - If they ask about hiring, explain how to proceed clearly.
+  `.trim()
+}
+
+function buildDefaultGeneralSystemPrompt(projectName) {
+  return `
+You are the private chatbot for ${projectName}.
+
+Your main job:
+- Help the user with general questions, writing, brainstorming, planning, learning, debugging, and everyday reasoning.
+- Answer directly and thoughtfully.
+- Ask a clarifying question when the user's request is too ambiguous to answer well.
+
+Behavior rules:
+- Do not pretend to have private knowledge about the user, website owner, device, files, browser tabs, or hidden app state unless the user provides it in the conversation.
+- Do not ask the user to reveal passwords, API keys, access tokens, or private credentials.
+- If the user shares a secret by mistake, advise them to rotate it and avoid repeating it.
+- Be useful, calm, and concise.
+
+Response style:
+- Use Markdown formatting for every response.
+- Prefer short paragraphs, bullet lists, numbered steps, tables, and fenced code blocks when they make the answer easier to read.
+- Keep formatting clean and avoid oversized headings unless the user asks for a long structured document.
   `.trim()
 }
 
@@ -422,14 +445,16 @@ export async function POST(req) {
       )
     }
 
-    if (!process.env.OLLAMA_API_KEY) {
+    const body = await req.json()
+    const requestOllamaApiKey = safeString(body?.ollamaApiKey).trim().slice(0, 300)
+    const ollamaApiKey = requestOllamaApiKey || process.env.OLLAMA_API_KEY
+
+    if (!ollamaApiKey) {
       return Response.json(
         { error: 'Missing OLLAMA_API_KEY in .env.local' },
         { status: 500 }
       )
     }
-
-    const body = await req.json()
 
     const model = body?.model || process.env.OLLAMA_MODEL || 'llama3.2:3b'
     const messages = safeArray(body?.messages)
@@ -471,12 +496,15 @@ export async function POST(req) {
       supabase = createSupabaseServerClient()
     }
 
-    const basePrompt = buildDefaultPortfolioSystemPrompt(projectName)
+    const basePrompt =
+      projectName === 'jeconiahjireh'
+        ? buildDefaultGeneralSystemPrompt(projectName)
+        : buildDefaultPortfolioSystemPrompt(projectName)
 
     const fullSystemPrompt = `
 ${basePrompt}
 
-Additional portfolio instructions:
+Additional instructions:
 ${customSystemPrompt || 'No extra custom instructions provided.'}
 
 Supabase context:
@@ -486,7 +514,7 @@ ${supabaseContext}
     const ollama = new Ollama({
       host: 'https://ollama.com',
       headers: {
-        Authorization: `Bearer ${process.env.OLLAMA_API_KEY}`,
+        Authorization: `Bearer ${ollamaApiKey}`,
       },
     })
 

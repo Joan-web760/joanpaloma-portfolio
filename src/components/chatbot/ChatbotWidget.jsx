@@ -24,8 +24,15 @@ Always refer to Joan as "Joan", "she", or "her" instead of "I", "me", or "my".
   contextConfig = [],
   placeholder = 'Ask about services, experience, pricing, or availability...',
   initialOpen = false,
+  displayMode = 'floating',
   position = 'bottom-right',
   buttonLabel = 'Send Message',
+  statusLabel = 'Client and recruiter assistant',
+  showUsageLimit = true,
+  allowBringYourOwnKey = false,
+  apiKeyStorageKey = 'portfolio_chatbot_ollama_api_key_v1',
+  apiKeyLabel = 'Ollama API key',
+  apiKeyPlaceholder = 'ollama_...',
   dailyMessageLimit = 20,
   usageStorageKey = 'portfolio_chatbot_daily_usage_v3',
   conversationStorageKey = 'portfolio_chatbot_conversation_v3',
@@ -74,12 +81,15 @@ What would you like to do?
   const [dailyUsage, setDailyUsage] = useState(0)
   const [limitReached, setLimitReached] = useState(false)
   const [error, setError] = useState('')
+  const [ollamaApiKey, setOllamaApiKey] = useState('')
+  const [rememberApiKey, setRememberApiKey] = useState(false)
   const [suggestedPromptIndex, setSuggestedPromptIndex] = useState(0)
   const [visibleProactiveBubbles, setVisibleProactiveBubbles] = useState([])
 
   const messagesEndRef = useRef(null)
   const textareaRef = useRef(null)
   const openRef = useRef(false)
+  const isEmbedded = displayMode === 'embedded'
 
   const welcomeActionPromptMap = useMemo(
     () => ({
@@ -133,9 +143,10 @@ What would you like to do?
   ])
 
   const getResponsiveDefaultOpenState = useCallback(() => {
+    if (isEmbedded) return true
     if (typeof window === 'undefined') return false
     return window.innerWidth >= DESKTOP_BREAKPOINT ? initialOpen : false
-  }, [initialOpen])
+  }, [initialOpen, isEmbedded])
 
   const addVisibleProactiveBubble = useCallback((nextBubble) => {
     setVisibleProactiveBubbles((prev) => {
@@ -159,6 +170,30 @@ What would you like to do?
 
     setMessages([{ id: 'welcome', role: 'assistant', content: welcomeMessage }])
   }, [conversationStorageKey, welcomeMessage])
+
+  useEffect(() => {
+    if (!allowBringYourOwnKey) return
+
+    try {
+      const savedKey = localStorage.getItem(apiKeyStorageKey)
+      if (savedKey) {
+        setOllamaApiKey(savedKey)
+        setRememberApiKey(true)
+      }
+    } catch { }
+  }, [allowBringYourOwnKey, apiKeyStorageKey])
+
+  useEffect(() => {
+    if (!allowBringYourOwnKey) return
+
+    try {
+      if (rememberApiKey && ollamaApiKey.trim()) {
+        localStorage.setItem(apiKeyStorageKey, ollamaApiKey.trim())
+      } else {
+        localStorage.removeItem(apiKeyStorageKey)
+      }
+    } catch { }
+  }, [allowBringYourOwnKey, apiKeyStorageKey, ollamaApiKey, rememberApiKey])
 
   useEffect(() => {
     try {
@@ -186,16 +221,16 @@ What would you like to do?
   }, [openStorageKey, getResponsiveDefaultOpenState])
 
   useEffect(() => {
-    if (!isOpenReady) return
+    if (!isOpenReady || isEmbedded) return
 
     try {
       localStorage.setItem(openStorageKey, String(open))
     } catch { }
-  }, [open, openStorageKey, isOpenReady])
+  }, [open, openStorageKey, isOpenReady, isEmbedded])
 
   useEffect(() => {
-    openRef.current = open
-  }, [open])
+    openRef.current = isEmbedded || open
+  }, [open, isEmbedded])
 
   useEffect(() => {
     if (!isOpenReady || proactiveSequence.length === 0 || messages.length === 0) {
@@ -248,10 +283,10 @@ What would you like to do?
   ])
 
   useEffect(() => {
-    if (open) {
+    if (isEmbedded || open) {
       setVisibleProactiveBubbles([])
     }
-  }, [open])
+  }, [open, isEmbedded])
 
   useEffect(() => {
     const today = new Date().toISOString().slice(0, 10)
@@ -283,7 +318,7 @@ What would you like to do?
 
       const count = Number(parsed?.count || 0)
       setDailyUsage(count)
-      setLimitReached(count >= dailyMessageLimit)
+      setLimitReached(showUsageLimit && count >= dailyMessageLimit)
     } catch {
       localStorage.setItem(
         usageStorageKey,
@@ -292,12 +327,12 @@ What would you like to do?
       setDailyUsage(0)
       setLimitReached(false)
     }
-  }, [dailyMessageLimit, usageStorageKey])
+  }, [dailyMessageLimit, usageStorageKey, showUsageLimit])
 
   useEffect(() => {
-    if (!open) return
+    if (!isEmbedded && !open) return
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages, loading, open])
+  }, [messages, loading, open, isEmbedded])
 
   useEffect(() => {
     autoResizeTextarea()
@@ -343,7 +378,9 @@ What would you like to do?
   function applyQuickPrompt(prompt) {
     if (loading || limitReached) return
     setInput(prompt)
-    requestAnimationFrame(() => textareaRef.current?.focus())
+    if (!isEmbedded) {
+      requestAnimationFrame(() => textareaRef.current?.focus())
+    }
   }
 
   function openChatbotFromGreeting() {
@@ -355,6 +392,11 @@ What would you like to do?
     const text = String(customText ?? input).trim()
 
     if (!text || loading || limitReached) return
+
+    if (allowBringYourOwnKey && !ollamaApiKey.trim()) {
+      setError('Enter your Ollama API key before sending a message.')
+      return
+    }
 
     const userMessage = {
       id: `user-${Date.now()}`,
@@ -377,7 +419,9 @@ What would you like to do?
     setInput('')
     setLoading(true)
     setError('')
-    increaseDailyUsage()
+    if (showUsageLimit) {
+      increaseDailyUsage()
+    }
 
     try {
       const res = await fetch(apiPath, {
@@ -388,6 +432,7 @@ What would you like to do?
           projectName,
           systemPrompt,
           contextConfig,
+          ollamaApiKey: allowBringYourOwnKey ? ollamaApiKey.trim() : '',
           pageUrl:
             typeof window !== 'undefined' ? window.location.href : '',
           messages: historyForApi.map((msg) => ({
@@ -456,7 +501,9 @@ What would you like to do?
     } finally {
       setLoading(false)
       requestAnimationFrame(() => {
-        textareaRef.current?.focus()
+        if (!isEmbedded) {
+          textareaRef.current?.focus()
+        }
         autoResizeTextarea()
       })
     }
@@ -486,6 +533,7 @@ What would you like to do?
 
   const positionClass =
     position === 'bottom-left' ? 'start-0 ms-3' : 'end-0 me-3'
+  const isChatOpen = isEmbedded || open
 
   if (!isOpenReady) {
     return null
@@ -494,10 +542,10 @@ What would you like to do?
   return (
     <>
       <div
-        className={`position-fixed portfolio-chatbot-widget-wrap ${positionClass}`}
-        style={{ bottom: '20px', zIndex: 1080 }}
+        className={`${isEmbedded ? 'portfolio-chatbot-widget-wrap--embedded' : `position-fixed ${positionClass}`} portfolio-chatbot-widget-wrap`}
+        style={isEmbedded ? undefined : { bottom: '20px', zIndex: 1080 }}
       >
-        {!open && (
+        {!isChatOpen && (
           <>
             {visibleProactiveBubbles.length > 0 && (
               <div className="portfolio-chatbot-proactive-stack">
@@ -542,7 +590,7 @@ What would you like to do?
           </>
         )}
 
-        {open && (
+        {isChatOpen && (
           <div className="portfolio-chatbot-card card border-0 shadow-lg">
             <div className="portfolio-chatbot-header">
               <div className="portfolio-chatbot-header__left">
@@ -556,6 +604,7 @@ What would you like to do?
                 </div>
               </div>
 
+              {!isEmbedded && (
               <div className="d-flex align-items-center gap-2">
                 <button
                   type="button"
@@ -566,17 +615,20 @@ What would you like to do?
                   <i className="fa-solid fa-xmark" aria-hidden="true" />
                 </button>
               </div>
+              )}
             </div>
 
             <div className="portfolio-chatbot-meta">
               <div className="portfolio-chatbot-status">
                 <span className="portfolio-chatbot-status__dot" />
-                Client and recruiter assistant
+                {statusLabel}
               </div>
-              <div className="portfolio-chatbot-usage">
-                {remainingCount} question{remainingCount === 1 ? '' : 's'} left
-                today
-              </div>
+              {showUsageLimit && (
+                <div className="portfolio-chatbot-usage">
+                  {remainingCount} question{remainingCount === 1 ? '' : 's'} left
+                  today
+                </div>
+              )}
             </div>
 
             <div className="portfolio-chatbot-body">
@@ -669,7 +721,7 @@ What would you like to do?
                 </div>
               )}
 
-              {limitReached && (
+              {showUsageLimit && limitReached && (
                 <div className="alert alert-warning py-2 px-3 small mb-2">
                   Daily chat limit reached. Please come back tomorrow.
                 </div>
@@ -678,6 +730,33 @@ What would you like to do?
               <label htmlFor={textareaId} className="visually-hidden">
                 Ask the portfolio assistant
               </label>
+
+              {allowBringYourOwnKey && (
+                <div className="portfolio-chatbot-key-panel">
+                  <label className="portfolio-chatbot-key-label" htmlFor={`${textareaId}-api-key`}>
+                    {apiKeyLabel}
+                  </label>
+                  <div className="portfolio-chatbot-key-input-row">
+                    <input
+                      id={`${textareaId}-api-key`}
+                      className="form-control portfolio-chatbot-key-input"
+                      type="password"
+                      placeholder={apiKeyPlaceholder}
+                      value={ollamaApiKey}
+                      onChange={(e) => setOllamaApiKey(e.target.value)}
+                      autoComplete="off"
+                    />
+                    <label className="portfolio-chatbot-key-remember">
+                      <input
+                        type="checkbox"
+                        checked={rememberApiKey}
+                        onChange={(e) => setRememberApiKey(e.target.checked)}
+                      />
+                      <span>Remember</span>
+                    </label>
+                  </div>
+                </div>
+              )}
 
               <div className="portfolio-chatbot-prompt-dock">
                 <span className="portfolio-chatbot-prompt-dock__label">
@@ -738,6 +817,13 @@ What would you like to do?
           --chatbot-border: rgba(17, 24, 39, 0.16);
         }
 
+        .portfolio-chatbot-widget-wrap--embedded {
+          position: relative;
+          width: min(920px, 100%);
+          margin: 0 auto;
+          z-index: 1;
+        }
+
         .portfolio-chatbot-card {
           width: 448px;
           max-width: calc(100vw - 24px);
@@ -754,6 +840,15 @@ What would you like to do?
           display: flex;
           flex-direction: column;
           backdrop-filter: blur(12px);
+        }
+
+        .portfolio-chatbot-widget-wrap--embedded .portfolio-chatbot-card {
+          width: 100%;
+          max-width: 100%;
+          height: min(760px, calc(100dvh - 72px));
+          min-height: 620px;
+          border-radius: 8px;
+          box-shadow: 0 26px 70px -46px rgba(17, 24, 39, 0.46) !important;
         }
 
         .portfolio-chatbot-header {
@@ -965,6 +1060,56 @@ What would you like to do?
           margin-bottom: 12px;
         }
 
+        .portfolio-chatbot-key-panel {
+          display: grid;
+          gap: 8px;
+          margin-bottom: 12px;
+          padding: 10px;
+          border: 1px solid rgba(30, 41, 59, 0.12);
+          border-radius: 14px;
+          background: rgba(255, 255, 255, 0.78);
+        }
+
+        .portfolio-chatbot-key-label {
+          font-family: var(--admin-font-body, system-ui, sans-serif);
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          color: var(--chatbot-primary-dark);
+        }
+
+        .portfolio-chatbot-key-input-row {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto;
+          gap: 8px;
+          align-items: center;
+        }
+
+        .portfolio-chatbot-key-input {
+          min-height: 40px;
+          border-radius: 12px;
+          font-family: var(--admin-font-body, system-ui, sans-serif);
+          font-size: 13px;
+        }
+
+        .portfolio-chatbot-key-remember {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          min-height: 40px;
+          margin: 0;
+          padding: 0 10px;
+          border-radius: 12px;
+          border: 1px solid rgba(30, 41, 59, 0.14);
+          background: #ffffff;
+          color: #334155;
+          font-family: var(--admin-font-body, system-ui, sans-serif);
+          font-size: 12px;
+          font-weight: 700;
+          white-space: nowrap;
+        }
+
         .portfolio-chatbot-prompt-dock__label {
           font-size: 11px;
           font-weight: 700;
@@ -1165,11 +1310,27 @@ What would you like to do?
             transform: translateX(-50%);
           }
 
+          .portfolio-chatbot-widget-wrap--embedded {
+            left: auto !important;
+            right: auto !important;
+            width: 100%;
+            max-width: 100%;
+            transform: none;
+          }
+
           .portfolio-chatbot-card {
             width: calc(100vw - 16px);
             max-width: calc(100vw - 16px);
             height: min(620px, calc(100dvh - 96px));
             border-radius: 20px;
+          }
+
+          .portfolio-chatbot-widget-wrap--embedded .portfolio-chatbot-card {
+            width: 100%;
+            max-width: 100%;
+            height: min(700px, calc(100dvh - 32px));
+            min-height: 580px;
+            border-radius: 8px;
           }
 
           .portfolio-chatbot-header {

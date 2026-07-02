@@ -28,6 +28,7 @@ export default function JeconiahJirehPage() {
               displayMode="embedded"
               statusLabel="General assistant"
               showUsageLimit={false}
+              showSuggestedPrompt={false}
               initialOpen
               dailyMessageLimit={80}
               usageStorageKey="jeconiahjireh_chatbot_daily_usage_v1"

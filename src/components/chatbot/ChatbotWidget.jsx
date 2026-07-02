@@ -29,6 +29,7 @@ Always refer to Joan as "Joan", "she", or "her" instead of "I", "me", or "my".
   buttonLabel = 'Send Message',
   statusLabel = 'Client and recruiter assistant',
   showUsageLimit = true,
+  showSuggestedPrompt = true,
   allowBringYourOwnKey = false,
   apiKeyStorageKey = 'portfolio_chatbot_ollama_api_key_v1',
   apiKeyLabel = 'Ollama API key',
@@ -758,19 +759,21 @@ What would you like to do?
                 </div>
               )}
 
-              <div className="portfolio-chatbot-prompt-dock">
-                <span className="portfolio-chatbot-prompt-dock__label">
-                  Suggested to ask
-                </span>
-                <button
-                  type="button"
-                  className="portfolio-chatbot-chip portfolio-chatbot-chip--soft portfolio-chatbot-chip--single"
-                  onClick={() => applyQuickPrompt(suggestedPrompt)}
-                  disabled={loading || limitReached}
-                >
-                  {suggestedPrompt}
-                </button>
-              </div>
+              {showSuggestedPrompt && (
+                <div className="portfolio-chatbot-prompt-dock">
+                  <span className="portfolio-chatbot-prompt-dock__label">
+                    Suggested to ask
+                  </span>
+                  <button
+                    type="button"
+                    className="portfolio-chatbot-chip portfolio-chatbot-chip--soft portfolio-chatbot-chip--single"
+                    onClick={() => applyQuickPrompt(suggestedPrompt)}
+                    disabled={loading || limitReached}
+                  >
+                    {suggestedPrompt}
+                  </button>
+                </div>
+              )}
 
               <div className="portfolio-chatbot-input-shell">
                 <textarea

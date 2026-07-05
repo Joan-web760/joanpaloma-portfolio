@@ -38,12 +38,12 @@ Always refer to Joan as "Joan", "she", or "her" instead of "I", "me", or "my".
   usageStorageKey = 'portfolio_chatbot_daily_usage_v3',
   conversationStorageKey = 'portfolio_chatbot_conversation_v3',
   openStorageKey = 'portfolio_chatbot_open_v3',
-  proactiveGreetingStorageKey = 'portfolio_chatbot_proactive_greeting_seen_v1',
   proactiveGreetingDelay = 1400,
   proactiveGreetingMessage = "Hi! Need a quick reason to hire Joan or see which services fit your needs?",
   proactiveFollowUpDelay = 1800,
   proactiveFollowUpMessage = "Would you like me to summarize Joan's services, skills, pricing, or how to contact her?",
   proactiveBubbleSequence = null,
+  proactiveBubbleRotationDelay = 6500,
   welcomeMessage = `Hi! This is Joan Paloma's portfolio assistant.
 
 Joan helps clients with virtual assistant support, admin work, organization, and business operations.
@@ -149,13 +149,6 @@ What would you like to do?
     return window.innerWidth >= DESKTOP_BREAKPOINT ? initialOpen : false
   }, [initialOpen, isEmbedded])
 
-  const addVisibleProactiveBubble = useCallback((nextBubble) => {
-    setVisibleProactiveBubbles((prev) => {
-      if (prev.some((bubble) => bubble.id === nextBubble.id)) return prev
-      return [...prev, nextBubble].slice(-3)
-    })
-  }, [])
-
   useEffect(() => {
     try {
       const savedConversation = localStorage.getItem(conversationStorageKey)
@@ -234,53 +227,45 @@ What would you like to do?
   }, [open, isEmbedded])
 
   useEffect(() => {
-    if (!isOpenReady || proactiveSequence.length === 0 || messages.length === 0) {
+    if (
+      !isOpenReady ||
+      isEmbedded ||
+      open ||
+      proactiveSequence.length === 0 ||
+      messages.length === 0
+    ) {
       return undefined
     }
 
-    let alreadySeen = false
+    let nextIndex = 0
+    let intervalId = null
+    const rotationDelay = Math.max(Number(proactiveBubbleRotationDelay) || 0, 3000)
 
-    try {
-      alreadySeen = sessionStorage.getItem(proactiveGreetingStorageKey) === 'true'
-    } catch { }
+    const showNextBubble = () => {
+      if (openRef.current) return
 
-    if (alreadySeen) return undefined
+      const bubble = proactiveSequence[nextIndex % proactiveSequence.length]
+      nextIndex += 1
+      setVisibleProactiveBubbles([bubble])
+    }
 
-    try {
-      sessionStorage.setItem(proactiveGreetingStorageKey, 'true')
-    } catch { }
+    const firstDelay = Math.max(Number(proactiveSequence[0]?.delay) || 0, 0)
+    const firstTimer = window.setTimeout(() => {
+      showNextBubble()
+      intervalId = window.setInterval(showNextBubble, rotationDelay)
+    }, firstDelay)
 
-    let elapsed = 0
-    const timers = proactiveSequence.map((bubble) => {
-      elapsed += bubble.delay
-      return window.setTimeout(() => {
-        setMessages((prev) => {
-          const messageId = `proactive-${bubble.id}`
-          if (prev.some((msg) => msg.id === messageId)) return prev
-
-          return [
-            ...prev,
-            {
-              id: messageId,
-              role: 'assistant',
-              content: bubble.content,
-            },
-          ].slice(-MAX_STORED_MESSAGES)
-        })
-
-        if (!openRef.current) {
-          addVisibleProactiveBubble(bubble)
-        }
-      }, elapsed)
-    })
-
-    return () => timers.forEach((timer) => window.clearTimeout(timer))
+    return () => {
+      window.clearTimeout(firstTimer)
+      if (intervalId) window.clearInterval(intervalId)
+    }
   }, [
     isOpenReady,
+    isEmbedded,
+    open,
     messages.length,
-    proactiveGreetingStorageKey,
     proactiveSequence,
-    addVisibleProactiveBubble,
+    proactiveBubbleRotationDelay,
   ])
 
   useEffect(() => {

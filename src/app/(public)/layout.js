@@ -39,6 +39,51 @@ export default async function PublicLayout({ children }) {
       <PublicFooter site={site} contact={contact} />
       <PublicChatbotGate
         projectName="Joan Paloma Portfolio"
+        proactiveBubbleRotationDelay={6200}
+        proactiveBubbleSequence={[
+          {
+            id: "hello",
+            eyebrow: "Hi!",
+            content: "Welcome! Looking for reliable virtual assistant support for admin, inbox, or daily operations?",
+            delay: 1200,
+          },
+          {
+            id: "visitor-type",
+            eyebrow: "Quick question",
+            content: "Are you a client, recruiter, business owner, or someone looking for organized remote support?",
+            delay: 2600,
+          },
+          {
+            id: "services",
+            eyebrow: "Services",
+            content: "I can explain Joan's services, from admin support and data entry to scheduling and customer support.",
+            delay: 3000,
+          },
+          {
+            id: "skills",
+            eyebrow: "Skills",
+            content: "Need to check Joan's strengths? I can summarize her tools, communication skills, and work style.",
+            delay: 3000,
+          },
+          {
+            id: "pricing",
+            eyebrow: "Pricing",
+            content: "Want to know which service package fits your needs? I can help compare Joan's pricing options.",
+            delay: 3000,
+          },
+          {
+            id: "availability",
+            eyebrow: "Availability",
+            content: "Ask me about Joan's availability, contact details, or the best way to start working with her.",
+            delay: 3000,
+          },
+          {
+            id: "portfolio-guide",
+            eyebrow: "Portfolio guide",
+            content: "Not sure where to start? I can guide you through Joan's experience, services, portfolio, and contact info.",
+            delay: 3000,
+          },
+        ]}
         contextConfig={[
           { name: "site_settings", limit: 1 },
           { name: "section_home", limit: 1 },

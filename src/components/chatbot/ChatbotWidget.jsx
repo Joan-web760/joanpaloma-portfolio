@@ -87,6 +87,7 @@ What would you like to do?
   const [suggestedPromptIndex, setSuggestedPromptIndex] = useState(0)
   const [visibleProactiveBubbles, setVisibleProactiveBubbles] = useState([])
 
+  const messagesBodyRef = useRef(null)
   const messagesEndRef = useRef(null)
   const textareaRef = useRef(null)
   const openRef = useRef(false)
@@ -317,7 +318,14 @@ What would you like to do?
 
   useEffect(() => {
     if (!isEmbedded && !open) return
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+
+    const messagesBody = messagesBodyRef.current
+    if (!messagesBody) return
+
+    messagesBody.scrollTo({
+      top: messagesBody.scrollHeight,
+      behavior: 'smooth',
+    })
   }, [messages, loading, open, isEmbedded])
 
   useEffect(() => {
@@ -617,7 +625,7 @@ What would you like to do?
               )}
             </div>
 
-            <div className="portfolio-chatbot-body">
+            <div ref={messagesBodyRef} className="portfolio-chatbot-body">
               {messages.map((msg) => {
                 const isUser = msg.role === 'user'
                 const isEmptyAssistantPlaceholder =

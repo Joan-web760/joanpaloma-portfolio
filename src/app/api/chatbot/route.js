@@ -155,6 +155,16 @@ const SAFE_CONTEXT_SOURCES = {
       { column: 'is_published', value: true },
     ],
   },
+  jeconiahjireh_page: {
+    label: 'Jeconiah Jireh Private Page',
+    columns:
+      'id, title, description, kicker, heading, intro, chatbot_title, chatbot_subtitle, status_label, welcome_message, quick_prompts, lead_prompts, system_prompt, is_published, updated_at',
+    defaultLimit: 1,
+    allowedOrderBy: ['updated_at', 'created_at', 'id'],
+    defaultOrderBy: 'updated_at',
+    defaultAscending: false,
+    filters: [{ column: 'is_published', value: true }],
+  },
 }
 
 function getClientIp(req) {

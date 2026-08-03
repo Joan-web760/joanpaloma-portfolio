@@ -625,7 +625,13 @@ What would you like to do?
               )}
             </div>
 
-            <div ref={messagesBodyRef} className="portfolio-chatbot-body">
+            <div
+              ref={messagesBodyRef}
+              className="portfolio-chatbot-body"
+              role="log"
+              aria-live="polite"
+              aria-label="Conversation with Joan Paloma's assistant"
+            >
               {messages.map((msg) => {
                 const isUser = msg.role === 'user'
                 const isEmptyAssistantPlaceholder =
@@ -643,7 +649,9 @@ What would you like to do?
                 return (
                   <div
                     key={msg.id || `${msg.role}-${msg.content}`}
-                    className={`d-flex mb-3 ${isUser ? 'justify-content-end' : 'justify-content-start'
+                    className={`portfolio-chatbot-message ${isUser
+                        ? 'portfolio-chatbot-message--user'
+                        : 'portfolio-chatbot-message--assistant'
                       }`}
                   >
                     <div
@@ -653,7 +661,7 @@ What would you like to do?
                         }`}
                     >
                       <div className="portfolio-chatbot-bubble__label">
-                        {isUser ? 'You' : 'Assistant'}
+                        {isUser ? 'You' : "Joan's assistant"}
                       </div>
 
                       {isUser ? (
@@ -693,10 +701,10 @@ What would you like to do?
               })}
 
               {loading && (
-                <div className="d-flex justify-content-start mb-2">
+                <div className="portfolio-chatbot-message portfolio-chatbot-message--assistant">
                   <div className="portfolio-chatbot-bubble portfolio-chatbot-bubble--assistant">
                     <div className="portfolio-chatbot-bubble__label">
-                      Assistant
+                      Joan&apos;s assistant
                     </div>
                     <div className="portfolio-chatbot-typing">
                       Preparing a response...
@@ -781,19 +789,16 @@ What would you like to do?
                   disabled={loading || limitReached}
                   maxLength={1200}
                 />
-              </div>
-
-              <div className="portfolio-chatbot-footer__bottom">
-                <div className="d-flex gap-2 portfolio-chatbot-footer__actions">
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={() => sendMessage()}
-                    disabled={!canSend}
-                  >
-                    {loading ? 'Sending...' : buttonLabel}
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  className="portfolio-chatbot-send"
+                  onClick={() => sendMessage()}
+                  disabled={!canSend}
+                  aria-label={loading ? 'Sending message' : buttonLabel}
+                >
+                  <span>{loading ? 'Sending' : 'Send'}</span>
+                  <i className="fa-solid fa-arrow-up" aria-hidden="true" />
+                </button>
               </div>
             </div>
           </div>
@@ -821,9 +826,10 @@ What would you like to do?
         }
 
         .portfolio-chatbot-card {
-          width: 448px;
+          width: 540px;
           max-width: calc(100vw - 24px);
-          height: min(680px, calc(100vh - 32px));
+          height: min(760px, calc(100dvh - 40px));
+          border: 1px solid rgba(30, 41, 59, 0.14) !important;
           border-radius: 18px;
           overflow: hidden;
           background:
@@ -836,6 +842,7 @@ What would you like to do?
           display: flex;
           flex-direction: column;
           backdrop-filter: blur(12px);
+          isolation: isolate;
         }
 
         .portfolio-chatbot-widget-wrap--embedded .portfolio-chatbot-card {
@@ -852,7 +859,7 @@ What would you like to do?
           align-items: flex-start;
           justify-content: space-between;
           gap: 12px;
-          padding: 18px 18px 14px;
+          padding: 16px 18px;
           color: #e9fff2;
           background: linear-gradient(
             135deg,
@@ -915,7 +922,7 @@ What would you like to do?
           align-items: center;
           justify-content: space-between;
           gap: 12px;
-          padding: 12px 18px;
+          padding: 10px 18px;
           font-size: 12px;
           border-bottom: 1px solid rgba(207, 233, 214, 0.9);
           background: rgba(246, 255, 249, 0.92);
@@ -1001,8 +1008,10 @@ What would you like to do?
           flex: 1;
           min-height: 0;
           overflow-y: auto;
-          padding: 18px;
-          margin-top: 8px;
+          padding: 20px 18px 24px;
+          overscroll-behavior: contain;
+          scrollbar-color: #cbd5e1 transparent;
+          scrollbar-width: thin;
           background: linear-gradient(
             180deg,
             rgba(251, 250, 247, 0.72) 0%,
@@ -1010,15 +1019,28 @@ What would you like to do?
           );
         }
 
+        .portfolio-chatbot-message {
+          display: flex;
+          width: 100%;
+          margin-bottom: 16px;
+        }
+
+        .portfolio-chatbot-message--user {
+          justify-content: flex-end;
+        }
+
+        .portfolio-chatbot-message--assistant {
+          justify-content: flex-start;
+        }
+
         .portfolio-chatbot-bubble {
-          max-width: 88%;
           min-width: 0;
-          padding: 12px 14px;
+          padding: 14px 16px;
           border-radius: 18px;
-          font-size: 14px;
-          line-height: 1.6;
+          font-size: 14.5px;
+          line-height: 1.65;
           overflow-wrap: anywhere;
-          box-shadow: 0 10px 28px rgba(15, 44, 30, 0.08);
+          word-break: normal;
         }
 
         .portfolio-chatbot-bubble__label {
@@ -1026,34 +1048,45 @@ What would you like to do?
           font-weight: 700;
           text-transform: uppercase;
           letter-spacing: 0.06em;
-          margin-bottom: 6px;
-          opacity: 0.72;
+          margin-bottom: 8px;
+          color: #64748b;
         }
 
         .portfolio-chatbot-bubble--assistant {
+          width: 100%;
+          max-width: 100%;
           background: #ffffff;
           border: 1px solid rgba(30, 41, 59, 0.14);
           color: var(--chatbot-ink);
           border-top-left-radius: 8px;
+          box-shadow: 0 8px 24px rgba(15, 23, 42, 0.055);
         }
 
         .portfolio-chatbot-bubble--user {
+          width: fit-content;
+          max-width: 84%;
           background: linear-gradient(135deg, var(--chatbot-primary-dark), var(--chatbot-primary));
           color: #ffffff;
           border-top-right-radius: 8px;
+          box-shadow: 0 8px 22px rgba(15, 98, 254, 0.2);
+        }
+
+        .portfolio-chatbot-bubble--user .portfolio-chatbot-bubble__label {
+          color: rgba(255, 255, 255, 0.76);
         }
 
         .portfolio-chatbot-footer {
-          padding: 14px 18px 18px;
+          padding: 12px 18px 16px;
           border-top: 1px solid rgba(207, 233, 214, 0.9);
           background: rgba(251, 250, 247, 0.96);
         }
 
         .portfolio-chatbot-prompt-dock {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-          margin-bottom: 12px;
+          display: grid;
+          grid-template-columns: auto minmax(0, 1fr);
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 10px;
         }
 
         .portfolio-chatbot-key-panel {
@@ -1117,38 +1150,63 @@ What would you like to do?
         .portfolio-chatbot-chip--single {
           width: 100%;
           min-height: 0;
-          padding: 10px 12px;
-          border-radius: 14px;
+          padding: 8px 11px;
+          border-radius: 12px;
+          overflow: hidden;
+          white-space: nowrap;
+          text-overflow: ellipsis;
         }
 
         .portfolio-chatbot-input-shell {
+          display: flex;
+          align-items: flex-end;
+          gap: 8px;
+          padding: 7px;
           border: 1px solid rgba(30, 41, 59, 0.14);
-          border-radius: 18px;
+          border-radius: 16px;
           background: #fff;
           box-shadow: inset 0 1px 2px rgba(15, 44, 30, 0.05);
         }
 
+        .portfolio-chatbot-input-shell:focus-within {
+          border-color: rgba(15, 98, 254, 0.62);
+          box-shadow: 0 0 0 3px rgba(15, 98, 254, 0.12);
+        }
+
         .portfolio-chatbot-textarea {
-          resize: vertical;
-          min-height: 112px;
+          resize: none;
+          min-height: 52px;
           max-height: ${MAX_TEXTAREA_HEIGHT}px;
-          border-radius: 18px;
-          padding: 14px 15px;
+          padding: 8px 9px;
           border: 0;
           box-shadow: none !important;
+          line-height: 1.45;
         }
 
-        .portfolio-chatbot-footer__bottom {
-          margin-top: 12px;
-          display: flex;
+        .portfolio-chatbot-send {
+          display: inline-flex;
           align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          flex-wrap: wrap;
+          justify-content: center;
+          gap: 7px;
+          min-width: 82px;
+          height: 42px;
+          padding: 0 13px;
+          border: 0;
+          border-radius: 11px;
+          color: #fff;
+          background: linear-gradient(135deg, var(--chatbot-primary-dark), var(--chatbot-primary));
+          font-size: 13px;
+          font-weight: 700;
+          transition: transform 0.2s ease, opacity 0.2s ease;
         }
 
-        .portfolio-chatbot-footer__actions {
-          flex-wrap: wrap;
+        .portfolio-chatbot-send:hover:not(:disabled) {
+          transform: translateY(-1px);
+        }
+
+        .portfolio-chatbot-send:disabled {
+          cursor: not-allowed;
+          opacity: 0.45;
         }
 
         .portfolio-chatbot-card .btn-primary {
@@ -1185,6 +1243,56 @@ What would you like to do?
 
         .portfolio-chatbot-markdown table {
           font-size: 13px;
+        }
+
+        .portfolio-chatbot-markdown > :first-child {
+          margin-top: 0;
+        }
+
+        .portfolio-chatbot-markdown p,
+        .portfolio-chatbot-markdown li {
+          max-width: 70ch;
+        }
+
+        .portfolio-chatbot-markdown ul,
+        .portfolio-chatbot-markdown ol {
+          padding-left: 1.25rem !important;
+        }
+
+        .portfolio-chatbot-markdown pre {
+          width: 100%;
+          max-width: 100%;
+          margin: 10px 0;
+          padding: 12px 14px !important;
+          overflow-x: hidden !important;
+          border: 1px solid #dbe3ee;
+          border-radius: 12px !important;
+          background: #f8fafc !important;
+          color: #1e293b !important;
+          font-family: inherit;
+          font-size: 13.5px !important;
+          line-height: 1.6;
+          white-space: pre-wrap !important;
+          word-break: break-word !important;
+          overflow-wrap: anywhere;
+        }
+
+        .portfolio-chatbot-markdown pre code {
+          display: inline;
+          padding: 0;
+          white-space: inherit !important;
+          word-break: inherit !important;
+          overflow-wrap: inherit;
+          color: inherit;
+          font: inherit;
+        }
+
+        .portfolio-chatbot-markdown :not(pre) > code {
+          padding: 0.12rem 0.32rem;
+          border-radius: 5px;
+          background: #eef2ff !important;
+          color: #3730a3;
+          font-size: 0.9em;
         }
 
         .portfolio-chatbot-launcher {
@@ -1317,7 +1425,7 @@ What would you like to do?
           .portfolio-chatbot-card {
             width: calc(100vw - 16px);
             max-width: calc(100vw - 16px);
-            height: min(620px, calc(100dvh - 96px));
+            height: min(680px, calc(100dvh - 24px));
             border-radius: 20px;
           }
 
@@ -1335,8 +1443,7 @@ What would you like to do?
 
           .portfolio-chatbot-meta {
             padding: 10px 14px;
-            flex-direction: column;
-            align-items: flex-start;
+            gap: 8px;
           }
 
           .portfolio-chatbot-body {
@@ -1348,22 +1455,23 @@ What would you like to do?
             padding: 12px 14px 14px;
           }
 
-          .portfolio-chatbot-textarea {
-            min-height: 88px;
+          .portfolio-chatbot-prompt-dock {
+            grid-template-columns: 1fr;
+            gap: 5px;
           }
 
-          .portfolio-chatbot-meta {
-            flex-direction: column;
-            align-items: flex-start;
+          .portfolio-chatbot-send {
+            min-width: 44px;
+            width: 44px;
+            padding: 0;
           }
 
-          .portfolio-chatbot-footer__bottom {
-            flex-direction: column;
-            align-items: stretch;
-          }
-
-          .portfolio-chatbot-footer__actions .btn {
-            flex: 1 1 auto;
+          .portfolio-chatbot-send span {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
           }
 
           .portfolio-chatbot-launcher {

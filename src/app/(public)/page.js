@@ -2,14 +2,7 @@ import Navbar from "@/components/Navbar";
 import { buildPageMetadata, getContactSettings, getSiteDefaults, getSiteSettings, getSiteUrl } from "@/lib/seo";
 
 import HomeSection from "@/components/sections/HomeSection";
-import ServicesSection from "@/components/sections/ServicesSection";
-import SkillsSection from "@/components/sections/SkillsSection";
-import PortfolioSection from "@/components/sections/PortfolioSection";
-import CertificationsSection from "@/components/sections/CertificationsSection";
-import BlogSection from "@/components/sections/BlogSection";
-import TestimonialsSection from "@/components/sections/TestimonialsSection";
-import PricingSection from "@/components/sections/PricingSection";
-import ContactSection from "@/components/sections/ContactSection";
+import HomepageSections from "@/components/sections/HomepageSections";
 
 export async function generateMetadata() {
   const site = await getSiteSettings();
@@ -53,14 +46,7 @@ export default async function Page() {
       <Navbar />
       <main className="pt-5 pt-lg-5">
         <HomeSection />
-        <PortfolioSection />
-        <CertificationsSection />
-        <ServicesSection />
-        <SkillsSection />
-        <BlogSection />
-        <TestimonialsSection />
-        <PricingSection />
-        <ContactSection />
+        <HomepageSections />
       </main>
     </>
   );

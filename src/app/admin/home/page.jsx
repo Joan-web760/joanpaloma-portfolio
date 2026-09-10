@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 import AdminStepper, { AdminStep } from "@/components/admin/AdminStepper";
+import { HOMEPAGE_SECTIONS, isHomepageSectionVisible } from "@/lib/homepage-sections";
 
 const DEFAULT_BADGES = ["Next.js", "Supabase", "Bootstrap", "React"];
 const MEDIA_BUCKET = "portfolio-media";
@@ -35,6 +36,7 @@ export default function AdminHomeEditorPage() {
   const [introVideoUrl, setIntroVideoUrl] = useState("");
   const [badgesText, setBadgesText] = useState("");
   const [isPublished, setIsPublished] = useState(false);
+  const [sectionVisibility, setSectionVisibility] = useState({});
 
   const [heroImagePath, setHeroImagePath] = useState(null);
   const [profileImagePath, setProfileImagePath] = useState(null);
@@ -120,6 +122,9 @@ export default function AdminHomeEditorPage() {
       setIntroVideoPath(r.intro_video_path || null);
 
       setIsPublished(!!r.is_published);
+      setSectionVisibility(
+        r.homepage_sections && typeof r.homepage_sections === "object" ? r.homepage_sections : {}
+      );
 
       setLoading(false);
     })();
@@ -128,6 +133,17 @@ export default function AdminHomeEditorPage() {
       alive = false;
     };
   }, [router]);
+
+  const toggleSection = (key) => {
+    setSectionVisibility((prev) => ({
+      ...prev,
+      [key]: !isHomepageSectionVisible(prev, key),
+    }));
+  };
+
+  const setAllSections = (visible) => {
+    setSectionVisibility(Object.fromEntries(HOMEPAGE_SECTIONS.map(({ key }) => [key, visible])));
+  };
 
   const parseBadges = () => {
     return (badgesText || "")
@@ -204,6 +220,7 @@ export default function AdminHomeEditorPage() {
         badges: parseBadges(),
         hero_image_path: heroImagePath,
         profile_image_path: profileImagePath,
+        homepage_sections: sectionVisibility,
         is_published: publishAfterSave ? true : isPublished,
         updated_at: new Date().toISOString(),
       };
@@ -219,6 +236,9 @@ export default function AdminHomeEditorPage() {
 
       setRow(data);
       setIsPublished(!!data.is_published);
+      setSectionVisibility(
+        data.homepage_sections && typeof data.homepage_sections === "object" ? data.homepage_sections : {}
+      );
       setNotice(publishAfterSave ? "Saved and published." : "Saved.");
     } catch (e) {
       setError(e.message || "Save failed.");
@@ -516,6 +536,61 @@ export default function AdminHomeEditorPage() {
                         <i className="fa-solid fa-eye me-2"></i>Preview #home
                       </button>
                     </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </AdminStep>
+
+          <AdminStep
+            title="Homepage Sections"
+            description="Choose which sections appear on the homepage below the hero."
+          >
+            <div className="row g-3">
+              <div className="col-12 col-lg-8">
+                <div className="card border-0 shadow-sm">
+                  <div className="card-body">
+                    <div className="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
+                      <h2 className="h6 mb-0">Section visibility</h2>
+                      <div className="d-flex gap-2">
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-outline-secondary"
+                          onClick={() => setAllSections(true)}
+                        >
+                          Show all
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-outline-secondary"
+                          onClick={() => setAllSections(false)}
+                        >
+                          Hide all
+                        </button>
+                      </div>
+                    </div>
+
+                    <p className="form-text mt-0">
+                      The hero always shows. Turning a section off here removes it from the homepage even if that
+                      section is published. Links to a hidden section elsewhere on the site are unaffected.
+                    </p>
+
+                    {HOMEPAGE_SECTIONS.map(({ key, label }) => (
+                      <div className="form-check mb-2" key={key}>
+                        <input
+                          className="form-check-input"
+                          type="checkbox"
+                          checked={isHomepageSectionVisible(sectionVisibility, key)}
+                          onChange={() => toggleSection(key)}
+                          id={`section-visible-${key}`}
+                        />
+                        <label className="form-check-label" htmlFor={`section-visible-${key}`}>
+                          Show {label} section
+                        </label>
+                      </div>
+                    ))}
+
+                    <div className="form-text mt-2">Click Save (or Save &amp; Publish) to apply changes.</div>
                   </div>
                 </div>
               </div>

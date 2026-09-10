@@ -1,63 +1,35 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { ADMIN_NAV_SECTIONS } from "@/components/admin/AdminNav";
-
-function isActivePath(pathname, href) {
-  if (!pathname) return false;
-  if (href === "/admin") return pathname === href;
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
+import { useRef, useState } from "react";
+import AdminNav from "@/components/admin/AdminNav";
 
 export default function AdminTopNav() {
-  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+  const toggleRef = useRef(null);
+
+  function closeMenu() {
+    setOpen(false);
+    toggleRef.current?.focus();
+  }
 
   return (
-    <nav className="admin-topnav" aria-label="Admin navigation">
-      <div className="admin-topnav-bar">
-        <div className="admin-topnav-brand">
-          <span className="admin-topnav-brand-title">Admin Studio</span>
-          <span className="admin-topnav-brand-sub">Content &amp; Portfolio</span>
-        </div>
-        <div className="admin-topnav-actions">
-          <button
-            type="button"
-            className="btn btn-outline-secondary btn-sm admin-topnav-toggle"
-            data-bs-toggle="collapse"
-            data-bs-target="#adminTopNavPanel"
-            aria-controls="adminTopNavPanel"
-            aria-expanded="false"
-            aria-label="Toggle admin navigation"
-          >
-            <i className="fa-solid fa-bars"></i>
-          </button>
-        </div>
+    <div className="admin-mobile-nav" onKeyDown={(event) => {
+      if (event.key === "Escape" && open) {
+        event.preventDefault();
+        closeMenu();
+      }
+    }}>
+      <div className="admin-mobile-bar">
+        <span className="admin-mobile-brand"><span className="admin-brand-mark" aria-hidden="true">JP</span>My portfolio</span>
+        <button ref={toggleRef} type="button" className="btn btn-outline-secondary" onClick={() => setOpen(!open)}
+          aria-controls="admin-mobile-menu" aria-expanded={open}>
+          <i className={`fa-solid ${open ? "fa-xmark" : "fa-bars"} me-2`} aria-hidden="true" />
+          {open ? "Close menu" : "Menu"}
+        </button>
       </div>
-
-      <div id="adminTopNavPanel" className="collapse admin-topnav-panel admin-topnav-panel--responsive">
-        {ADMIN_NAV_SECTIONS.map((section) => (
-          <div key={section.title} className="admin-topnav-group">
-            <div className="admin-topnav-title">{section.title}</div>
-            <ul className="admin-topnav-links">
-              {section.items.map((item) => {
-                const active = isActivePath(pathname, item.href);
-                return (
-                  <li key={item.href}>
-                    <Link href={item.href} className={`admin-topnav-link${active ? " active" : ""}`}>
-                      <i className={`fa-solid ${item.icon}`} aria-hidden="true"></i>
-                      <span>
-                        <span>{item.label}</span>
-                        {item.hint ? <small>{item.hint}</small> : null}
-                      </span>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ))}
+      <div id="admin-mobile-menu" hidden={!open}>
+        {open && <AdminNav showHeader={false} onSelect={closeMenu} />}
       </div>
-    </nav>
+    </div>
   );
 }

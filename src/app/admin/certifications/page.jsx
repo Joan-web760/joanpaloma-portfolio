@@ -448,7 +448,7 @@ export default function AdminCertificationsPage() {
           </div>
         ) : null}
 
-        <AdminStepper>
+        <AdminStepper initialStep={1}>
           <AdminStep title="Add Certification" description="Create a new certificate entry.">
             {/* Add Form */}
         <div className="card border-0 shadow-sm mb-3">

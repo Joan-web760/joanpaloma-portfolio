@@ -492,7 +492,7 @@ export default function AdminTestimonialsPage() {
           </div>
         ) : null}
 
-        <AdminStepper>
+        <AdminStepper initialStep={1}>
           <AdminStep title="Add Testimonial" description="Create a new testimonial entry.">
             {/* Add */}
         <div className="card border-0 shadow-sm mb-3">

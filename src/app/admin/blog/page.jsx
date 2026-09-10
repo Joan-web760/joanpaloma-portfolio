@@ -336,7 +336,7 @@ Keep the content useful for clients who may need virtual assistant, admin, opera
           </div>
         ) : null}
 
-        <AdminStepper>
+        <AdminStepper initialStep={1}>
           <AdminStep title="Create Post" description="Draft a new blog entry.">
             {/* Create */}
         <div className="card border-0 shadow-sm mb-3">

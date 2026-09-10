@@ -445,7 +445,7 @@ export default function AdminSkillsPage() {
           </div>
         ) : null}
 
-        <AdminStepper>
+        <AdminStepper initialStep={1}>
           <AdminStep title="Add Skill" description="Create a new skill entry.">
             {/* Add Skill */}
         <div className="card border-0 shadow-sm mb-3">

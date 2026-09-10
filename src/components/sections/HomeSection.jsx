@@ -4,6 +4,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase-browser";
 import SectionBackground from "@/components/SectionBackground";
+import {
+  clampProfileImageScale,
+  heroMediaColClass,
+  heroTextColClass,
+  PROFILE_IMAGE_SCALE_DEFAULT,
+} from "@/lib/home-hero";
 
 const MEDIA_BUCKET = "portfolio-media";
 
@@ -103,7 +109,15 @@ export default function HomeSection() {
 
   const badges = Array.isArray(homeRow.badges) ? homeRow.badges : [];
   const hasFileVideo = !!introVideoFileUrl;
-  const hasEmbedVideo = !!introVideoEmbedUrl;
+  const hasPlayableEmbed = !!introVideoEmbedUrl && isEmbedUrl(introVideoEmbedUrl);
+  const hasVideo = hasFileVideo || hasPlayableEmbed;
+  const hasMedia = !!profileUrl || hasVideo;
+
+  const profileImageScale = clampProfileImageScale(
+    homeRow.profile_image_scale ?? PROFILE_IMAGE_SCALE_DEFAULT
+  );
+  const textColClass = hasMedia ? heroTextColClass(homeRow.hero_content_width) : "col-lg-12";
+  const mediaColClass = heroMediaColClass(homeRow.hero_content_width);
 
   const titleId = "home-hero-title";
   const subtitleId = "home-hero-subtitle";
@@ -118,7 +132,7 @@ export default function HomeSection() {
     >
       <div className="container">
         <div className="row align-items-center g-4">
-          <div className="col-12 col-lg-7" data-aos="fade-up">
+          <div className={`col-12 ${textColClass}`} data-aos="fade-up">
             <header className="p-4 rounded bg-white bg-opacity-75 border">
               <h1 id={titleId} className="display-6 fw-bold mb-2">
                 {homeRow.headline}
@@ -148,32 +162,33 @@ export default function HomeSection() {
             </header>
           </div>
 
-          <div className="col-12 col-lg-5" data-aos="fade-up" data-aos-delay="120">
-            <div className="card border-0 shadow-sm">
-              <div className="card-body">
-                {profileUrl ? (
-                  <img
-                    src={profileUrl}
-                    alt="Profile portrait"
-                    className="img-fluid rounded mb-3"
-                    loading="eager"
-                    decoding="async"
-                    fetchPriority="high"
-                  />
-                ) : null}
-
-                {hasFileVideo ? (
-                  <div className="ratio ratio-16x9">
-                    <video
-                      src={introVideoFileUrl}
-                      className="w-100 h-100 rounded"
-                      controls
-                      playsInline
-                      preload="metadata"
+          {hasMedia ? (
+            <div className={`col-12 ${mediaColClass}`} data-aos="fade-up" data-aos-delay="120">
+              <div className="card border-0 shadow-sm">
+                <div className="card-body">
+                  {profileUrl ? (
+                    <img
+                      src={profileUrl}
+                      alt="Profile portrait"
+                      className="img-fluid rounded mb-3 d-block mx-auto"
+                      style={{ width: `${profileImageScale}%` }}
+                      loading="eager"
+                      decoding="async"
+                      fetchPriority="high"
                     />
-                  </div>
-                ) : hasEmbedVideo ? (
-                  isEmbedUrl(introVideoEmbedUrl) ? (
+                  ) : null}
+
+                  {hasFileVideo ? (
+                    <div className="ratio ratio-16x9">
+                      <video
+                        src={introVideoFileUrl}
+                        className="w-100 h-100 rounded"
+                        controls
+                        playsInline
+                        preload="metadata"
+                      />
+                    </div>
+                  ) : hasPlayableEmbed ? (
                     <div className="ratio ratio-16x9">
                       <iframe
                         src={introVideoEmbedUrl}
@@ -182,19 +197,11 @@ export default function HomeSection() {
                         allowFullScreen
                       />
                     </div>
-                  ) : (
-                    <div className="text-muted small">
-                      Intro video URL doesn’t look like an embed URL.
-                    </div>
-                  )
-                ) : (
-                  <div className="text-muted small">
-                    No intro video configured.
-                  </div>
-                )}
+                  ) : null}
+                </div>
               </div>
             </div>
-          </div>
+          ) : null}
         </div>
       </div>
     </SectionBackground>

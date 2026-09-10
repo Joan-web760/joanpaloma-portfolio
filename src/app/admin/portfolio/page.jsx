@@ -711,7 +711,7 @@ export default function AdminPortfolioPage() {
           </div>
         ) : null}
 
-        <AdminStepper>
+        <AdminStepper initialStep={1}>
           <AdminStep title="Add Portfolio Item" description="Create a new project entry.">
             {/* Add Item */}
         <div className="card border-0 shadow-sm mb-3">

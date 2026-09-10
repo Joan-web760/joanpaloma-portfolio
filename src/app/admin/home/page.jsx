@@ -5,6 +5,14 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 import AdminStepper, { AdminStep } from "@/components/admin/AdminStepper";
 import { HOMEPAGE_SECTIONS, isHomepageSectionVisible } from "@/lib/homepage-sections";
+import {
+  clampProfileImageScale,
+  HERO_CONTENT_WIDTHS,
+  normalizeHeroContentWidth,
+  PROFILE_IMAGE_SCALE_DEFAULT,
+  PROFILE_IMAGE_SCALE_MAX,
+  PROFILE_IMAGE_SCALE_MIN,
+} from "@/lib/home-hero";
 
 const DEFAULT_BADGES = ["Next.js", "Supabase", "Bootstrap", "React"];
 const MEDIA_BUCKET = "portfolio-media";
@@ -37,6 +45,8 @@ export default function AdminHomeEditorPage() {
   const [badgesText, setBadgesText] = useState("");
   const [isPublished, setIsPublished] = useState(false);
   const [sectionVisibility, setSectionVisibility] = useState({});
+  const [profileImageScale, setProfileImageScale] = useState(PROFILE_IMAGE_SCALE_DEFAULT);
+  const [heroContentWidth, setHeroContentWidth] = useState("md");
 
   const [heroImagePath, setHeroImagePath] = useState(null);
   const [profileImagePath, setProfileImagePath] = useState(null);
@@ -125,6 +135,10 @@ export default function AdminHomeEditorPage() {
       setSectionVisibility(
         r.homepage_sections && typeof r.homepage_sections === "object" ? r.homepage_sections : {}
       );
+      setProfileImageScale(
+        clampProfileImageScale(r.profile_image_scale ?? PROFILE_IMAGE_SCALE_DEFAULT)
+      );
+      setHeroContentWidth(normalizeHeroContentWidth(r.hero_content_width));
 
       setLoading(false);
     })();
@@ -221,6 +235,8 @@ export default function AdminHomeEditorPage() {
         hero_image_path: heroImagePath,
         profile_image_path: profileImagePath,
         homepage_sections: sectionVisibility,
+        profile_image_scale: clampProfileImageScale(profileImageScale),
+        hero_content_width: normalizeHeroContentWidth(heroContentWidth),
         is_published: publishAfterSave ? true : isPublished,
         updated_at: new Date().toISOString(),
       };
@@ -239,6 +255,10 @@ export default function AdminHomeEditorPage() {
       setSectionVisibility(
         data.homepage_sections && typeof data.homepage_sections === "object" ? data.homepage_sections : {}
       );
+      setProfileImageScale(
+        clampProfileImageScale(data.profile_image_scale ?? PROFILE_IMAGE_SCALE_DEFAULT)
+      );
+      setHeroContentWidth(normalizeHeroContentWidth(data.hero_content_width));
       setNotice(publishAfterSave ? "Saved and published." : "Saved.");
     } catch (e) {
       setError(e.message || "Save failed.");
@@ -497,6 +517,28 @@ export default function AdminHomeEditorPage() {
                     </div>
 
                     <div className="mt-3">
+                      <label className="form-label" htmlFor="heroContentWidth">
+                        Content width
+                      </label>
+                      <select
+                        id="heroContentWidth"
+                        className="form-select"
+                        value={heroContentWidth}
+                        onChange={(e) => setHeroContentWidth(e.target.value)}
+                      >
+                        {HERO_CONTENT_WIDTHS.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="form-text">
+                        How wide the headline, subheadline, and buttons block is on desktop. Larger leaves less room
+                        for the profile image / video beside it.
+                      </div>
+                    </div>
+
+                    <div className="mt-3">
                       <label className="form-label">Intro Video URL (optional)</label>
                       <input
                         className="form-control"
@@ -626,12 +668,37 @@ export default function AdminHomeEditorPage() {
                       <div className="form-text">Choose a clear headshot or brand photo (square works best).</div>
                       {profileUrl ? (
                         <div className="mt-2">
-                          <img src={profileUrl} alt="Profile" className="img-fluid rounded border" />
+                          <img
+                            src={profileUrl}
+                            alt="Profile"
+                            className="img-fluid rounded border d-block mx-auto"
+                            style={{ width: `${profileImageScale}%` }}
+                          />
                           <div className="small text-muted mt-1">Profile image ready. Click Save to apply.</div>
                         </div>
                       ) : (
                         <div className="small text-muted mt-2">No profile image yet. Upload a square or portrait photo.</div>
                       )}
+
+                      <div className="mt-3">
+                        <label className="form-label d-flex justify-content-between" htmlFor="profileImageScale">
+                          <span>Profile image size</span>
+                          <span className="text-muted">{profileImageScale}%</span>
+                        </label>
+                        <input
+                          id="profileImageScale"
+                          type="range"
+                          className="form-range"
+                          min={PROFILE_IMAGE_SCALE_MIN}
+                          max={PROFILE_IMAGE_SCALE_MAX}
+                          step={5}
+                          value={profileImageScale}
+                          onChange={(e) => setProfileImageScale(clampProfileImageScale(e.target.value))}
+                        />
+                        <div className="form-text">
+                          Width of the profile image relative to its card on the homepage. Click Save to apply.
+                        </div>
+                      </div>
                     </div>
 
                     <hr />

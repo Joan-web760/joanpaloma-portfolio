@@ -531,7 +531,7 @@ The package should fit Joan Paloma's virtual assistant, admin support, operation
           </div>
         ) : null}
 
-        <AdminStepper>
+        <AdminStepper initialStep={1}>
           <AdminStep title="Add Package" description="Create a new pricing tier.">
             {/* Add */}
         <div className="card border-0 shadow-sm mb-3">

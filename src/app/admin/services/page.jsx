@@ -1,4 +1,4 @@
-﻿// src/app/admin/services/page.jsx
+// src/app/admin/services/page.jsx
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -476,7 +476,7 @@ export default function AdminServicesPage() {
           </div>
         ) : null}
 
-        <AdminStepper>
+        <AdminStepper initialStep={1}>
           <AdminStep title="Add Service" description="Create a new service item.">
             <div className="card border-0 shadow-sm mb-3">
               <div className="card-body">

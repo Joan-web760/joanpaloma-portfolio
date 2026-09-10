@@ -586,7 +586,7 @@ export default function AdminExperiencePage() {
           </div>
         ) : null}
 
-        <AdminStepper>
+        <AdminStepper initialStep={1}>
           <AdminStep title="Add Experience" description="Create a new timeline entry.">
             {/* Add Form */}
         <div className="card border-0 shadow-sm mb-3">

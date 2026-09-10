@@ -8,8 +8,8 @@ export default function AdminFooter() {
   return (
     <footer className="admin-panel-footer">
       <div className="admin-panel-footer-copy">
-        <span>Admin Studio</span>
-        <span>{year} content management workspace.</span>
+        <span>My portfolio</span>
+        <span>{year} Website manager.</span>
       </div>
 
       <div className="admin-panel-footer-links">

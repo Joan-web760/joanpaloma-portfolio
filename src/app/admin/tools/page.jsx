@@ -519,7 +519,7 @@ export default function AdminToolsPage() {
           </div>
         ) : null}
 
-        <AdminStepper>
+        <AdminStepper initialStep={1}>
           <AdminStep title="Add Tool" description="Create a new tool entry.">
             <div className="card border-0 shadow-sm mb-3">
               <div className="card-body">

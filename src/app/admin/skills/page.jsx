@@ -4,13 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 import AdminActionModal, { useAdminActionModal } from "@/components/admin/AdminActionModal";
-import AdminStepper, { AdminStep } from "@/components/admin/AdminStepper";
-
-/**
- * Updates:
- * - Fix type editing: lock grouping via __group so inputs don't remount while typing
- * - Level UI: replace number input with adjustable progress bar (range slider + % badge)
- */
+import AdminPageShell from "@/components/admin/AdminPageShell";
+import AdminSection from "@/components/admin/AdminSection";
 
 const TYPE_EXAMPLES = ["Frontend", "Backend", "Database", "DevOps", "Tools", "Soft Skills", "Mobile", "Cloud"];
 
@@ -389,70 +384,36 @@ export default function AdminSkillsPage() {
     }
   };
 
-  const openPreview = () => window.open("/#skills", "_blank");
-
   if (loading) {
     return (
-      <div className="container py-5">
-        <div className="d-flex align-items-center gap-2 text-muted">
-          <span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
-          Loading Skills editor...
-        </div>
+      <div className="d-flex align-items-center gap-2 text-muted py-4">
+        <span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
+        Loading the Skills editor…
       </div>
     );
   }
 
   return (
-    <div className="bg-light min-vh-100">
-      <div className="container py-4">
-        <div className="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
-          <div>
-            <h1 className="h5 mb-1">Skills</h1>
-            <div className="small text-muted">Group, level, and publish the skills you want to highlight.</div>
-          </div>
-
-          <div className="d-flex flex-wrap gap-2 align-items-center">
-            <button className="btn btn-success" onClick={saveChanges} disabled={busy || dirtyCount === 0}>
-              <i className="fa-solid fa-floppy-disk me-2"></i>
-              {busy ? "Saving..." : `Save${dirtyCount ? ` (${dirtyCount})` : ""}`}
-            </button>
-
-            <button className="btn btn-outline-secondary" onClick={discardChanges} disabled={busy || dirtyCount === 0}>
-              <i className="fa-solid fa-rotate-left me-2"></i>Discard
-            </button>
-
-            <button className="btn btn-outline-dark" onClick={openPreview}>
-              <i className="fa-solid fa-eye me-2"></i>Preview
-            </button>
-
-            <button className="btn btn-outline-primary" onClick={() => router.push("/admin")}>
-              <i className="fa-solid fa-arrow-left me-2"></i>Dashboard
-            </button>
-          </div>
-        </div>
-
-        {error ? (
-          <div className="alert alert-danger py-2">
-            <i className="fa-solid fa-triangle-exclamation me-2"></i>
-            {error}
-          </div>
-        ) : null}
-
-        {notice ? (
-          <div className="alert alert-success py-2">
-            <i className="fa-solid fa-circle-check me-2"></i>
-            {notice}
-          </div>
-        ) : null}
-
-        <AdminStepper initialStep={1}>
-          <AdminStep title="Add Skill" description="Create a new skill entry.">
-            {/* Add Skill */}
-        <div className="card border-0 shadow-sm mb-3">
-          <div className="card-body">
-            <h2 className="h6 mb-3">Add Skill</h2>
-
-            <div className="row g-2 align-items-end">
+    <AdminPageShell
+      preview="/#skills"
+      dirty={dirtyCount > 0}
+      saving={busy}
+      onSave={saveChanges}
+      error={error}
+      notice={notice}
+      extraActions={
+        <button
+          className="btn btn-outline-secondary"
+          onClick={discardChanges}
+          disabled={busy || dirtyCount === 0}
+          type="button"
+        >
+          <i className="fa-solid fa-rotate-left me-2"></i>Discard
+        </button>
+      }
+    >
+      <AdminSection title="Add a skill" description="Create a new skill entry.">
+            <div className="row g-3 align-items-end">
               <div className="col-12 col-md-4">
                 <label className="form-label">Name</label>
                 <input
@@ -510,40 +471,31 @@ export default function AdminSkillsPage() {
                 <div className="form-text">Set a confidence level. 0 = beginner, 100 = expert.</div>
               </div>
 
-              <div className="col-6 col-md-1">
-                <div className="form-check mt-4">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    checked={!!newSkill.is_published}
-                    onChange={(e) => setNewSkill((p) => ({ ...p, is_published: e.target.checked }))}
-                    disabled={busy}
-                    id="newSkillPub"
-                  />
-                  <label className="form-check-label" htmlFor="newSkillPub">
-                    Publish
-                  </label>
-                  <div className="form-text">Show this skill on your site.</div>
-                </div>
-              </div>
-
-              <div className="col-6 col-md-1 d-grid">
-                <button className="btn btn-primary" onClick={createSkill} disabled={busy}>
-                  <i className="fa-solid fa-plus me-2"></i>Add
-                </button>
-              </div>
             </div>
-          </div>
-        </div>
 
-          </AdminStep>
+            <div className="d-flex flex-wrap gap-3 align-items-center justify-content-between mt-3">
+              <div className="form-check form-switch mb-0">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  role="switch"
+                  checked={!!newSkill.is_published}
+                  onChange={(e) => setNewSkill((p) => ({ ...p, is_published: e.target.checked }))}
+                  disabled={busy}
+                  id="newSkillPub"
+                />
+                <label className="form-check-label" htmlFor="newSkillPub">
+                  Show on website
+                </label>
+              </div>
 
-          <AdminStep title="Manage Skills" description="Edit, reorder, and publish skills.">
-            {/* List by derived type */}
-        <div className="card border-0 shadow-sm">
-          <div className="card-body">
-            <h2 className="h6 mb-3">Skills Catalog</h2>
+              <button className="btn btn-primary" onClick={createSkill} disabled={busy}>
+                <i className="fa-solid fa-plus me-2"></i>Add skill
+              </button>
+            </div>
+      </AdminSection>
 
+      <AdminSection title="Your skills" description="Edit, reorder, or remove skills. Click Save to apply your edits.">
             {typeList.map((t) => {
               const list = grouped[t] || [];
               if (!list.length) return null;
@@ -614,35 +566,25 @@ export default function AdminSkillsPage() {
                               <div className="form-text">Quick gauge for how strong you feel in this skill.</div>
                             </div>
 
-                            <div className="col-6 col-md-1">
-                              <div className="form-check mt-4">
+                            <div className="col-12 col-md-3">
+                              <div className="form-check form-switch mt-2">
                                 <input
                                   className="form-check-input"
                                   type="checkbox"
+                                  role="switch"
                                   checked={!!s.is_published}
                                   onChange={(e) => setDraftField(s.id, { is_published: e.target.checked })}
                                   disabled={busy}
                                   id={`skillPub_${s.id}`}
                                 />
                                 <label className="form-check-label" htmlFor={`skillPub_${s.id}`}>
-                                  Publish
+                                  Show on website
                                 </label>
-                                <div className="form-text">Hide to keep this skill private.</div>
                               </div>
                             </div>
 
-                            <div className="col-6 col-md-2 d-grid">
-                              <button
-                                className="btn btn-outline-danger mt-md-4"
-                                onClick={() => deleteSkill(s.id)}
-                                disabled={busy}
-                              >
-                                <i className="fa-solid fa-trash me-2"></i>Delete
-                              </button>
-                            </div>
-
                             <div className="col-12">
-                              <div className="d-flex gap-2 mt-2">
+                              <div className="d-flex flex-wrap gap-2 mt-2 align-items-center">
                                 <button
                                   className="btn btn-sm btn-outline-secondary"
                                   onClick={() => moveSkill(s.id, "up")}
@@ -657,7 +599,14 @@ export default function AdminSkillsPage() {
                                 >
                                   <i className="fa-solid fa-arrow-down me-2"></i>Move down
                                 </button>
-                                <span className="ms-auto text-muted small">Position: {index + 1}</span>
+                                <button
+                                  className="btn btn-sm btn-outline-danger"
+                                  onClick={() => deleteSkill(s.id)}
+                                  disabled={busy}
+                                >
+                                  <i className="fa-solid fa-trash me-2"></i>Delete
+                                </button>
+                                <span className="ms-auto text-muted small">#{index + 1}</span>
                               </div>
                             </div>
                           </div>
@@ -669,13 +618,10 @@ export default function AdminSkillsPage() {
               );
             })}
 
-            {!draftSkills.length ? <div className="text-muted">No skills yet.</div> : null}
-          </div>
-        </div>
-          </AdminStep>
-        </AdminStepper>
-      </div>
+            {!draftSkills.length ? <div className="text-muted">No skills yet. Add your first one above.</div> : null}
+      </AdminSection>
+
       <AdminActionModal modal={modal} onConfirm={onConfirm} onCancel={onCancel} />
-    </div>
+    </AdminPageShell>
   );
 }

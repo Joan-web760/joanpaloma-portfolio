@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 import AdminActionModal, { useAdminActionModal } from "@/components/admin/AdminActionModal";
-import AdminStepper, { AdminStep } from "@/components/admin/AdminStepper";
+import AdminPageShell from "@/components/admin/AdminPageShell";
+import AdminSection from "@/components/admin/AdminSection";
 
 const emptyForm = {
   quote: "",
@@ -361,8 +362,6 @@ export default function AdminTestimonialsPage() {
     ]);
   };
 
-  const openPreview = () => window.open("/#testimonials", "_blank");
-
   const runTestimonialBot = async () => {
     const brief =
       botBrief.trim() ||
@@ -421,79 +420,33 @@ export default function AdminTestimonialsPage() {
 
   if (loading) {
     return (
-      <div className="container py-5">
-        <div className="d-flex align-items-center gap-2 text-muted">
-          <span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
-          Loading Testimonials editor...
-        </div>
+      <div className="d-flex align-items-center gap-2 text-muted py-4">
+        <span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
+        Loading the Testimonials editor…
       </div>
     );
   }
 
   return (
-    <div className="bg-light min-vh-100">
-      <div className="container py-4">
-        <div className="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
-          <div>
-            <h1 className="h5 mb-1">Testimonials</h1>
-            <div className="small text-muted">Social proof with ratings, featured picks, avatars, ordering.</div>
-          </div>
-
-          <div className="d-flex gap-2 align-items-center">
-            {/* NEW: Save Bar */}
-            <div className="d-flex gap-2 align-items-center">
-              <span className={`badge ${dirtyCount ? "text-bg-warning" : "text-bg-secondary"}`}>
-                {dirtyCount ? `${dirtyCount} unsaved` : "No pending changes"}
-              </span>
-
-              <button
-                className="btn btn-success"
-                onClick={saveChanges}
-                disabled={busy || !dirtyCount}
-                title={dirtyCount ? "Save all staged changes" : "No changes"}
-              >
-                {busy ? (
-                  <>
-                    <span className="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <i className="fa-solid fa-floppy-disk me-2"></i>Save Changes
-                  </>
-                )}
-              </button>
-
-              <button className="btn btn-outline-secondary" onClick={discardChanges} disabled={busy || !dirtyCount}>
-                <i className="fa-solid fa-rotate-left me-2"></i>Discard
-              </button>
-            </div>
-
-            <button className="btn btn-outline-dark" onClick={openPreview}>
-              <i className="fa-solid fa-eye me-2"></i>Preview
-            </button>
-            <button className="btn btn-outline-primary" onClick={() => router.push("/admin")}>
-              <i className="fa-solid fa-arrow-left me-2"></i>Dashboard
-            </button>
-          </div>
-        </div>
-
-        {error ? (
-          <div className="alert alert-danger py-2">
-            <i className="fa-solid fa-triangle-exclamation me-2"></i>
-            {error}
-          </div>
-        ) : null}
-
-        {notice ? (
-          <div className="alert alert-success py-2">
-            <i className="fa-solid fa-circle-check me-2"></i>
-            {notice}
-          </div>
-        ) : null}
-
-        <AdminStepper initialStep={1}>
-          <AdminStep title="Add Testimonial" description="Create a new testimonial entry.">
+    <AdminPageShell
+      preview="/#testimonials"
+      dirty={dirtyCount > 0}
+      saving={busy}
+      onSave={saveChanges}
+      error={error}
+      notice={notice}
+      extraActions={
+        <button
+          className="btn btn-outline-secondary"
+          onClick={discardChanges}
+          disabled={busy || !dirtyCount}
+          type="button"
+        >
+          <i className="fa-solid fa-rotate-left me-2"></i>Discard
+        </button>
+      }
+    >
+      <AdminSection bare>
             {/* Add */}
         <div className="card border-0 shadow-sm mb-3">
           <div className="card-body">
@@ -673,17 +626,18 @@ export default function AdminTestimonialsPage() {
                   <div className="form-text">Highlight this testimonial on the page.</div>
                 </div>
 
-                  <div className="form-check">
+                  <div className="form-check form-switch">
                     <input
                       className="form-check-input"
                       type="checkbox"
+                      role="switch"
                       checked={!!form.is_published}
                       onChange={(e) => setForm((p) => ({ ...p, is_published: e.target.checked }))}
                       disabled={busy}
                       id="newPub"
                     />
                   <label className="form-check-label" htmlFor="newPub">
-                    Published
+                    Show on website
                   </label>
                   <div className="form-text">Show this testimonial publicly.</div>
                 </div>
@@ -697,9 +651,9 @@ export default function AdminTestimonialsPage() {
           </div>
         </div>
 
-          </AdminStep>
+      </AdminSection>
 
-          <AdminStep title="Manage Testimonials" description="Edit, reorder, and publish items.">
+      <AdminSection bare>
             {/* List */}
         <div className="card border-0 shadow-sm">
           <div className="card-body">
@@ -741,7 +695,7 @@ export default function AdminTestimonialsPage() {
                             {it.name}
                             {it.is_featured ? <span className="badge text-bg-warning ms-2">Featured</span> : null}
                             {it.is_published ? (
-                              <span className="badge text-bg-success ms-2">Published</span>
+                              <span className="badge text-bg-success ms-2">Shown</span>
                             ) : (
                               <span className="badge text-bg-secondary ms-2">Hidden</span>
                             )}
@@ -884,19 +838,19 @@ export default function AdminTestimonialsPage() {
                           <div className="form-text">Highlight this testimonial on the page.</div>
                         </div>
 
-                        <div className="form-check">
+                        <div className="form-check form-switch">
                           <input
                             className="form-check-input"
                             type="checkbox"
+                            role="switch"
                             checked={publishedVal}
                             onChange={(e) => stage(it.id, { is_published: e.target.checked })}
                             disabled={busy}
                             id={`pub_${it.id}`}
                           />
                           <label className="form-check-label" htmlFor={`pub_${it.id}`}>
-                            Published
+                            Show on website
                           </label>
-                          <div className="form-text">Toggle visibility on the public site.</div>
                         </div>
                         </div>
                       </div>
@@ -906,33 +860,10 @@ export default function AdminTestimonialsPage() {
               })}
             </div>
 
-            {/* optional bottom save bar */}
-            <div className="d-flex flex-wrap gap-2 justify-content-end align-items-center mt-3">
-              <span className={`badge ${dirtyCount ? "text-bg-warning" : "text-bg-secondary"}`}>
-                {dirtyCount ? `${dirtyCount} unsaved` : "No pending changes"}
-              </span>
-              <button className="btn btn-success" onClick={saveChanges} disabled={busy || !dirtyCount}>
-                {busy ? (
-                  <>
-                    <span className="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <i className="fa-solid fa-floppy-disk me-2"></i>Save Changes
-                  </>
-                )}
-              </button>
-              <button className="btn btn-outline-secondary" onClick={discardChanges} disabled={busy || !dirtyCount}>
-                <i className="fa-solid fa-rotate-left me-2"></i>Discard
-              </button>
-            </div>
           </div>
         </div>
-          </AdminStep>
-        </AdminStepper>
-      </div>
+      </AdminSection>
       <AdminActionModal modal={modal} onConfirm={onConfirm} onCancel={onCancel} />
-    </div>
+    </AdminPageShell>
   );
 }

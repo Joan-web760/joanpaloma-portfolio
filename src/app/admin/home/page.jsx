@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
-import AdminStepper, { AdminStep } from "@/components/admin/AdminStepper";
+import AdminPageShell from "@/components/admin/AdminPageShell";
+import AdminSection from "@/components/admin/AdminSection";
+import AdminVisibilityToggle from "@/components/admin/AdminVisibilityToggle";
 import { HOMEPAGE_SECTIONS, isHomepageSectionVisible } from "@/lib/homepage-sections";
 import {
   clampProfileImageScale,
@@ -23,6 +25,28 @@ function safeExt(fileName) {
   return ext.replace(/[^a-z0-9]/g, "");
 }
 
+// One string that changes whenever any editable field changes, so we can show
+// "Unsaved changes" and only enable Save when there is something to save.
+function snapshotOf(v) {
+  return JSON.stringify({
+    headline: v.headline || "",
+    subheadline: v.subheadline || "",
+    primaryCtaLabel: v.primaryCtaLabel || "",
+    primaryCtaUrl: v.primaryCtaUrl || "",
+    secondaryCtaLabel: v.secondaryCtaLabel || "",
+    secondaryCtaUrl: v.secondaryCtaUrl || "",
+    introVideoUrl: v.introVideoUrl || "",
+    badgesText: v.badgesText || "",
+    isPublished: !!v.isPublished,
+    sectionVisibility: v.sectionVisibility || {},
+    profileImageScale: clampProfileImageScale(v.profileImageScale),
+    heroContentWidth: normalizeHeroContentWidth(v.heroContentWidth),
+    heroImagePath: v.heroImagePath || null,
+    profileImagePath: v.profileImagePath || null,
+    introVideoPath: v.introVideoPath || null,
+  });
+}
+
 export default function AdminHomeEditorPage() {
   const router = useRouter();
 
@@ -33,6 +57,7 @@ export default function AdminHomeEditorPage() {
   const [notice, setNotice] = useState("");
 
   const [row, setRow] = useState(null);
+  const [baseline, setBaseline] = useState(null);
 
   const [headline, setHeadline] = useState("");
   const [subheadline, setSubheadline] = useState("");
@@ -50,8 +75,6 @@ export default function AdminHomeEditorPage() {
 
   const [heroImagePath, setHeroImagePath] = useState(null);
   const [profileImagePath, setProfileImagePath] = useState(null);
-
-  // NEW: uploaded video path
   const [introVideoPath, setIntroVideoPath] = useState(null);
 
   const heroUrl = useMemo(() => {
@@ -64,11 +87,76 @@ export default function AdminHomeEditorPage() {
     return supabase.storage.from(MEDIA_BUCKET).getPublicUrl(profileImagePath).data.publicUrl;
   }, [profileImagePath]);
 
-  // NEW: video preview
   const introVideoFileUrl = useMemo(() => {
     if (!introVideoPath) return "";
     return supabase.storage.from(MEDIA_BUCKET).getPublicUrl(introVideoPath).data.publicUrl;
   }, [introVideoPath]);
+
+  const currentSnapshot = snapshotOf({
+    headline,
+    subheadline,
+    primaryCtaLabel,
+    primaryCtaUrl,
+    secondaryCtaLabel,
+    secondaryCtaUrl,
+    introVideoUrl,
+    badgesText,
+    isPublished,
+    sectionVisibility,
+    profileImageScale,
+    heroContentWidth,
+    heroImagePath,
+    profileImagePath,
+    introVideoPath,
+  });
+  const dirty = baseline !== null && baseline !== currentSnapshot;
+
+  const applyRow = (r) => {
+    setRow(r);
+    setHeadline(r.headline || "");
+    setSubheadline(r.subheadline || "");
+    setPrimaryCtaLabel(r.primary_cta_label || "");
+    setPrimaryCtaUrl(r.primary_cta_url || "");
+    setSecondaryCtaLabel(r.secondary_cta_label || "");
+    setSecondaryCtaUrl(r.secondary_cta_url || "");
+    setIntroVideoUrl(r.intro_video_url || "");
+
+    const badgeArr = Array.isArray(r.badges) ? r.badges : [];
+    setBadgesText(badgeArr.join(", ") || "");
+
+    setHeroImagePath(r.hero_image_path || null);
+    setProfileImagePath(r.profile_image_path || null);
+    setIntroVideoPath(r.intro_video_path || null);
+
+    setIsPublished(!!r.is_published);
+    const nextVisibility =
+      r.homepage_sections && typeof r.homepage_sections === "object" ? r.homepage_sections : {};
+    setSectionVisibility(nextVisibility);
+    const nextScale = clampProfileImageScale(r.profile_image_scale ?? PROFILE_IMAGE_SCALE_DEFAULT);
+    setProfileImageScale(nextScale);
+    const nextWidth = normalizeHeroContentWidth(r.hero_content_width);
+    setHeroContentWidth(nextWidth);
+
+    setBaseline(
+      snapshotOf({
+        headline: r.headline,
+        subheadline: r.subheadline,
+        primaryCtaLabel: r.primary_cta_label,
+        primaryCtaUrl: r.primary_cta_url,
+        secondaryCtaLabel: r.secondary_cta_label,
+        secondaryCtaUrl: r.secondary_cta_url,
+        introVideoUrl: r.intro_video_url,
+        badgesText: badgeArr.join(", "),
+        isPublished: r.is_published,
+        sectionVisibility: nextVisibility,
+        profileImageScale: nextScale,
+        heroContentWidth: nextWidth,
+        heroImagePath: r.hero_image_path || null,
+        profileImagePath: r.profile_image_path || null,
+        introVideoPath: r.intro_video_path || null,
+      })
+    );
+  };
 
   useEffect(() => {
     let alive = true;
@@ -84,7 +172,6 @@ export default function AdminHomeEditorPage() {
         return;
       }
 
-      // Load singleton row
       const { data, error: dbErr } = await supabase.from("section_home").select("*").eq("id", 1).maybeSingle();
 
       if (!alive) return;
@@ -95,7 +182,6 @@ export default function AdminHomeEditorPage() {
         return;
       }
 
-      // If row missing, create it
       let r = data;
       if (!r) {
         const { data: inserted, error: insErr } = await supabase
@@ -112,34 +198,7 @@ export default function AdminHomeEditorPage() {
         r = inserted;
       }
 
-      setRow(r);
-
-      setHeadline(r.headline || "");
-      setSubheadline(r.subheadline || "");
-      setPrimaryCtaLabel(r.primary_cta_label || "");
-      setPrimaryCtaUrl(r.primary_cta_url || "");
-      setSecondaryCtaLabel(r.secondary_cta_label || "");
-      setSecondaryCtaUrl(r.secondary_cta_url || "");
-      setIntroVideoUrl(r.intro_video_url || "");
-
-      const badgeArr = Array.isArray(r.badges) ? r.badges : [];
-      setBadgesText(badgeArr.join(", ") || "");
-
-      setHeroImagePath(r.hero_image_path || null);
-      setProfileImagePath(r.profile_image_path || null);
-
-      // NEW: load stored video path
-      setIntroVideoPath(r.intro_video_path || null);
-
-      setIsPublished(!!r.is_published);
-      setSectionVisibility(
-        r.homepage_sections && typeof r.homepage_sections === "object" ? r.homepage_sections : {}
-      );
-      setProfileImageScale(
-        clampProfileImageScale(r.profile_image_scale ?? PROFILE_IMAGE_SCALE_DEFAULT)
-      );
-      setHeroContentWidth(normalizeHeroContentWidth(r.hero_content_width));
-
+      applyRow(r);
       setLoading(false);
     })();
 
@@ -181,16 +240,13 @@ export default function AdminHomeEditorPage() {
     return path;
   };
 
-  // NEW: upload video
   const uploadVideo = async (file) => {
     if (!file) return null;
 
-    // basic validation
     if (!file.type?.startsWith("video/")) {
       throw new Error("Please select a valid video file.");
     }
 
-    // optional size limit (change if you want)
     const maxMB = 50;
     if (file.size > maxMB * 1024 * 1024) {
       throw new Error(`Video too large. Max ${maxMB}MB.`);
@@ -213,7 +269,7 @@ export default function AdminHomeEditorPage() {
     return path;
   };
 
-  const handleSave = async (publishAfterSave = false) => {
+  const handleSave = async () => {
     setSaving(true);
     setError("");
     setNotice("");
@@ -227,17 +283,14 @@ export default function AdminHomeEditorPage() {
         secondary_cta_label: secondaryCtaLabel || "",
         secondary_cta_url: secondaryCtaUrl || "",
         intro_video_url: introVideoUrl || null,
-
-        // NEW: persist uploaded video path
         intro_video_path: introVideoPath || null,
-
         badges: parseBadges(),
         hero_image_path: heroImagePath,
         profile_image_path: profileImagePath,
         homepage_sections: sectionVisibility,
         profile_image_scale: clampProfileImageScale(profileImageScale),
         hero_content_width: normalizeHeroContentWidth(heroContentWidth),
-        is_published: publishAfterSave ? true : isPublished,
+        is_published: isPublished,
         updated_at: new Date().toISOString(),
       };
 
@@ -250,45 +303,10 @@ export default function AdminHomeEditorPage() {
 
       if (updErr) throw updErr;
 
-      setRow(data);
-      setIsPublished(!!data.is_published);
-      setSectionVisibility(
-        data.homepage_sections && typeof data.homepage_sections === "object" ? data.homepage_sections : {}
-      );
-      setProfileImageScale(
-        clampProfileImageScale(data.profile_image_scale ?? PROFILE_IMAGE_SCALE_DEFAULT)
-      );
-      setHeroContentWidth(normalizeHeroContentWidth(data.hero_content_width));
-      setNotice(publishAfterSave ? "Saved and published." : "Saved.");
+      applyRow(data);
+      setNotice("Saved.");
     } catch (e) {
       setError(e.message || "Save failed.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleTogglePublish = async () => {
-    setSaving(true);
-    setError("");
-    setNotice("");
-
-    try {
-      const next = !isPublished;
-
-      const { data, error: updErr } = await supabase
-        .from("section_home")
-        .update({ is_published: next, updated_at: new Date().toISOString() })
-        .eq("id", 1)
-        .select("*")
-        .single();
-
-      if (updErr) throw updErr;
-
-      setRow(data);
-      setIsPublished(next);
-      setNotice(next ? "Published." : "Unpublished.");
-    } catch (e) {
-      setError(e.message || "Publish toggle failed.");
     } finally {
       setSaving(false);
     }
@@ -305,7 +323,7 @@ export default function AdminHomeEditorPage() {
     try {
       const path = await uploadImage(file, "hero");
       setHeroImagePath(path);
-      setNotice("Hero image uploaded. Click Save to persist.");
+      setNotice("Hero image uploaded. Save to apply it.");
     } catch (err) {
       setError(err.message || "Hero upload failed.");
     } finally {
@@ -325,7 +343,7 @@ export default function AdminHomeEditorPage() {
     try {
       const path = await uploadImage(file, "profile");
       setProfileImagePath(path);
-      setNotice("Profile image uploaded. Click Save to persist.");
+      setNotice("Profile image uploaded. Save to apply it.");
     } catch (err) {
       setError(err.message || "Profile upload failed.");
     } finally {
@@ -334,7 +352,6 @@ export default function AdminHomeEditorPage() {
     }
   };
 
-  // NEW: video file handler
   const onIntroVideoFile = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -346,7 +363,7 @@ export default function AdminHomeEditorPage() {
     try {
       const path = await uploadVideo(file);
       setIntroVideoPath(path);
-      setNotice("Intro video uploaded. Click Save to persist.");
+      setNotice("Intro video uploaded. Save to apply it.");
     } catch (err) {
       setError(err.message || "Video upload failed.");
     } finally {
@@ -355,400 +372,269 @@ export default function AdminHomeEditorPage() {
     }
   };
 
-  const openPreview = () => window.open("/#home", "_blank");
-
   if (loading) {
     return (
-      <div className="container py-5">
-        <div className="d-flex align-items-center gap-2 text-muted">
-          <span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
-          Loading Home editor...
-        </div>
+      <div className="d-flex align-items-center gap-2 text-muted py-4">
+        <span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
+        Loading the Home editor…
       </div>
     );
   }
 
   return (
-    <div className="bg-light min-vh-100">
-      <div className="container py-4">
-        <div className="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
-          <div>
-            <h1 className="h5 mb-1">Home - Hero & Intro</h1>
-            <div className="small text-muted">
-              Last updated: <strong>{row?.updated_at ? new Date(row.updated_at).toLocaleString() : "-"}</strong>
-            </div>
+    <AdminPageShell
+      preview="/#home"
+      dirty={dirty}
+      saving={saving}
+      onSave={handleSave}
+      error={error}
+      notice={notice}
+    >
+      <AdminSection
+        title="Hero content"
+        description="The headline, intro sentence, buttons, and badges at the top of your homepage."
+      >
+        <div className="mb-3">
+          <label className="form-label">Headline</label>
+          <input
+            className="form-control"
+            placeholder="Helping founders scale operations"
+            value={headline}
+            onChange={(e) => setHeadline(e.target.value)}
+          />
+          <div className="form-text">Keep it short and bold. Aim for 4-8 words that describe your value.</div>
+        </div>
+
+        <div className="mb-3">
+          <label className="form-label">Subheadline</label>
+          <textarea
+            className="form-control"
+            rows="3"
+            placeholder="One sentence that explains who you help, what you do, and the result."
+            value={subheadline}
+            onChange={(e) => setSubheadline(e.target.value)}
+          />
+          <div className="form-text">Give a clear promise and who it is for.</div>
+        </div>
+
+        <div className="row g-3">
+          <div className="col-12 col-md-6">
+            <label className="form-label">Primary button label</label>
+            <input
+              className="form-control"
+              placeholder="Book a call"
+              value={primaryCtaLabel}
+              onChange={(e) => setPrimaryCtaLabel(e.target.value)}
+            />
+            <div className="form-text">Use an action verb people will click.</div>
           </div>
-
-          <div className="d-flex gap-2">
-            <button className="btn btn-outline-dark" onClick={openPreview}>
-              <i className="fa-solid fa-eye me-2"></i>Preview
-            </button>
-
-            <button className="btn btn-outline-secondary" onClick={handleTogglePublish} disabled={saving}>
-              {isPublished ? (
-                <>
-                  <i className="fa-solid fa-toggle-on me-2"></i>Unpublish
-                </>
-              ) : (
-                <>
-                  <i className="fa-solid fa-toggle-off me-2"></i>Publish
-                </>
-              )}
-            </button>
-
-            <button className="btn btn-primary" onClick={() => handleSave(false)} disabled={saving}>
-              {saving ? (
-                <>
-                  <span className="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Saving...
-                </>
-              ) : (
-                <>
-                  <i className="fa-solid fa-floppy-disk me-2"></i>Save
-                </>
-              )}
-            </button>
-
-            <button className="btn btn-success" onClick={() => handleSave(true)} disabled={saving}>
-              <i className="fa-solid fa-bullhorn me-2"></i>Save & Publish
-            </button>
+          <div className="col-12 col-md-6">
+            <label className="form-label">Primary button link</label>
+            <input
+              className="form-control"
+              placeholder="https://calendly.com/yourname"
+              value={primaryCtaUrl}
+              onChange={(e) => setPrimaryCtaUrl(e.target.value)}
+            />
+            <div className="form-text">A full link, or a section on your site such as /#contact.</div>
+          </div>
+          <div className="col-12 col-md-6">
+            <label className="form-label">Secondary button label</label>
+            <input
+              className="form-control"
+              placeholder="View portfolio"
+              value={secondaryCtaLabel}
+              onChange={(e) => setSecondaryCtaLabel(e.target.value)}
+            />
+            <div className="form-text">Optional second action for browsing.</div>
+          </div>
+          <div className="col-12 col-md-6">
+            <label className="form-label">Secondary button link</label>
+            <input
+              className="form-control"
+              placeholder="/#portfolio"
+              value={secondaryCtaUrl}
+              onChange={(e) => setSecondaryCtaUrl(e.target.value)}
+            />
+            <div className="form-text">A section on your site, or a full link.</div>
           </div>
         </div>
 
-        {error ? (
-          <div className="alert alert-danger py-2">
-            <i className="fa-solid fa-triangle-exclamation me-2"></i>
-            {error}
-          </div>
-        ) : null}
+        <div className="mt-3">
+          <label className="form-label">Badges</label>
+          <input
+            className="form-control"
+            placeholder="Next.js, Supabase, Bootstrap"
+            value={badgesText}
+            onChange={(e) => setBadgesText(e.target.value)}
+          />
+          <div className="form-text">Separate with commas. List 3-6 tools or specialties for quick credibility.</div>
+        </div>
 
-        {notice ? (
-          <div className="alert alert-success py-2">
-            <i className="fa-solid fa-circle-check me-2"></i>
-            {notice}
-          </div>
-        ) : null}
-
-        <AdminStepper>
-          <AdminStep title="Hero Content" description="Headlines, CTAs, and visibility for your hero section.">
-            <div className="row g-3">
-              <div className="col-12 col-lg-8">
-                <div className="card border-0 shadow-sm">
-                  <div className="card-body">
-                    <h2 className="h6 mb-3">Content</h2>
-
-                    <div className="mb-3">
-                      <label className="form-label">Headline</label>
-                      <input
-                        className="form-control"
-                        placeholder='e.g. "Helping founders scale operations"'
-                        value={headline}
-                        onChange={(e) => setHeadline(e.target.value)}
-                      />
-                      <div className="form-text">Keep it short and bold. Aim for 4-8 words that describe your value.</div>
-                    </div>
-
-                    <div className="mb-3">
-                      <label className="form-label">Subheadline</label>
-                      <textarea
-                        className="form-control"
-                        rows="3"
-                        placeholder="One sentence that explains who you help, what you do, and the result."
-                        value={subheadline}
-                        onChange={(e) => setSubheadline(e.target.value)}
-                      />
-                      <div className="form-text">Give a clear promise and who it is for.</div>
-                    </div>
-
-                    <div className="row g-2">
-                      <div className="col-12 col-md-6">
-                        <label className="form-label">Primary CTA Label</label>
-                        <input
-                          className="form-control"
-                          placeholder="Book a call"
-                          value={primaryCtaLabel}
-                          onChange={(e) => setPrimaryCtaLabel(e.target.value)}
-                        />
-                        <div className="form-text">Use an action verb people will click.</div>
-                      </div>
-                      <div className="col-12 col-md-6">
-                        <label className="form-label">Primary CTA URL</label>
-                        <input
-                          className="form-control"
-                          placeholder="https://calendly.com/yourname"
-                          value={primaryCtaUrl}
-                          onChange={(e) => setPrimaryCtaUrl(e.target.value)}
-                        />
-                        <div className="form-text">Paste the full link or use a site anchor like "/#contact".</div>
-                      </div>
-                    </div>
-
-                    <div className="row g-2 mt-1">
-                      <div className="col-12 col-md-6">
-                        <label className="form-label">Secondary CTA Label</label>
-                        <input
-                          className="form-control"
-                          placeholder="View portfolio"
-                          value={secondaryCtaLabel}
-                          onChange={(e) => setSecondaryCtaLabel(e.target.value)}
-                        />
-                        <div className="form-text">Optional secondary action for browsing.</div>
-                      </div>
-                      <div className="col-12 col-md-6">
-                        <label className="form-label">Secondary CTA URL</label>
-                        <input
-                          className="form-control"
-                          placeholder="/#portfolio"
-                          value={secondaryCtaUrl}
-                          onChange={(e) => setSecondaryCtaUrl(e.target.value)}
-                        />
-                        <div className="form-text">Use a section anchor or full link.</div>
-                      </div>
-                    </div>
-
-                    <div className="mt-3">
-                      <label className="form-label">Badges (comma-separated)</label>
-                      <input
-                        className="form-control"
-                        placeholder="Next.js, Supabase, Bootstrap..."
-                        value={badgesText}
-                        onChange={(e) => setBadgesText(e.target.value)}
-                      />
-                      <div className="form-text">List 3-6 tools or specialties to show quick credibility.</div>
-                    </div>
-
-                    <div className="mt-3">
-                      <label className="form-label" htmlFor="heroContentWidth">
-                        Content width
-                      </label>
-                      <select
-                        id="heroContentWidth"
-                        className="form-select"
-                        value={heroContentWidth}
-                        onChange={(e) => setHeroContentWidth(e.target.value)}
-                      >
-                        {HERO_CONTENT_WIDTHS.map((opt) => (
-                          <option key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </option>
-                        ))}
-                      </select>
-                      <div className="form-text">
-                        How wide the headline, subheadline, and buttons block is on desktop. Larger leaves less room
-                        for the profile image / video beside it.
-                      </div>
-                    </div>
-
-                    <div className="mt-3">
-                      <label className="form-label">Intro Video URL (optional)</label>
-                      <input
-                        className="form-control"
-                        placeholder="https://youtu.be/your-intro"
-                        value={introVideoUrl}
-                        onChange={(e) => setIntroVideoUrl(e.target.value)}
-                      />
-                      <div className="form-text">Paste a YouTube/Vimeo link. If you upload a file below, that file is used instead.</div>
-                    </div>
-
-                    <div className="mt-3 form-check">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        checked={isPublished}
-                        onChange={(e) => setIsPublished(e.target.checked)}
-                        id="publishedCheck"
-                      />
-                      <label className="form-check-label" htmlFor="publishedCheck">
-                        Mark as published (Save required)
-                      </label>
-                      <div className="form-text">Publish when you are ready for this section to appear on the site.</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="col-12 col-lg-4">
-                <div className="card border-0 shadow-sm mb-3">
-                  <div className="card-body">
-                    <h2 className="h6 mb-2">Quick Links</h2>
-                    <div className="d-grid gap-2">
-                      <button className="btn btn-outline-primary" onClick={() => router.push("/admin")}>
-                        <i className="fa-solid fa-arrow-left me-2"></i>Back to Dashboard
-                      </button>
-                      <button className="btn btn-outline-dark" onClick={openPreview}>
-                        <i className="fa-solid fa-eye me-2"></i>Preview #home
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </AdminStep>
-
-          <AdminStep
-            title="Homepage Sections"
-            description="Choose which sections appear on the homepage below the hero."
+        <div className="mt-3">
+          <label className="form-label" htmlFor="heroContentWidth">
+            Content width
+          </label>
+          <select
+            id="heroContentWidth"
+            className="form-select"
+            value={heroContentWidth}
+            onChange={(e) => setHeroContentWidth(e.target.value)}
           >
-            <div className="row g-3">
-              <div className="col-12 col-lg-8">
-                <div className="card border-0 shadow-sm">
-                  <div className="card-body">
-                    <div className="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
-                      <h2 className="h6 mb-0">Section visibility</h2>
-                      <div className="d-flex gap-2">
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-outline-secondary"
-                          onClick={() => setAllSections(true)}
-                        >
-                          Show all
-                        </button>
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-outline-secondary"
-                          onClick={() => setAllSections(false)}
-                        >
-                          Hide all
-                        </button>
-                      </div>
-                    </div>
+            {HERO_CONTENT_WIDTHS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          <div className="form-text">
+            How wide the text block is on desktop. Larger leaves less room for the profile image or video beside it.
+          </div>
+        </div>
 
-                    <p className="form-text mt-0">
-                      The hero always shows. Turning a section off here removes it from the homepage even if that
-                      section is published. Links to a hidden section elsewhere on the site are unaffected.
-                    </p>
+        <div className="mt-3">
+          <label className="form-label">Intro video link (optional)</label>
+          <input
+            className="form-control"
+            placeholder="https://youtu.be/your-intro"
+            value={introVideoUrl}
+            onChange={(e) => setIntroVideoUrl(e.target.value)}
+          />
+          <div className="form-text">A YouTube or Vimeo link. If you upload a file below, the file is used instead.</div>
+        </div>
 
-                    {HOMEPAGE_SECTIONS.map(({ key, label }) => (
-                      <div className="form-check mb-2" key={key}>
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          checked={isHomepageSectionVisible(sectionVisibility, key)}
-                          onChange={() => toggleSection(key)}
-                          id={`section-visible-${key}`}
-                        />
-                        <label className="form-check-label" htmlFor={`section-visible-${key}`}>
-                          Show {label} section
-                        </label>
-                      </div>
-                    ))}
+        <div className="mt-4">
+          <AdminVisibilityToggle
+            checked={isPublished}
+            onChange={setIsPublished}
+            help="Turn this on when your hero is ready for visitors. When off, the whole homepage hero is hidden."
+          />
+        </div>
+      </AdminSection>
 
-                    <div className="form-text mt-2">Click Save (or Save &amp; Publish) to apply changes.</div>
-                  </div>
-                </div>
-              </div>
+      <AdminSection
+        title="Homepage sections"
+        description="Choose which sections appear on the homepage below the hero."
+        actions={
+          <>
+            <button type="button" className="btn btn-sm btn-outline-secondary" onClick={() => setAllSections(true)}>
+              Show all
+            </button>
+            <button type="button" className="btn btn-sm btn-outline-secondary" onClick={() => setAllSections(false)}>
+              Hide all
+            </button>
+          </>
+        }
+      >
+        <p className="form-text mt-0">
+          The hero always shows. Turning a section off here removes it from the homepage even if that section is
+          published. Links to a hidden section elsewhere on the site are unaffected.
+        </p>
+
+        {HOMEPAGE_SECTIONS.map(({ key, label }) => (
+          <div className="form-check form-switch mb-2" key={key}>
+            <input
+              className="form-check-input"
+              type="checkbox"
+              role="switch"
+              checked={isHomepageSectionVisible(sectionVisibility, key)}
+              onChange={() => toggleSection(key)}
+              id={`section-visible-${key}`}
+            />
+            <label className="form-check-label" htmlFor={`section-visible-${key}`}>
+              Show {label} section
+            </label>
+          </div>
+        ))}
+      </AdminSection>
+
+      <AdminSection title="Media" description="Images and video shown in the hero.">
+        <div className="mb-3">
+          <label className="form-label">Hero image</label>
+          <input className="form-control" type="file" accept="image/*" onChange={onHeroFile} disabled={saving} />
+          <div className="form-text">A wide, high-quality image (1600x900 or larger).</div>
+          {heroUrl ? (
+            <div className="mt-2">
+              <img src={heroUrl} alt="Hero" className="img-fluid rounded border" />
             </div>
-          </AdminStep>
+          ) : (
+            <div className="small text-muted mt-2">No hero image yet.</div>
+          )}
+        </div>
 
-          <AdminStep title="Media Uploads" description="Upload hero, profile, and intro video visuals.">
-            <div className="row g-3">
-              <div className="col-12">
-                <div className="card border-0 shadow-sm mb-3">
-                  <div className="card-body">
-                    <h2 className="h6 mb-3">Media</h2>
+        <hr />
 
-                    <div className="mb-3">
-                      <label className="form-label">Hero Image</label>
-                      <input className="form-control" type="file" accept="image/*" onChange={onHeroFile} disabled={saving} />
-                      <div className="form-text">Use a wide, high-quality image (recommended 1600x900 or larger).</div>
-                      {heroUrl ? (
-                        <div className="mt-2">
-                          <img src={heroUrl} alt="Hero" className="img-fluid rounded border" />
-                          <div className="small text-muted mt-1">Hero image ready. Click Save to apply.</div>
-                        </div>
-                      ) : (
-                        <div className="small text-muted mt-2">No hero image yet. Upload a wide banner image.</div>
-                      )}
-                    </div>
-
-                    <hr />
-
-                    <div className="mb-3">
-                      <label className="form-label">Profile Image</label>
-                      <input className="form-control" type="file" accept="image/*" onChange={onProfileFile} disabled={saving} />
-                      <div className="form-text">Choose a clear headshot or brand photo (square works best).</div>
-                      {profileUrl ? (
-                        <div className="mt-2">
-                          <img
-                            src={profileUrl}
-                            alt="Profile"
-                            className="img-fluid rounded border d-block mx-auto"
-                            style={{ width: `${profileImageScale}%` }}
-                          />
-                          <div className="small text-muted mt-1">Profile image ready. Click Save to apply.</div>
-                        </div>
-                      ) : (
-                        <div className="small text-muted mt-2">No profile image yet. Upload a square or portrait photo.</div>
-                      )}
-
-                      <div className="mt-3">
-                        <label className="form-label d-flex justify-content-between" htmlFor="profileImageScale">
-                          <span>Profile image size</span>
-                          <span className="text-muted">{profileImageScale}%</span>
-                        </label>
-                        <input
-                          id="profileImageScale"
-                          type="range"
-                          className="form-range"
-                          min={PROFILE_IMAGE_SCALE_MIN}
-                          max={PROFILE_IMAGE_SCALE_MAX}
-                          step={5}
-                          value={profileImageScale}
-                          onChange={(e) => setProfileImageScale(clampProfileImageScale(e.target.value))}
-                        />
-                        <div className="form-text">
-                          Width of the profile image relative to its card on the homepage. Click Save to apply.
-                        </div>
-                      </div>
-                    </div>
-
-                    <hr />
-
-                    {/* NEW: Intro Video Upload */}
-                    <div>
-                      <label className="form-label">Intro Video (Upload)</label>
-                      <input
-                        className="form-control"
-                        type="file"
-                        accept="video/mp4,video/webm,video/*"
-                        onChange={onIntroVideoFile}
-                        disabled={saving}
-                      />
-                      <div className="form-text">Short intro video works best (15-60 seconds). Recommended: MP4.</div>
-
-                      {introVideoFileUrl ? (
-                        <div className="mt-2">
-                          <div className="ratio ratio-16x9">
-                            <video src={introVideoFileUrl} controls playsInline preload="metadata" />
-                          </div>
-                          <div className="small text-muted mt-2">Intro video ready. Click Save to apply.</div>
-
-                          <button
-                            type="button"
-                            className="btn btn-sm btn-outline-danger mt-2"
-                            disabled={saving}
-                            onClick={() => {
-                              setIntroVideoPath(null);
-                              setNotice("Intro video cleared. Click Save to persist.");
-                            }}
-                          >
-                            <i className="fa-solid fa-trash me-2"></i>Remove Video
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="small text-muted mt-2">No intro video yet. Upload a short preview or intro.</div>
-                      )}
-
-                      <div className="form-text mt-2">Keep file size under 50MB for faster loading.</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+        <div className="mb-3">
+          <label className="form-label">Profile image</label>
+          <input className="form-control" type="file" accept="image/*" onChange={onProfileFile} disabled={saving} />
+          <div className="form-text">A clear headshot or brand photo (square works best).</div>
+          {profileUrl ? (
+            <div className="mt-2">
+              <img
+                src={profileUrl}
+                alt="Profile"
+                className="img-fluid rounded border d-block mx-auto"
+                style={{ width: `${profileImageScale}%` }}
+              />
             </div>
-          </AdminStep>
-        </AdminStepper>
+          ) : (
+            <div className="small text-muted mt-2">No profile image yet.</div>
+          )}
 
-        {/* Storage details removed from UI */}
-      </div>
-    </div>
+          <div className="mt-3">
+            <label className="form-label d-flex justify-content-between" htmlFor="profileImageScale">
+              <span>Profile image size</span>
+              <span className="text-muted">{profileImageScale}%</span>
+            </label>
+            <input
+              id="profileImageScale"
+              type="range"
+              className="form-range"
+              min={PROFILE_IMAGE_SCALE_MIN}
+              max={PROFILE_IMAGE_SCALE_MAX}
+              step={5}
+              value={profileImageScale}
+              onChange={(e) => setProfileImageScale(clampProfileImageScale(e.target.value))}
+            />
+            <div className="form-text">Width of the profile image relative to its card on the homepage.</div>
+          </div>
+        </div>
+
+        <hr />
+
+        <div>
+          <label className="form-label">Intro video (upload)</label>
+          <input
+            className="form-control"
+            type="file"
+            accept="video/mp4,video/webm,video/*"
+            onChange={onIntroVideoFile}
+            disabled={saving}
+          />
+          <div className="form-text">A short intro works best (15-60 seconds). MP4 recommended, under 50MB.</div>
+
+          {introVideoFileUrl ? (
+            <div className="mt-2">
+              <div className="ratio ratio-16x9">
+                <video src={introVideoFileUrl} controls playsInline preload="metadata" />
+              </div>
+              <button
+                type="button"
+                className="btn btn-sm btn-outline-danger mt-2"
+                disabled={saving}
+                onClick={() => {
+                  setIntroVideoPath(null);
+                  setNotice("Intro video cleared. Save to apply it.");
+                }}
+              >
+                <i className="fa-solid fa-trash me-2"></i>Remove video
+              </button>
+            </div>
+          ) : (
+            <div className="small text-muted mt-2">No intro video yet.</div>
+          )}
+        </div>
+      </AdminSection>
+    </AdminPageShell>
   );
 }

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
+import AdminPageShell from "@/components/admin/AdminPageShell";
 
 const EMPTY_ITEM = {
   category: "",
@@ -224,28 +225,20 @@ function ManageChatbotKnowledge() {
   };
 
   return (
-    <div className="my-3">
-      <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
-        <div>
-          <h1 className="h4 mb-1">
-            <i className="fa-solid fa-brain me-2"></i>Chatbot Knowledge
-          </h1>
-          <p className="text-muted mb-0">
-            Add approved answers, recruiter notes, and common Q&amp;A for the public chatbot.
-          </p>
-        </div>
+    <AdminPageShell
+      error={msg?.type === "danger" ? msg.text : ""}
+      notice={msg?.type === "success" ? msg.text : ""}
+      extraActions={
         <button
-          className="btn btn-outline-secondary d-none d-lg-inline-flex"
+          className="btn btn-outline-secondary"
           onClick={() => location.reload()}
           disabled={loading || saving}
-          title="Reload"
+          type="button"
         >
-          <i className="fa-solid fa-rotate"></i>
+          <i className="fa-solid fa-rotate me-2"></i>Reload
         </button>
-      </div>
-
-      {msg && <div className={`alert alert-${msg.type}`} role="alert">{msg.text}</div>}
-
+      }
+    >
       <div className="card shadow-sm mb-4">
         <div className="card-body">
           <h2 className="h6 mb-3">Add Knowledge Entry</h2>
@@ -579,6 +572,6 @@ function ManageChatbotKnowledge() {
           )}
         </div>
       </div>
-    </div>
+    </AdminPageShell>
   );
 }

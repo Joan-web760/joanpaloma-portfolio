@@ -4,7 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 import AdminActionModal, { useAdminActionModal } from "@/components/admin/AdminActionModal";
-import AdminStepper, { AdminStep } from "@/components/admin/AdminStepper";
+import AdminPageShell from "@/components/admin/AdminPageShell";
+import AdminSection from "@/components/admin/AdminSection";
 
 const emptyForm = {
   name: "",
@@ -128,7 +129,6 @@ export default function AdminPricingPage() {
     }, 2000);
   };
 
-  const openPreview = () => window.open("/#pricing", "_blank");
 
   const stagedCount = useMemo(() => dirtyIds.size, [dirtyIds]);
 
@@ -464,75 +464,33 @@ The package should fit Joan Paloma's virtual assistant, admin support, operation
 
   if (loading) {
     return (
-      <div className="container py-5">
-        <div className="d-flex align-items-center gap-2 text-muted">
-          <span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
-          Loading Pricing editor...
-        </div>
+      <div className="d-flex align-items-center gap-2 text-muted py-4">
+        <span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
+        Loading the Pricing editor…
       </div>
     );
   }
 
   return (
-    <div className="bg-light min-vh-100">
-      <div className="container py-4">
-        <div className="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
-          <div>
-            <h1 className="h5 mb-1">Pricing & Packages</h1>
-            <div className="small text-muted">Manage packages, inclusions, add-ons, featured, ordering.</div>
-          </div>
-
-          <div className="d-flex flex-wrap gap-2 align-items-center">
-            {stagedCount ? (
-              <span className="badge text-bg-primary">
-                {stagedCount} change{stagedCount > 1 ? "s" : ""} not saved
-              </span>
-            ) : (
-              <span className="badge text-bg-success">All changes saved</span>
-            )}
-
-            <button className="btn btn-outline-secondary" onClick={discardChanges} disabled={busy || !stagedCount}>
-              <i className="fa-solid fa-rotate-left me-2"></i>Discard
-            </button>
-
-            <button className="btn btn-success" onClick={saveChanges} disabled={busy || !stagedCount}>
-              {busy ? (
-                <>
-                  <span className="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <i className="fa-solid fa-floppy-disk me-2"></i>Save Changes
-                </>
-              )}
-            </button>
-
-            <button className="btn btn-outline-dark" onClick={openPreview} disabled={busy}>
-              <i className="fa-solid fa-eye me-2"></i>Preview
-            </button>
-            <button className="btn btn-outline-primary" onClick={() => router.push("/admin")} disabled={busy}>
-              <i className="fa-solid fa-arrow-left me-2"></i>Dashboard
-            </button>
-          </div>
-        </div>
-
-        {error ? (
-          <div className="alert alert-danger py-2">
-            <i className="fa-solid fa-triangle-exclamation me-2"></i>
-            {error}
-          </div>
-        ) : null}
-
-        {notice ? (
-          <div className="alert alert-success py-2">
-            <i className="fa-solid fa-circle-check me-2"></i>
-            {notice}
-          </div>
-        ) : null}
-
-        <AdminStepper initialStep={1}>
-          <AdminStep title="Add Package" description="Create a new pricing tier.">
+    <AdminPageShell
+      preview="/#pricing"
+      dirty={stagedCount > 0}
+      saving={busy}
+      onSave={saveChanges}
+      error={error}
+      notice={notice}
+      extraActions={
+        <button
+          className="btn btn-outline-secondary"
+          onClick={discardChanges}
+          disabled={busy || !stagedCount}
+          type="button"
+        >
+          <i className="fa-solid fa-rotate-left me-2"></i>Discard
+        </button>
+      }
+    >
+      <AdminSection bare>
             {/* Add */}
         <div className="card border-0 shadow-sm mb-3">
           <div className="card-body">
@@ -666,17 +624,18 @@ The package should fit Joan Paloma's virtual assistant, admin support, operation
                     <div className="form-text">Highlight this package on the pricing page.</div>
                   </div>
 
-                  <div className="form-check">
+                  <div className="form-check form-switch">
                     <input
                       className="form-check-input"
                       type="checkbox"
+                      role="switch"
                       checked={!!form.is_published}
                       onChange={(e) => setForm((p) => ({ ...p, is_published: e.target.checked }))}
                       disabled={busy}
                       id="newPub"
                     />
                     <label className="form-check-label" htmlFor="newPub">
-                      Published
+                      Show on website
                     </label>
                     <div className="form-text">Show this package publicly.</div>
                   </div>
@@ -699,9 +658,9 @@ The package should fit Joan Paloma's virtual assistant, admin support, operation
           </div>
         </div>
 
-          </AdminStep>
+      </AdminSection>
 
-          <AdminStep title="Manage Packages" description="Edit details, reorder, and publish.">
+      <AdminSection bare>
             {/* List */}
         <div className="card border-0 shadow-sm">
           <div className="card-body">
@@ -739,7 +698,7 @@ The package should fit Joan Paloma's virtual assistant, admin support, operation
                         {it.name}{" "}
                         {it.is_featured ? <span className="badge text-bg-warning ms-2">Featured</span> : null}
                         {it.is_published ? (
-                          <span className="badge text-bg-success ms-2">Published</span>
+                          <span className="badge text-bg-success ms-2">Shown</span>
                         ) : (
                           <span className="badge text-bg-secondary ms-2">Hidden</span>
                         )}
@@ -870,19 +829,19 @@ The package should fit Joan Paloma's virtual assistant, admin support, operation
                           <div className="form-text">Highlight this package on the pricing page.</div>
                         </div>
 
-                        <div className="form-check">
+                        <div className="form-check form-switch">
                           <input
                             className="form-check-input"
                             type="checkbox"
+                            role="switch"
                             checked={pubVal}
                             onChange={(e) => stage(it.id, { is_published: e.target.checked })}
                             disabled={busy}
                             id={`pub_${it.id}`}
                           />
                           <label className="form-check-label" htmlFor={`pub_${it.id}`}>
-                            Published
+                            Show on website
                           </label>
-                          <div className="form-text">Show this package publicly.</div>
                         </div>
 
                         {isDirty ? (
@@ -915,10 +874,8 @@ The package should fit Joan Paloma's virtual assistant, admin support, operation
             </div>
           </div>
         </div>
-          </AdminStep>
-        </AdminStepper>
-      </div>
+      </AdminSection>
       <AdminActionModal modal={modal} onConfirm={onConfirm} onCancel={onCancel} />
-    </div>
+    </AdminPageShell>
   );
 }

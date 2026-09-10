@@ -5,7 +5,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 import AdminActionModal, { useAdminActionModal } from "@/components/admin/AdminActionModal";
-import AdminStepper, { AdminStep } from "@/components/admin/AdminStepper";
+import AdminPageShell from "@/components/admin/AdminPageShell";
+import AdminSection from "@/components/admin/AdminSection";
 
 const emptyForm = {
   title: "",
@@ -376,80 +377,35 @@ export default function AdminCertificationsPage() {
     }
   };
 
-  const openPreview = () => window.open("/#certifications", "_blank");
-
   if (loading) {
     return (
-      <div className="container py-5">
-        <div className="d-flex align-items-center gap-2 text-muted">
-          <span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
-          Loading Certifications editor...
-        </div>
+      <div className="d-flex align-items-center gap-2 text-muted py-4">
+        <span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
+        Loading the Certifications editor…
       </div>
     );
   }
 
   return (
-    <div className="bg-light min-vh-100">
-      <div className="container py-4">
-        <div className="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
-          <div>
-            <h1 className="h5 mb-1">Certifications</h1>
-            <div className="small text-muted">Add/edit certificates with proof image and verification link.</div>
-          </div>
-
-          <div className="d-flex gap-2">
-            <button className="btn btn-outline-dark" onClick={openPreview} disabled={busy}>
-              <i className="fa-solid fa-eye me-2"></i>Preview
-            </button>
-
-            {/* SAVE BUTTON (existing items edits) */}
-            <button
-              className={`btn ${hasPendingChanges ? "btn-success" : "btn-outline-success"}`}
-              onClick={saveChanges}
-              disabled={busy || !hasPendingChanges}
-              title={hasPendingChanges ? "Save staged changes" : "No changes to save"}
-            >
-              {saving ? (
-                <>
-                  <span className="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <i className="fa-solid fa-floppy-disk me-2"></i>
-                  Save Changes
-                  {hasPendingChanges ? <span className="badge text-bg-light text-dark ms-2">{Object.keys(drafts).length}</span> : null}
-                </>
-              )}
-            </button>
-
-            <button className="btn btn-outline-secondary" onClick={discardChanges} disabled={busy || !hasPendingChanges}>
-              <i className="fa-solid fa-rotate-left me-2"></i>Discard
-            </button>
-
-            <button className="btn btn-outline-primary" onClick={() => router.push("/admin")} disabled={busy}>
-              <i className="fa-solid fa-arrow-left me-2"></i>Dashboard
-            </button>
-          </div>
-        </div>
-
-        {error ? (
-          <div className="alert alert-danger py-2">
-            <i className="fa-solid fa-triangle-exclamation me-2"></i>
-            {error}
-          </div>
-        ) : null}
-
-        {notice ? (
-          <div className="alert alert-success py-2">
-            <i className="fa-solid fa-circle-check me-2"></i>
-            {notice}
-          </div>
-        ) : null}
-
-        <AdminStepper initialStep={1}>
-          <AdminStep title="Add Certification" description="Create a new certificate entry.">
+    <AdminPageShell
+      preview="/#certifications"
+      dirty={hasPendingChanges}
+      saving={saving || busy}
+      onSave={saveChanges}
+      error={error}
+      notice={notice}
+      extraActions={
+        <button
+          className="btn btn-outline-secondary"
+          onClick={discardChanges}
+          disabled={busy || !hasPendingChanges}
+          type="button"
+        >
+          <i className="fa-solid fa-rotate-left me-2"></i>Discard
+        </button>
+      }
+    >
+      <AdminSection bare>
             {/* Add Form */}
         <div className="card border-0 shadow-sm mb-3">
           <div className="card-body">
@@ -520,19 +476,19 @@ export default function AdminCertificationsPage() {
               </div>
 
               <div className="col-12 col-md-6 d-flex align-items-end justify-content-between">
-                <div className="form-check">
+                <div className="form-check form-switch">
                   <input
                     className="form-check-input"
                     type="checkbox"
+                    role="switch"
                     checked={!!form.is_published}
                     onChange={(e) => setForm((p) => ({ ...p, is_published: e.target.checked }))}
                     disabled={busy}
                     id="newCertPub"
                   />
                   <label className="form-check-label" htmlFor="newCertPub">
-                    Published
+                    Show on website
                   </label>
-                  <div className="form-text">Show this certification on your site.</div>
                 </div>
 
                 <button className="btn btn-primary" onClick={createItem} disabled={busy}>
@@ -543,7 +499,7 @@ export default function AdminCertificationsPage() {
                     </>
                   ) : (
                     <>
-                      <i className="fa-solid fa-plus me-2"></i>Add
+                      <i className="fa-solid fa-plus me-2"></i>Add certification
                     </>
                   )}
                 </button>
@@ -552,9 +508,9 @@ export default function AdminCertificationsPage() {
           </div>
         </div>
 
-          </AdminStep>
+      </AdminSection>
 
-          <AdminStep title="Manage Certificates" description="Edit, reorder, and publish items.">
+      <AdminSection bare>
             {/* List */}
         <div className="card border-0 shadow-sm">
           <div className="card-body">
@@ -591,7 +547,7 @@ export default function AdminCertificationsPage() {
                       <div className="fw-semibold">
                         {it.title}{" "}
                         {pubVal ? (
-                          <span className="badge text-bg-success ms-2">Published</span>
+                          <span className="badge text-bg-success ms-2">Shown</span>
                         ) : (
                           <span className="badge text-bg-secondary ms-2">Hidden</span>
                         )}
@@ -695,19 +651,19 @@ export default function AdminCertificationsPage() {
                       </div>
 
                       <div className="col-12 col-md-6 d-flex align-items-end justify-content-between">
-                        <div className="form-check">
+                        <div className="form-check form-switch">
                           <input
                             className="form-check-input"
                             type="checkbox"
+                            role="switch"
                             checked={pubVal}
                             onChange={(e) => onEdit(it.id, { is_published: e.target.checked })}
                             disabled={busy}
                             id={`pub_${it.id}`}
                           />
                           <label className="form-check-label" htmlFor={`pub_${it.id}`}>
-                            Published
+                            Show on website
                           </label>
-                          <div className="form-text">Toggle visibility on the public site.</div>
                         </div>
 
                         {isDirty ? (
@@ -785,52 +741,10 @@ export default function AdminCertificationsPage() {
               })}
             </div>
 
-            {/* Bottom Save bar */}
-            <div className="d-flex flex-wrap gap-2 align-items-center justify-content-between mt-3 pt-3 border-top">
-              <div className="small text-muted">
-                {hasPendingChanges ? (
-                  <>
-                    <i className="fa-solid fa-pen-to-square me-2"></i>
-                    {Object.keys(drafts).length} item(s) have unsaved edits.
-                  </>
-                ) : (
-                  <>
-                    <i className="fa-solid fa-circle-check me-2"></i>
-                    No pending edits.
-                  </>
-                )}
-              </div>
-
-              <div className="d-flex gap-2">
-                <button
-                  className={`btn ${hasPendingChanges ? "btn-success" : "btn-outline-success"}`}
-                  onClick={saveChanges}
-                  disabled={busy || !hasPendingChanges}
-                >
-                  {saving ? (
-                    <>
-                      <span className="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <i className="fa-solid fa-floppy-disk me-2"></i>Save Changes
-                    </>
-                  )}
-                </button>
-
-                <button className="btn btn-outline-secondary" onClick={discardChanges} disabled={busy || !hasPendingChanges}>
-                  <i className="fa-solid fa-rotate-left me-2"></i>Discard
-                </button>
-              </div>
-            </div>
-
           </div>
         </div>
-          </AdminStep>
-        </AdminStepper>
-      </div>
+      </AdminSection>
       <AdminActionModal modal={modal} onConfirm={onConfirm} onCancel={onCancel} />
-    </div>
+    </AdminPageShell>
   );
 }

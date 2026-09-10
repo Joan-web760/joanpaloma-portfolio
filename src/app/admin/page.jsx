@@ -17,9 +17,9 @@ const QUICK_TASKS = [
 function ContentStatus({ status, loading }) {
   if (loading) return <span className="admin-content-status">Checking…</span>;
   if (!status || status.error) return <span className="admin-content-status status-unavailable">Status unavailable</span>;
-  if (!status.total) return <span className="admin-content-status status-empty">No content yet</span>;
-  if (!status.published) return <span className="admin-content-status status-draft">Not published</span>;
-  return <span className="admin-content-status status-published"><span aria-hidden="true" />{status.published} published</span>;
+  if (!status.total) return <span className="admin-content-status status-empty">Nothing added yet</span>;
+  if (!status.published) return <span className="admin-content-status status-draft">Hidden</span>;
+  return <span className="admin-content-status status-published"><span aria-hidden="true" />{status.published} shown</span>;
 }
 
 export default function AdminDashboard() {

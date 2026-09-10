@@ -5,7 +5,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 import AdminActionModal, { useAdminActionModal } from "@/components/admin/AdminActionModal";
-import AdminStepper, { AdminStep } from "@/components/admin/AdminStepper";
+import AdminPageShell from "@/components/admin/AdminPageShell";
+import AdminSection from "@/components/admin/AdminSection";
 
 const emptyTool = {
   name: "",
@@ -457,11 +458,9 @@ export default function AdminToolsPage() {
     await reloadAll();
   };
 
-  const openPreview = () => window.open("/#tools", "_blank");
-
   const BadgePub = ({ pub }) =>
     pub ? (
-      <span className="badge text-bg-success">Published</span>
+      <span className="badge text-bg-success">Shown</span>
     ) : (
       <span className="badge text-bg-secondary">Hidden</span>
     );
@@ -477,54 +476,39 @@ export default function AdminToolsPage() {
 
   if (loading) {
     return (
-      <div className="container py-5">
-        <div className="d-flex align-items-center gap-2 text-muted">
-          <span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
-          Loading Tools editor...
-        </div>
+      <div className="d-flex align-items-center gap-2 text-muted py-4">
+        <span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
+        Loading the Tools editor…
       </div>
     );
   }
 
   return (
-    <div className="bg-light min-vh-100">
-      <div className="container py-4">
-        <div className="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
-          <div>
-            <h1 className="h5 mb-1">Tools</h1>
-            <div className="small text-muted">Add, reorder, and publish the tools you use.</div>
-          </div>
-
-          <div className="d-flex gap-2">
-            <button className="btn btn-outline-dark" onClick={openPreview}>
-              <i className="fa-solid fa-eye me-2"></i>Preview
-            </button>
-            <button className="btn btn-outline-primary" onClick={() => router.push("/admin")}>
-              <i className="fa-solid fa-arrow-left me-2"></i>Dashboard
-            </button>
-          </div>
-        </div>
-
-        {error ? (
-          <div className="alert alert-danger py-2">
-            <i className="fa-solid fa-triangle-exclamation me-2"></i>
-            {error}
-          </div>
-        ) : null}
-
-        {notice ? (
-          <div className="alert alert-success py-2">
-            <i className="fa-solid fa-circle-check me-2"></i>
-            {notice}
-          </div>
-        ) : null}
-
-        <AdminStepper initialStep={1}>
-          <AdminStep title="Add Tool" description="Create a new tool entry.">
-            <div className="card border-0 shadow-sm mb-3">
-              <div className="card-body">
-                <h2 className="h6 mb-3">Add Tool</h2>
-                <div className="row g-2 align-items-end">
+    <AdminPageShell
+      preview="/#tools"
+      dirty={dirty}
+      saving={busy}
+      onSave={saveChanges}
+      error={error}
+      notice={notice}
+      extraActions={
+        <>
+          <button className="btn btn-outline-secondary" onClick={requestReload} disabled={busy} type="button">
+            <i className="fa-solid fa-rotate me-2"></i>Reload
+          </button>
+          <button
+            className="btn btn-outline-secondary"
+            onClick={discardChanges}
+            disabled={busy || !dirty}
+            type="button"
+          >
+            Discard edits
+          </button>
+        </>
+      }
+    >
+      <AdminSection title="Add a tool" description="Create a new tool entry.">
+                <div className="row g-3 align-items-end">
                   <div className="col-12 col-md-4">
                     <label className="form-label">Name</label>
                     <input
@@ -566,23 +550,6 @@ export default function AdminToolsPage() {
                     <div className="form-text">Pick an icon below or type a Font Awesome class.</div>
                   </div>
 
-                  <div className="col-12 col-md-2">
-                    <div className="form-check mt-4">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        checked={!!newItem.is_published}
-                        onChange={(e) => setNewItem((p) => ({ ...p, is_published: e.target.checked }))}
-                        disabled={busy}
-                        id="newToolPub"
-                      />
-                      <label className="form-check-label" htmlFor="newToolPub">
-                        Publish
-                      </label>
-                      <div className="form-text">Show this tool on your site.</div>
-                    </div>
-                  </div>
-
                   <div className="col-12 col-md-6">
                     <label className="form-label">Description (optional)</label>
                     <input
@@ -604,17 +571,11 @@ export default function AdminToolsPage() {
                       onChange={(e) => setNewItem((p) => ({ ...p, url: e.target.value }))}
                       disabled={busy}
                     />
-                    <div className="form-text">Add a link to the tool's website.</div>
-                  </div>
-
-                  <div className="col-12 col-md-2 d-grid">
-                    <button className="btn btn-primary" onClick={createTool} disabled={busy}>
-                      <i className="fa-solid fa-plus me-2"></i>Add
-                    </button>
+                    <div className="form-text">A link to the tool website.</div>
                   </div>
 
                   <div className="col-12">
-                    <label className="form-label">Icon Gallery</label>
+                    <label className="form-label">Icon gallery</label>
                     <IconPicker
                       value={newItem.icon}
                       onSelect={(icon) => setNewItem((p) => ({ ...p, icon }))}
@@ -622,51 +583,40 @@ export default function AdminToolsPage() {
                     <div className="form-text">Click an icon to fill the icon field.</div>
                   </div>
                 </div>
-              </div>
-            </div>
-          </AdminStep>
 
-          <AdminStep title="Manage Tools" description="Edit, reorder, and save changes.">
-            <div className="card border-0 shadow-sm">
-              <div className="card-body">
-                <div className="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-2">
-                  <h2 className="h6 mb-0">Tools</h2>
-
-                  <div className="d-flex flex-wrap gap-2">
-                    <button className="btn btn-outline-secondary" onClick={requestReload} disabled={busy} type="button">
-                      <i className="fa-solid fa-rotate me-2"></i>Reload
-                    </button>
-                    <button
-                      className="btn btn-outline-secondary"
-                      onClick={discardChanges}
-                      disabled={busy || !dirty}
-                      type="button"
-                    >
-                      Discard
-                    </button>
-                    <button className="btn btn-primary" onClick={saveChanges} disabled={busy || !dirty} type="button">
-                      {busy ? (
-                        <>
-                          <span className="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
-                          Saving...
-                        </>
-                      ) : (
-                        <>
-                          <i className="fa-solid fa-floppy-disk me-2"></i>
-                          Save Changes
-                        </>
-                      )}
-                    </button>
+                <div className="d-flex flex-wrap gap-3 align-items-center justify-content-between mt-3">
+                  <div className="form-check form-switch mb-0">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      role="switch"
+                      checked={!!newItem.is_published}
+                      onChange={(e) => setNewItem((p) => ({ ...p, is_published: e.target.checked }))}
+                      disabled={busy}
+                      id="newToolPub"
+                    />
+                    <label className="form-check-label" htmlFor="newToolPub">
+                      Show on website
+                    </label>
                   </div>
-                </div>
 
-                <div className="d-flex flex-wrap gap-2 align-items-center mb-2">
-                  <span className="badge text-bg-light border text-muted">Tools: {itemsSorted.length}</span>
-                  {dirty ? <span className="badge text-bg-warning">Unsaved</span> : null}
+                  <button className="btn btn-primary" onClick={createTool} disabled={busy}>
+                    <i className="fa-solid fa-plus me-2"></i>Add tool
+                  </button>
+                </div>
+      </AdminSection>
+
+      <AdminSection
+        title="Your tools"
+        description="Edit the details, then click Save. Use the arrows to reorder — order changes save right away."
+      >
+                <div className="d-flex flex-wrap gap-2 align-items-center mb-3">
+                  <span className="badge text-bg-light border text-muted">{itemsSorted.length} tools</span>
+                  {dirty ? <span className="badge text-bg-warning">Unsaved changes</span> : null}
                 </div>
 
                 {itemsSorted.length === 0 ? (
-                  <div className="text-muted">No tools yet.</div>
+                  <div className="text-muted">No tools yet. Add your first one above.</div>
                 ) : (
                   <div className="vstack gap-2">
                     {itemsSorted.map((it, idx) => {
@@ -799,20 +749,19 @@ export default function AdminToolsPage() {
                               </div>
 
                               <div className="col-12 col-md-4">
-                                <label className="form-label d-block">Published</label>
-                                <div className="form-check">
+                                <div className="form-check form-switch mt-2">
                                   <input
                                     className="form-check-input"
                                     type="checkbox"
+                                    role="switch"
                                     id={`toolPub_${toKey(it.id)}`}
                                     checked={!!d.is_published}
                                     onChange={(e) => onChangeToolDraft(it.id, { is_published: e.target.checked })}
                                     disabled={busy}
                                   />
                                   <label className="form-check-label" htmlFor={`toolPub_${toKey(it.id)}`}>
-                                    Visible
+                                    Show on website
                                   </label>
-                                  <div className="form-text">Publish to show this tool.</div>
                                 </div>
                               </div>
                             </div>
@@ -822,16 +771,9 @@ export default function AdminToolsPage() {
                     })}
                   </div>
                 )}
-              </div>
-            </div>
-          </AdminStep>
-        </AdminStepper>
+      </AdminSection>
 
-        <div className="small text-muted mt-3">
-          Tip: Reorder changes apply immediately. Field edits are saved only when you click <b>Save Changes</b>.
-        </div>
-      </div>
       <AdminActionModal modal={modal} onConfirm={onConfirm} onCancel={onCancel} />
-    </div>
+    </AdminPageShell>
   );
 }

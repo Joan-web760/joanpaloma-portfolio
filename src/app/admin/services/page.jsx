@@ -5,25 +5,26 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 import AdminActionModal, { useAdminActionModal } from "@/components/admin/AdminActionModal";
-import AdminStepper, { AdminStep } from "@/components/admin/AdminStepper";
+import AdminPageShell from "@/components/admin/AdminPageShell";
+import AdminSection from "@/components/admin/AdminSection";
 
 const emptyService = { title: "", description: "", bulletsText: "", is_published: true };
 
 const bulletsPlaceholder =
   "Example:\n" +
-  "â€¢ Inbox + calendar management\n" +
-  "â€¢ Data entry / research\n" +
-  "â€¢ Weekly progress report";
+  "• Inbox + calendar management\n" +
+  "• Data entry / research\n" +
+  "• Weekly progress report";
 
-const BULLET = "â€¢ ";
+const BULLET = "• ";
+const BULLET_PREFIX = /^\s*(â€¢|•)\s*/;
 
 const ensureBulletsFormat = (text) => {
-  // Normalize lines so each non-empty line starts with "â€¢ "
+  // Normalize lines so each non-empty line starts with "• "
   const lines = (text || "").replace(/\r\n/g, "\n").split("\n");
   const fixed = lines.map((line) => {
-    const t = line.trimStart();
-    if (!t) return ""; // keep empty line
-    return t.startsWith("â€¢") ? `â€¢ ${t.replace(/^â€¢\s*/, "")}` : `â€¢ ${t}`;
+    const t = line.trim().replace(BULLET_PREFIX, "");
+    return t ? `${BULLET}${t}` : "";
   });
   return fixed.join("\n");
 };
@@ -294,7 +295,7 @@ export default function AdminServicesPage() {
           .sort((p, q) => (p.sort_order || 0) - (q.sort_order || 0))
       );
 
-      toast("Service reordered.");
+      toast("Order updated.");
     } catch (e) {
       setError(e.message || "Reorder failed.");
     } finally {
@@ -327,7 +328,6 @@ export default function AdminServicesPage() {
         const nextTitle = (d.title || "").trim();
         const nextDesc = (d.description || "").trim();
         const nextPub = !!d.is_published;
-        const nextBullets = toBulletsArray(d.bulletsText);
 
         if (nextTitle !== (it.title || "").trim()) {
           if (!nextTitle) throw new Error("Service title is required.");
@@ -338,7 +338,7 @@ export default function AdminServicesPage() {
 
         const prevBulletsText = fromBulletsArray(it.bullets);
         const nextBulletsText = (d.bulletsText || "").trim();
-        if (nextBulletsText !== (prevBulletsText || "").trim()) patch.bullets = nextBullets;
+        if (nextBulletsText !== (prevBulletsText || "").trim()) patch.bullets = toBulletsArray(d.bulletsText);
 
         if (Object.keys(patch).length) {
           serviceUpdates.push({ id: it.id, patch });
@@ -410,15 +410,6 @@ export default function AdminServicesPage() {
     await reloadAll();
   };
 
-  const openPreview = () => window.open("/#services", "_blank");
-
-  const BadgePub = ({ pub }) =>
-    pub ? (
-      <span className="badge text-bg-success">Published</span>
-    ) : (
-      <span className="badge text-bg-secondary">Hidden</span>
-    );
-
   const onChangeServiceDraft = (id, patch) => {
     const k = toKey(id);
     setServiceDrafts((prev) => ({
@@ -430,320 +421,256 @@ export default function AdminServicesPage() {
 
   if (loading) {
     return (
-      <div className="container py-5">
-        <div className="d-flex align-items-center gap-2 text-muted">
-          <span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
-          Loading Services editor...
-        </div>
+      <div className="d-flex align-items-center gap-2 text-muted py-4">
+        <span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
+        Loading the Services editor…
       </div>
     );
   }
 
   return (
-    <div className="bg-light min-vh-100">
-      <div className="container py-4">
-        {/* Header */}
-        <div className="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
-          <div>
-            <h1 className="h5 mb-1">Services - VA Offerings</h1>
-            <div className="small text-muted">
-              Edit fields then click <b>Save Changes</b>. Use the position badges to understand display order.
-            </div>
+    <AdminPageShell
+      preview="/#services"
+      dirty={dirty}
+      saving={busy}
+      onSave={saveChanges}
+      error={error}
+      notice={notice}
+    >
+      <AdminSection
+        title="Add a service"
+        description="Create a new service. Use “Show on website” to control whether visitors can see it."
+      >
+        <div className="row g-3">
+          <div className="col-12 col-md-6">
+            <label className="form-label">Title</label>
+            <input
+              className="form-control"
+              placeholder="Inbox management"
+              value={newItem.title}
+              onChange={(e) => setNewItem((p) => ({ ...p, title: e.target.value }))}
+              disabled={busy}
+            />
+            <div className="form-text">A short, scannable service name.</div>
           </div>
 
-          <div className="d-flex gap-2">
-            <button className="btn btn-outline-dark" onClick={openPreview}>
-              <i className="fa-solid fa-eye me-2"></i>Preview
-            </button>
-            <button className="btn btn-outline-primary" onClick={() => router.push("/admin")}>
-              <i className="fa-solid fa-arrow-left me-2"></i>Dashboard
-            </button>
+          <div className="col-12 col-md-6">
+            <label className="form-label">Description (optional)</label>
+            <input
+              className="form-control"
+              placeholder="Daily triage, responses, and follow-ups"
+              value={newItem.description}
+              onChange={(e) => setNewItem((p) => ({ ...p, description: e.target.value }))}
+              disabled={busy}
+            />
+            <div className="form-text">One sentence that explains the outcome.</div>
+          </div>
+
+          <div className="col-12">
+            <label className="form-label">Deliverables (optional, one per line)</label>
+            <textarea
+              className="form-control"
+              rows="3"
+              value={newItem.bulletsText}
+              onChange={(e) => setNewItem((p) => ({ ...p, bulletsText: e.target.value }))}
+              onKeyDown={(e) =>
+                handleBulletsKeyDown(e, newItem.bulletsText, (v) =>
+                  setNewItem((p) => ({ ...p, bulletsText: v }))
+                )
+              }
+              onFocus={() => {
+                setNewItem((p) => {
+                  if ((p.bulletsText || "").trim()) return p;
+                  return { ...p, bulletsText: BULLET };
+                });
+              }}
+              onBlur={() => {
+                setNewItem((p) => ({ ...p, bulletsText: ensureBulletsFormat(p.bulletsText) }));
+              }}
+              placeholder={bulletsPlaceholder}
+              disabled={busy}
+            />
+            <div className="form-text">List 2-5 key tasks or outcomes. One per line.</div>
           </div>
         </div>
 
-        {/* Alerts */}
-        {error ? (
-          <div className="alert alert-danger py-2">
-            <i className="fa-solid fa-triangle-exclamation me-2"></i>
-            {error}
+        <div className="d-flex flex-wrap gap-3 align-items-center justify-content-between mt-3">
+          <div className="form-check form-switch mb-0">
+            <input
+              className="form-check-input"
+              type="checkbox"
+              role="switch"
+              checked={!!newItem.is_published}
+              onChange={(e) => setNewItem((p) => ({ ...p, is_published: e.target.checked }))}
+              disabled={busy}
+              id="newItemPub"
+            />
+            <label className="form-check-label" htmlFor="newItemPub">
+              Show on website
+            </label>
           </div>
-        ) : null}
 
-        {notice ? (
-          <div className="alert alert-success py-2">
-            <i className="fa-solid fa-circle-check me-2"></i>
-            {notice}
-          </div>
-        ) : null}
+          <button className="btn btn-primary" onClick={createService} disabled={busy}>
+            <i className="fa-solid fa-plus me-2"></i>Add service
+          </button>
+        </div>
+      </AdminSection>
 
-        <AdminStepper initialStep={1}>
-          <AdminStep title="Add Service" description="Create a new service item.">
-            <div className="card border-0 shadow-sm mb-3">
-              <div className="card-body">
-                <h2 className="h6 mb-3">Add Service</h2>
-                <div className="row g-2">
-                  <div className="col-12 col-md-4">
-                    <label className="form-label">Title</label>
-                    <input
-                      className="form-control"
-                      placeholder="e.g. Inbox Management"
-                      value={newItem.title}
-                      onChange={(e) => setNewItem((p) => ({ ...p, title: e.target.value }))}
-                      disabled={busy}
-                    />
-                    <div className="form-text">Use a short, scannable service name.</div>
-                  </div>
+      <AdminSection
+        title="Your services"
+        description="Edit the details below, then click Save. Use the arrows to reorder — order changes are saved right away."
+        actions={
+          <>
+            <button className="btn btn-sm btn-outline-secondary" onClick={requestReload} disabled={busy} type="button">
+              <i className="fa-solid fa-rotate me-2"></i>Reload
+            </button>
+            <button
+              className="btn btn-sm btn-outline-secondary"
+              onClick={discardChanges}
+              disabled={busy || !dirty}
+              type="button"
+            >
+              Discard edits
+            </button>
+          </>
+        }
+      >
+        <div className="d-flex flex-wrap gap-2 align-items-center mb-3">
+          <span className="badge text-bg-light border text-muted">{itemsSorted.length} services</span>
+          {dirty ? <span className="badge text-bg-warning">Unsaved changes</span> : null}
+        </div>
 
-                  <div className="col-12 col-md-5">
-                    <label className="form-label">Description (optional)</label>
-                    <input
-                      className="form-control"
-                      placeholder="e.g. Daily triage, responses, and follow-ups"
-                      value={newItem.description}
-                      onChange={(e) => setNewItem((p) => ({ ...p, description: e.target.value }))}
-                      disabled={busy}
-                    />
-                    <div className="form-text">One sentence that explains the outcome.</div>
-                  </div>
+        {itemsSorted.length === 0 ? (
+          <div className="text-muted">No services yet. Add your first one above.</div>
+        ) : (
+          <div className="vstack gap-2">
+            {itemsSorted.map((it, idx) => {
+              const d = serviceDrafts[toKey(it.id)] || {
+                title: it.title || "",
+                description: it.description || "",
+                is_published: !!it.is_published,
+                bulletsText: fromBulletsArray(it.bullets),
+              };
 
-                  <div className="col-6 col-md-2">
-                    <div className="form-check mt-4">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        checked={!!newItem.is_published}
-                        onChange={(e) => setNewItem((p) => ({ ...p, is_published: e.target.checked }))}
-                        disabled={busy}
-                        id="newItemPub"
-                      />
-                      <label className="form-check-label" htmlFor="newItemPub">
-                        Publish
-                      </label>
-                      <div className="form-text">Show this service on your site.</div>
+              return (
+                <div className="card" key={toKey(it.id)}>
+                  <div className="card-body">
+                    <div className="d-flex flex-wrap gap-2 align-items-center justify-content-between">
+                      <div className="d-flex flex-wrap gap-2 align-items-center">
+                        <div className="fw-semibold">{d.title || "(Untitled service)"}</div>
+                        {d.is_published ? (
+                          <span className="badge text-bg-success">Shown</span>
+                        ) : (
+                          <span className="badge text-bg-secondary">Hidden</span>
+                        )}
+                        <span className="badge text-bg-light border text-muted">#{idx + 1}</span>
+                      </div>
+
+                      <div className="d-flex gap-2">
+                        <button
+                          className="btn btn-sm btn-outline-secondary"
+                          onClick={() => moveService(it.id, "up")}
+                          disabled={busy || idx === 0}
+                          type="button"
+                          title="Move up"
+                        >
+                          <i className="fa-solid fa-arrow-up"></i>
+                        </button>
+                        <button
+                          className="btn btn-sm btn-outline-secondary"
+                          onClick={() => moveService(it.id, "down")}
+                          disabled={busy || idx === itemsSorted.length - 1}
+                          type="button"
+                          title="Move down"
+                        >
+                          <i className="fa-solid fa-arrow-down"></i>
+                        </button>
+                        <button
+                          className="btn btn-sm btn-outline-danger"
+                          onClick={() => deleteService(it.id)}
+                          disabled={busy}
+                          type="button"
+                          title="Delete"
+                        >
+                          <i className="fa-solid fa-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="row g-3 mt-1">
+                      <div className="col-12 col-md-6">
+                        <label className="form-label">Title</label>
+                        <input
+                          className="form-control"
+                          placeholder="Calendar management"
+                          value={d.title}
+                          onChange={(e) => onChangeServiceDraft(it.id, { title: e.target.value })}
+                          disabled={busy}
+                        />
+                      </div>
+
+                      <div className="col-12 col-md-6">
+                        <label className="form-label">Description</label>
+                        <input
+                          className="form-control"
+                          placeholder="Schedule optimization and meeting prep"
+                          value={d.description}
+                          onChange={(e) => onChangeServiceDraft(it.id, { description: e.target.value })}
+                          disabled={busy}
+                        />
+                      </div>
+
+                      <div className="col-12">
+                        <label className="form-label">Deliverables (optional, one per line)</label>
+                        <textarea
+                          className="form-control"
+                          rows="3"
+                          value={d.bulletsText}
+                          onChange={(e) => onChangeServiceDraft(it.id, { bulletsText: e.target.value })}
+                          onKeyDown={(e) =>
+                            handleBulletsKeyDown(e, d.bulletsText, (v) =>
+                              onChangeServiceDraft(it.id, { bulletsText: v })
+                            )
+                          }
+                          onFocus={() => {
+                            onChangeServiceDraft(it.id, {
+                              bulletsText: (d.bulletsText || "").trim() ? d.bulletsText : BULLET,
+                            });
+                          }}
+                          onBlur={() => {
+                            onChangeServiceDraft(it.id, { bulletsText: ensureBulletsFormat(d.bulletsText) });
+                          }}
+                          placeholder={bulletsPlaceholder}
+                          disabled={busy}
+                        />
+                      </div>
+
+                      <div className="col-12">
+                        <div className="form-check form-switch">
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            role="switch"
+                            id={`itPub_${toKey(it.id)}`}
+                            checked={!!d.is_published}
+                            onChange={(e) => onChangeServiceDraft(it.id, { is_published: e.target.checked })}
+                            disabled={busy}
+                          />
+                          <label className="form-check-label" htmlFor={`itPub_${toKey(it.id)}`}>
+                            Show on website
+                          </label>
+                        </div>
+                      </div>
                     </div>
                   </div>
-
-                  <div className="col-6 col-md-1 d-grid">
-                    <button className="btn btn-primary" onClick={createService} disabled={busy}>
-                      <i className="fa-solid fa-plus me-2"></i>Add
-                    </button>
-                  </div>
-
-                  <div className="col-12">
-                    <label className="form-label mt-2">Deliverables (optional, one per line)</label>
-                    <textarea
-                      className="form-control"
-                      rows="3"
-                      value={newItem.bulletsText}
-                      onChange={(e) => {
-                        // Optional: enforce bullet prefix while typing
-                        setNewItem((p) => ({ ...p, bulletsText: e.target.value }));
-                      }}
-                      onKeyDown={(e) =>
-                        handleBulletsKeyDown(e, newItem.bulletsText, (v) =>
-                          setNewItem((p) => ({ ...p, bulletsText: v }))
-                        )
-                      }
-                      onFocus={() => {
-                        // Optional: if empty, start with a bullet
-                        setNewItem((p) => {
-                          if ((p.bulletsText || "").trim()) return p;
-                          return { ...p, bulletsText: BULLET };
-                        });
-                      }}
-                      onBlur={() => {
-                        // Optional: cleanup/normalize bullets on blur
-                        setNewItem((p) => ({ ...p, bulletsText: ensureBulletsFormat(p.bulletsText) }));
-                      }}
-                      placeholder={bulletsPlaceholder}
-                      disabled={busy}
-                    />
-                    <div className="form-text">List 2-5 key tasks or outcomes. One bullet per line.</div>
-                  </div>
                 </div>
-              </div>
-            </div>
-          </AdminStep>
+              );
+            })}
+          </div>
+        )}
+      </AdminSection>
 
-          <AdminStep title="Organize and Edit" description="Reorder, edit, and save your services.">
-            <div className="card border-0 shadow-sm">
-              <div className="card-body">
-                <div className="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-2">
-                  <h2 className="h6 mb-0">Services</h2>
-
-                  <div className="d-flex flex-wrap gap-2">
-                    <button className="btn btn-outline-secondary" onClick={requestReload} disabled={busy} type="button">
-                      <i className="fa-solid fa-rotate me-2"></i>Reload
-                    </button>
-                    <button
-                      className="btn btn-outline-secondary"
-                      onClick={discardChanges}
-                      disabled={busy || !dirty}
-                      type="button"
-                    >
-                      Discard
-                    </button>
-                    <button className="btn btn-primary" onClick={saveChanges} disabled={busy || !dirty} type="button">
-                      {busy ? (
-                        <>
-                          <span className="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
-                          Saving...
-                        </>
-                      ) : (
-                        <>
-                          <i className="fa-solid fa-floppy-disk me-2"></i>
-                          Save Changes
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="d-flex flex-wrap gap-2 align-items-center mb-2">
-                  <span className="badge text-bg-light border text-muted">Services: {itemsSorted.length}</span>
-                  {dirty ? <span className="badge text-bg-warning">Unsaved</span> : null}
-                </div>
-
-                {itemsSorted.length === 0 ? (
-                  <div className="text-muted">No services yet.</div>
-                ) : (
-                  <div className="vstack gap-2">
-                    {itemsSorted.map((it, idx) => {
-                      const d = serviceDrafts[toKey(it.id)] || {
-                        title: it.title || "",
-                        description: it.description || "",
-                        is_published: !!it.is_published,
-                        bulletsText: fromBulletsArray(it.bullets),
-                      };
-
-                      return (
-                        <div className="card" key={toKey(it.id)}>
-                          <div className="card-body">
-                            <div className="d-flex flex-wrap gap-2 align-items-center justify-content-between">
-                              <div className="d-flex flex-wrap gap-2 align-items-center">
-                                <div className="fw-semibold">{d.title || "(Untitled service)"}</div>
-                                <BadgePub pub={!!d.is_published} />
-                                <span className="badge text-bg-light border text-muted">Position: {idx + 1}</span>
-                              </div>
-
-                              <div className="d-flex gap-2">
-                                <button
-                                  className="btn btn-sm btn-outline-secondary"
-                                  onClick={() => moveService(it.id, "up")}
-                                  disabled={busy || idx === 0}
-                                  type="button"
-                                  title="Move up"
-                                >
-                                  <i className="fa-solid fa-arrow-up"></i>
-                                </button>
-                                <button
-                                  className="btn btn-sm btn-outline-secondary"
-                                  onClick={() => moveService(it.id, "down")}
-                                  disabled={busy || idx === itemsSorted.length - 1}
-                                  type="button"
-                                  title="Move down"
-                                >
-                                  <i className="fa-solid fa-arrow-down"></i>
-                                </button>
-                                <button
-                                  className="btn btn-sm btn-outline-danger"
-                                  onClick={() => deleteService(it.id)}
-                                  disabled={busy}
-                                  type="button"
-                                  title="Delete"
-                                >
-                                  <i className="fa-solid fa-trash"></i>
-                                </button>
-                              </div>
-                            </div>
-
-                            <div className="row g-2 mt-2">
-                              <div className="col-12 col-md-4">
-                                <label className="form-label">Title</label>
-                                <input
-                                  className="form-control"
-                                  placeholder="e.g. Calendar Management"
-                                  value={d.title}
-                                  onChange={(e) => onChangeServiceDraft(it.id, { title: e.target.value })}
-                                  disabled={busy}
-                                />
-                                <div className="form-text">Short, scannable service name.</div>
-                              </div>
-
-                              <div className="col-12 col-md-5">
-                                <label className="form-label">Description</label>
-                                <input
-                                  className="form-control"
-                                  placeholder="e.g. Schedule optimization and meeting prep"
-                                  value={d.description}
-                                  onChange={(e) => onChangeServiceDraft(it.id, { description: e.target.value })}
-                                  disabled={busy}
-                                />
-                                <div className="form-text">Brief outcome-focused summary.</div>
-                              </div>
-
-                              <div className="col-12 col-md-3">
-                                <label className="form-label d-block">Published</label>
-                                <div className="form-check">
-                                  <input
-                                    className="form-check-input"
-                                    type="checkbox"
-                                    id={`itPub_${toKey(it.id)}`}
-                                    checked={!!d.is_published}
-                                    onChange={(e) => onChangeServiceDraft(it.id, { is_published: e.target.checked })}
-                                    disabled={busy}
-                                  />
-                                  <label className="form-check-label" htmlFor={`itPub_${toKey(it.id)}`}>
-                                    Visible
-                                  </label>
-                                  <div className="form-text">Publish to show this service.</div>
-                                </div>
-                              </div>
-
-                              <div className="col-12">
-                                <label className="form-label">Deliverables (optional, one per line)</label>
-                                <textarea
-                                  className="form-control"
-                                  rows="3"
-                                  value={d.bulletsText}
-                                  onChange={(e) => onChangeServiceDraft(it.id, { bulletsText: e.target.value })}
-                                  onKeyDown={(e) =>
-                                    handleBulletsKeyDown(e, d.bulletsText, (v) =>
-                                      onChangeServiceDraft(it.id, { bulletsText: v })
-                                    )
-                                  }
-                                  onFocus={() => {
-                                    onChangeServiceDraft(it.id, {
-                                      bulletsText: (d.bulletsText || "").trim() ? d.bulletsText : BULLET,
-                                    });
-                                  }}
-                                  onBlur={() => {
-                                    onChangeServiceDraft(it.id, { bulletsText: ensureBulletsFormat(d.bulletsText) });
-                                  }}
-                                  placeholder={bulletsPlaceholder}
-                                  disabled={busy}
-                                />
-                                <div className="form-text">List key tasks or deliverables. One bullet per line.</div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            </div>
-          </AdminStep>
-        </AdminStepper>
-
-        <div className="small text-muted mt-3">
-          Tip: â€œMove up/downâ€ reorders immediately. Field edits are saved only when you click <b>Save Changes</b>.
-        </div>
-      </div>
       <AdminActionModal modal={modal} onConfirm={onConfirm} onCancel={onCancel} />
-    </div>
+    </AdminPageShell>
   );
 }
-
-

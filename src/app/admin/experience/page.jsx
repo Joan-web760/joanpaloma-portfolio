@@ -4,7 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 import AdminActionModal, { useAdminActionModal } from "@/components/admin/AdminActionModal";
-import AdminStepper, { AdminStep } from "@/components/admin/AdminStepper";
+import AdminPageShell from "@/components/admin/AdminPageShell";
+import AdminSection from "@/components/admin/AdminSection";
 
 const emptyForm = {
   role_title: "",
@@ -511,8 +512,6 @@ export default function AdminExperiencePage() {
     }
   };
 
-  const openPreview = () => window.open("/experience#experience", "_blank");
-
   const mergedDraft = (it) => {
     const base = baselineRef.current[it.id] || normalizeItem(it);
     const d = drafts[it.id] || {};
@@ -521,73 +520,33 @@ export default function AdminExperiencePage() {
 
   if (loading) {
     return (
-      <div className="container py-5">
-        <div className="d-flex align-items-center gap-2 text-muted">
-          <span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
-          Loading Experience editor...
-        </div>
+      <div className="d-flex align-items-center gap-2 text-muted py-4">
+        <span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
+        Loading the Work experience editor…
       </div>
     );
   }
 
   return (
-    <div className="bg-light min-vh-100">
-      <div className="container py-4">
-        <div className="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
-          <div>
-            <h1 className="h5 mb-1">Work Experience</h1>
-            <div className="small text-muted">
-              Timeline entries with responsibilities, achievements, tools, tags, and order.
-            </div>
-          </div>
-
-          <div className="d-flex gap-2 flex-wrap align-items-center">
-            {/* Global Save/Discard */}
-            <button
-              className="btn btn-success"
-              onClick={saveAll}
-              disabled={busy || !dirtyCount}
-              title={!dirtyCount ? "No changes to save" : "Save all edited items"}
-            >
-              <i className="fa-solid fa-floppy-disk me-2"></i>
-              Save Changes {dirtyCount ? `(${dirtyCount})` : ""}
-            </button>
-
-            <button
-              className="btn btn-outline-secondary"
-              onClick={discardAll}
-              disabled={busy || !dirtyCount}
-              title={!dirtyCount ? "No changes to discard" : "Discard all unsaved edits"}
-            >
-              <i className="fa-solid fa-rotate-left me-2"></i>Discard
-            </button>
-
-            <button className="btn btn-outline-dark" onClick={openPreview} disabled={busy}>
-              <i className="fa-solid fa-eye me-2"></i>Preview
-            </button>
-
-            <button className="btn btn-outline-primary" onClick={() => router.push("/admin")} disabled={busy}>
-              <i className="fa-solid fa-arrow-left me-2"></i>Dashboard
-            </button>
-          </div>
-        </div>
-
-        {error ? (
-          <div className="alert alert-danger py-2">
-            <i className="fa-solid fa-triangle-exclamation me-2"></i>
-            {error}
-          </div>
-        ) : null}
-
-        {notice ? (
-          <div className="alert alert-success py-2">
-            <i className="fa-solid fa-circle-check me-2"></i>
-            {notice}
-          </div>
-        ) : null}
-
-        <AdminStepper initialStep={1}>
-          <AdminStep title="Add Experience" description="Create a new timeline entry.">
+    <AdminPageShell
+      preview="/experience#experience"
+      dirty={dirtyCount > 0}
+      saving={busy}
+      onSave={saveAll}
+      error={error}
+      notice={notice}
+      extraActions={
+        <button
+          className="btn btn-outline-secondary"
+          onClick={discardAll}
+          disabled={busy || !dirtyCount}
+          type="button"
+        >
+          <i className="fa-solid fa-rotate-left me-2"></i>Discard
+        </button>
+      }
+    >
+      <AdminSection bare>
             {/* Add Form */}
         <div className="card border-0 shadow-sm mb-3">
           <div className="card-body">
@@ -637,7 +596,7 @@ export default function AdminExperiencePage() {
                   onChange={(e) => setForm((p) => ({ ...p, location: e.target.value }))}
                   disabled={busy}
                 />
-                <div className="form-text">City, country, or "Remote".</div>
+                <div className="form-text">City, country, or Remote.</div>
               </div>
 
               <div className="col-6 col-md-3">
@@ -746,35 +705,35 @@ export default function AdminExperiencePage() {
                 <div className="form-text">Optional keywords for filtering or emphasis.</div>
               </div>
 
-              <div className="col-6">
-                <div className="form-check mt-3">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    checked={!!form.is_published}
-                    onChange={(e) => setForm((p) => ({ ...p, is_published: e.target.checked }))}
-                    disabled={busy}
-                    id="newExpPub"
-                  />
-                  <label className="form-check-label" htmlFor="newExpPub">
-                    Published
-                  </label>
-                  <div className="form-text">Show this role on your public timeline.</div>
-                </div>
-              </div>
+              <div className="col-12">
+                <div className="d-flex flex-wrap gap-3 align-items-center justify-content-between mt-3">
+                  <div className="form-check form-switch mb-0">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      role="switch"
+                      checked={!!form.is_published}
+                      onChange={(e) => setForm((p) => ({ ...p, is_published: e.target.checked }))}
+                      disabled={busy}
+                      id="newExpPub"
+                    />
+                    <label className="form-check-label" htmlFor="newExpPub">
+                      Show on website
+                    </label>
+                  </div>
 
-              <div className="col-6 d-grid mt-3">
-                <button className="btn btn-primary" onClick={createItem} disabled={busy}>
-                  <i className="fa-solid fa-plus me-2"></i>Add Experience
-                </button>
+                  <button className="btn btn-primary" onClick={createItem} disabled={busy}>
+                    <i className="fa-solid fa-plus me-2"></i>Add experience
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-          </AdminStep>
+      </AdminSection>
 
-          <AdminStep title="Manage Timeline" description="Edit, reorder, and publish entries.">
+      <AdminSection bare>
             {/* List */}
         <div className="card border-0 shadow-sm">
           <div className="card-body">
@@ -800,7 +759,7 @@ export default function AdminExperiencePage() {
 
                       <div className="d-flex gap-2 align-items-center">
                         {it.is_published ? (
-                          <span className="badge text-bg-success">Published</span>
+                          <span className="badge text-bg-success">Shown</span>
                         ) : (
                           <span className="badge text-bg-secondary">Hidden</span>
                         )}
@@ -993,19 +952,19 @@ export default function AdminExperiencePage() {
 
                       <div className="col-12">
                         <div className="d-flex flex-wrap gap-2 align-items-center">
-                          <div className="form-check">
+                          <div className="form-check form-switch">
                             <input
                               className="form-check-input"
                               type="checkbox"
+                              role="switch"
                               checked={!!v.is_published}
                               onChange={(e) => stage(it.id, "is_published", e.target.checked)}
                               disabled={busy}
                               id={`pub_${it.id}`}
                             />
                             <label className="form-check-label" htmlFor={`pub_${it.id}`}>
-                              Published
+                              Show on website
                             </label>
-                            <div className="form-text">Turn on to show this role on the site.</div>
                           </div>
 
                           <button
@@ -1039,10 +998,8 @@ export default function AdminExperiencePage() {
             </div>
           </div>
         </div>
-          </AdminStep>
-        </AdminStepper>
-      </div>
+      </AdminSection>
       <AdminActionModal modal={modal} onConfirm={onConfirm} onCancel={onCancel} />
-    </div>
+    </AdminPageShell>
   );
 }

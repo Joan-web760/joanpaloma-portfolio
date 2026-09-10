@@ -5,6 +5,7 @@ import MarkdownContent from "@/components/MarkdownContent";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 import AdminActionModal, { useAdminActionModal } from "@/components/admin/AdminActionModal";
+import AdminPageShell from "@/components/admin/AdminPageShell";
 
 export default function AdminChatbotLogsClient() {
   return <ManageChatbotLogs />;
@@ -92,23 +93,20 @@ function ManageChatbotLogs() {
   };
 
   return (
-    <>
-      <div className="d-flex align-items-center justify-content-between mb-3">
-        <h1 className="h4 mb-0">
-          <i className="fa-solid fa-robot me-2"></i>Chatbot Logs
-        </h1>
+    <AdminPageShell
+      error={msg?.type === "danger" ? msg.text : ""}
+      notice={msg?.type === "success" ? msg.text : ""}
+      extraActions={
         <button
-          className="btn btn-outline-secondary d-none d-lg-inline-flex"
+          className="btn btn-outline-secondary"
           onClick={() => location.reload()}
           disabled={loading || working}
-          title="Reload"
+          type="button"
         >
-          <i className="fa-solid fa-rotate"></i>
+          <i className="fa-solid fa-rotate me-2"></i>Reload
         </button>
-      </div>
-
-      {msg && <div className={`alert alert-${msg.type}`} role="alert">{msg.text}</div>}
-
+      }
+    >
       {loading ? (
         <div className="text-center my-5">
           <div className="spinner-border" role="status"></div>
@@ -229,6 +227,6 @@ function ManageChatbotLogs() {
       </div>
 
       <AdminActionModal modal={modal} onConfirm={onConfirm} onCancel={onCancel} />
-    </>
+    </AdminPageShell>
   );
 }

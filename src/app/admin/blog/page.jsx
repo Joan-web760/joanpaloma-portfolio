@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 import AdminActionModal, { useAdminActionModal } from "@/components/admin/AdminActionModal";
-import AdminStepper, { AdminStep } from "@/components/admin/AdminStepper";
+import AdminPageShell from "@/components/admin/AdminPageShell";
+import AdminSection from "@/components/admin/AdminSection";
 
 const emptyForm = {
   title: "",
@@ -218,7 +219,6 @@ export default function AdminBlogPage() {
     }
   };
 
-  const openPreviewList = () => window.open("/#blog", "_blank");
 
   const generateBlogDraft = async () => {
     const brief = aiBrief.trim() || form.title.trim() || form.excerpt.trim() || defaultBlogBrief;
@@ -294,50 +294,16 @@ Keep the content useful for clients who may need virtual assistant, admin, opera
 
   if (loading) {
     return (
-      <div className="container py-5">
-        <div className="d-flex align-items-center gap-2 text-muted">
-          <span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
-          Loading Blog editor...
-        </div>
+      <div className="d-flex align-items-center gap-2 text-muted py-4">
+        <span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
+        Loading the Blog editor…
       </div>
     );
   }
 
   return (
-    <div className="bg-light min-vh-100">
-      <div className="container py-4">
-        <div className="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
-          <div>
-            <h1 className="h5 mb-1">Blog</h1>
-            <div className="small text-muted">Draft/publish posts, consistent formatting, cover uploads.</div>
-          </div>
-
-          <div className="d-flex gap-2">
-            <button className="btn btn-outline-dark" onClick={openPreviewList}>
-              <i className="fa-solid fa-eye me-2"></i>Preview
-            </button>
-            <button className="btn btn-outline-primary" onClick={() => router.push("/admin")}>
-              <i className="fa-solid fa-arrow-left me-2"></i>Dashboard
-            </button>
-          </div>
-        </div>
-
-        {error ? (
-          <div className="alert alert-danger py-2">
-            <i className="fa-solid fa-triangle-exclamation me-2"></i>
-            {error}
-          </div>
-        ) : null}
-
-        {notice ? (
-          <div className="alert alert-success py-2">
-            <i className="fa-solid fa-circle-check me-2"></i>
-            {notice}
-          </div>
-        ) : null}
-
-        <AdminStepper initialStep={1}>
-          <AdminStep title="Create Post" description="Draft a new blog entry.">
+    <AdminPageShell preview="/#blog" error={error} notice={notice}>
+      <AdminSection bare>
             {/* Create */}
         <div className="card border-0 shadow-sm mb-3">
           <div className="card-body">
@@ -495,32 +461,33 @@ Keep the content useful for clients who may need virtual assistant, admin, opera
               </div>
 
               <div className="col-12 col-md-6 d-flex align-items-end justify-content-between">
-                <div className="form-check">
+                <div className="form-check form-switch">
                   <input
                     className="form-check-input"
                     type="checkbox"
+                    role="switch"
                     checked={!!form.is_published}
                     onChange={(e) => setForm((p) => ({ ...p, is_published: e.target.checked }))}
                     disabled={busy}
                     id="newBlogPub"
                   />
                   <label className="form-check-label" htmlFor="newBlogPub">
-                    Publish now
+                    Show on website
                   </label>
-                  <div className="form-text">Uncheck to keep it as a draft.</div>
+                  <div className="form-text">Leave off to keep it as a draft.</div>
                 </div>
 
                 <button className="btn btn-primary" onClick={createPost} disabled={busy}>
-                  <i className="fa-solid fa-plus me-2"></i>Create
+                  <i className="fa-solid fa-plus me-2"></i>Create post
                 </button>
               </div>
             </div>
           </div>
         </div>
 
-          </AdminStep>
+      </AdminSection>
 
-          <AdminStep title="Manage Posts" description="Edit content, covers, and publish status.">
+      <AdminSection bare>
             {/* List */}
         <div className="card border-0 shadow-sm">
           <div className="card-body">
@@ -538,9 +505,9 @@ Keep the content useful for clients who may need virtual assistant, admin, opera
                         <div className="fw-semibold">
                           {p.title}{" "}
                           {p.is_published ? (
-                            <span className="badge text-bg-success ms-2">Published</span>
+                            <span className="badge text-bg-success ms-2">Shown</span>
                           ) : (
-                            <span className="badge text-bg-secondary ms-2">Draft</span>
+                            <span className="badge text-bg-secondary ms-2">Hidden</span>
                           )}
                         </div>
                         <div className="text-muted small">
@@ -652,19 +619,20 @@ Keep the content useful for clients who may need virtual assistant, admin, opera
                       </div>
 
                       <div className="col-12 col-md-6 d-flex align-items-end">
-                        <div className="form-check">
+                        <div className="form-check form-switch">
                           <input
                             className="form-check-input"
                             type="checkbox"
+                            role="switch"
                             defaultChecked={!!p.is_published}
                             onChange={(e) => updatePost(p.id, { is_published: e.target.checked })}
                             disabled={busy}
                             id={`pub_${p.id}`}
                           />
                           <label className="form-check-label" htmlFor={`pub_${p.id}`}>
-                            Published
+                            Show on website
                           </label>
-                          <div className="form-text">Toggle to publish or hide this post.</div>
+                          <div className="form-text">Saves right away.</div>
                         </div>
                       </div>
                     </div>
@@ -674,10 +642,8 @@ Keep the content useful for clients who may need virtual assistant, admin, opera
             </div>
           </div>
         </div>
-          </AdminStep>
-        </AdminStepper>
-      </div>
+      </AdminSection>
       <AdminActionModal modal={modal} onConfirm={onConfirm} onCancel={onCancel} />
-    </div>
+    </AdminPageShell>
   );
 }

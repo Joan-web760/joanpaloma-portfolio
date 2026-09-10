@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 
@@ -44,19 +45,20 @@ export default function BlogPostPage() {
 
   if (loading) {
     return (
-      <div className="container py-5 text-muted">
-        Loading...
+      <div className="d-flex align-items-center gap-2 text-muted py-4">
+        <span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
+        Loading the post…
       </div>
     );
   }
 
   if (!post) {
     return (
-      <div className="container py-5">
-        <div className="alert alert-warning">Post not found.</div>
-        <a className="btn btn-outline-dark" href="/#blog">
-          <i className="fa-solid fa-arrow-left me-2"></i>Back to Blog
-        </a>
+      <div className="admin-page">
+        <div className="alert alert-warning">This post was not found, or it is not published.</div>
+        <Link className="btn btn-outline-secondary" href="/admin/blog">
+          <i className="fa-solid fa-arrow-left me-2"></i>Back to Blog posts
+        </Link>
       </div>
     );
   }
@@ -65,11 +67,10 @@ export default function BlogPostPage() {
   const dateLabel = post.published_at ? new Date(post.published_at).toLocaleString() : "";
 
   return (
-    <div className="bg-light min-vh-100">
-      <div className="container py-4">
-        <a className="btn btn-outline-dark mb-3" href="/#blog">
-          <i className="fa-solid fa-arrow-left me-2"></i>Back
-        </a>
+    <div className="admin-page">
+        <Link className="btn btn-outline-secondary" href="/admin/blog">
+          <i className="fa-solid fa-arrow-left me-2"></i>Back to Blog posts
+        </Link>
 
         <div className="card border-0 shadow-sm">
           {img ? (
@@ -89,7 +90,6 @@ export default function BlogPostPage() {
             </div>
           </div>
         </div>
-      </div>
     </div>
   );
 }

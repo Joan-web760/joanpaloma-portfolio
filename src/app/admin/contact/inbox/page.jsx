@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 import AdminActionModal, { useAdminActionModal } from "@/components/admin/AdminActionModal";
+import AdminPageShell from "@/components/admin/AdminPageShell";
 
 export default function AdminContactInboxPage() {
   const router = useRouter();
@@ -152,65 +153,33 @@ export default function AdminContactInboxPage() {
     }
   };
 
-  const openPreview = () => window.open("/#contact", "_blank");
   const openSettings = () => router.push("/admin/contact");
 
   if (loading) {
     return (
-      <div className="container py-5">
-        <div className="d-flex align-items-center gap-2 text-muted">
-          <span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
-          Loading inbox...
-        </div>
+      <div className="d-flex align-items-center gap-2 text-muted py-4">
+        <span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
+        Loading your messages…
       </div>
     );
   }
 
   return (
-    <div className="bg-light min-vh-100">
-      <div className="container py-4">
-        <div className="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
-          <div>
-            <h1 className="h5 mb-1">Contact Inbox</h1>
-            <div className="small text-muted">Review messages sent from your contact form.</div>
-          </div>
-
-          <div className="d-flex gap-2 flex-wrap">
-            <button className="btn btn-outline-secondary" onClick={reloadInbox} disabled={busy}>
-              {busy ? (
-                <>
-                  <span className="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
-                  Refreshing...
-                </>
-              ) : (
-                <>
-                  <i className="fa-solid fa-rotate me-2"></i>Refresh Inbox
-                </>
-              )}
-            </button>
-            <button className="btn btn-outline-dark" onClick={openPreview} disabled={busy}>
-              <i className="fa-solid fa-eye me-2"></i>Preview
-            </button>
-            <button className="btn btn-outline-primary" onClick={openSettings} disabled={busy}>
-              <i className="fa-solid fa-gear me-2"></i>Contact Settings
-            </button>
-          </div>
-        </div>
-
-        {error ? (
-          <div className="alert alert-danger py-2">
-            <i className="fa-solid fa-triangle-exclamation me-2"></i>
-            {error}
-          </div>
-        ) : null}
-
-        {notice ? (
-          <div className="alert alert-success py-2">
-            <i className="fa-solid fa-circle-check me-2"></i>
-            {notice}
-          </div>
-        ) : null}
-
+    <AdminPageShell
+      preview="/#contact"
+      error={error}
+      notice={notice}
+      extraActions={
+        <>
+          <button className="btn btn-outline-secondary" onClick={reloadInbox} disabled={busy} type="button">
+            <i className="fa-solid fa-rotate me-2"></i>Refresh
+          </button>
+          <button className="btn btn-outline-secondary" onClick={openSettings} disabled={busy} type="button">
+            <i className="fa-solid fa-gear me-2"></i>Contact details
+          </button>
+        </>
+      }
+    >
         <div className="row g-3">
           <div className="col-12 col-lg-5">
             <div className="card border-0 shadow-sm h-100">
@@ -324,8 +293,7 @@ export default function AdminContactInboxPage() {
             </div>
           </div>
         </div>
-      </div>
       <AdminActionModal modal={modal} onConfirm={onConfirm} onCancel={onCancel} />
-    </div>
+    </AdminPageShell>
   );
 }

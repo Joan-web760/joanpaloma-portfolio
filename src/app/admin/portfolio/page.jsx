@@ -5,7 +5,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 import AdminActionModal, { useAdminActionModal } from "@/components/admin/AdminActionModal";
-import AdminStepper, { AdminStep } from "@/components/admin/AdminStepper";
+import AdminPageShell from "@/components/admin/AdminPageShell";
+import AdminSection from "@/components/admin/AdminSection";
 
 /** Helpers */
 const toLines = (text) =>
@@ -212,7 +213,6 @@ export default function AdminPortfolioPage() {
     if (mountedRef.current) setSignedUrlMap(next);
   };
 
-  const openPreview = () => window.open("/#portfolio", "_blank");
 
   // ---------- MEDIA ----------
   const validateFiles = (files) => {
@@ -646,73 +646,33 @@ export default function AdminPortfolioPage() {
 
   if (loading) {
     return (
-      <div className="container py-5">
-        <div className="d-flex align-items-center gap-2 text-muted">
-          <span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
-          Loading Portfolio editor...
-        </div>
+      <div className="d-flex align-items-center gap-2 text-muted py-4">
+        <span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
+        Loading the Projects editor…
       </div>
     );
   }
 
   return (
-    <div className="bg-light min-vh-100">
-      <div className="container py-4">
-        <div className="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
-          <div>
-            <h1 className="h5 mb-1">Portfolio — Work Samples</h1>
-            <div className="small text-muted">
-              Add projects, highlight featured work, reorder items, and upload screenshots or demo clips.
-            </div>
-          </div>
-
-          <div className="d-flex gap-2">
-            <button className="btn btn-outline-dark" onClick={openPreview}>
-              <i className="fa-solid fa-eye me-2"></i>Preview
-            </button>
-
-            {/* ✅ Save button group */}
-            <button
-              className="btn btn-success"
-              onClick={saveChanges}
-              disabled={busy || saving || dirtyCount === 0}
-              title={dirtyCount ? "Save your edited items" : "No changes to save"}
-            >
-              <i className="fa-solid fa-floppy-disk me-2"></i>
-              {saving ? "Saving..." : dirtyCount ? `Save Changes (${dirtyCount})` : "Saved"}
-            </button>
-
-            <button
-              className="btn btn-outline-secondary"
-              onClick={discardChanges}
-              disabled={busy || saving || dirtyCount === 0}
-              title="Revert unsaved edits"
-            >
-              <i className="fa-solid fa-rotate-left me-2"></i>Discard
-            </button>
-
-            <button className="btn btn-outline-primary" onClick={() => router.push("/admin")}>
-              <i className="fa-solid fa-arrow-left me-2"></i>Dashboard
-            </button>
-          </div>
-        </div>
-
-        {error ? (
-          <div className="alert alert-danger py-2" style={{ whiteSpace: "pre-wrap" }}>
-            <i className="fa-solid fa-triangle-exclamation me-2"></i>
-            {error}
-          </div>
-        ) : null}
-
-        {notice ? (
-          <div className="alert alert-success py-2">
-            <i className="fa-solid fa-circle-check me-2"></i>
-            {notice}
-          </div>
-        ) : null}
-
-        <AdminStepper initialStep={1}>
-          <AdminStep title="Add Portfolio Item" description="Create a new project entry.">
+    <AdminPageShell
+      preview="/#portfolio"
+      dirty={dirtyCount > 0}
+      saving={busy || saving}
+      onSave={saveChanges}
+      error={error}
+      notice={notice}
+      extraActions={
+        <button
+          className="btn btn-outline-secondary"
+          onClick={discardChanges}
+          disabled={busy || saving || dirtyCount === 0}
+          type="button"
+        >
+          <i className="fa-solid fa-rotate-left me-2"></i>Discard
+        </button>
+      }
+    >
+      <AdminSection bare>
             {/* Add Item */}
         <div className="card border-0 shadow-sm mb-3">
           <div className="card-body">
@@ -835,25 +795,25 @@ export default function AdminPortfolioPage() {
               </div>
 
               <div className="col-6">
-                <div className="form-check mt-2">
-                  <input className="form-check-input" type="checkbox" checked={!!newItem.is_published} onChange={(e) => setNewItem((p) => ({ ...p, is_published: e.target.checked }))} disabled={busy} id="newPub" />
-                  <label className="form-check-label" htmlFor="newPub">Published</label>
+                <div className="form-check form-switch mt-2">
+                  <input className="form-check-input" type="checkbox" role="switch" checked={!!newItem.is_published} onChange={(e) => setNewItem((p) => ({ ...p, is_published: e.target.checked }))} disabled={busy} id="newPub" />
+                  <label className="form-check-label" htmlFor="newPub">Show on website</label>
                   <div className="form-text">Show this project on your public site.</div>
                 </div>
               </div>
 
-              <div className="col-12 d-grid mt-2">
+              <div className="col-12 d-grid mt-3">
                 <button className="btn btn-primary" onClick={createItem} disabled={busy}>
-                  <i className="fa-solid fa-plus me-2"></i>Add Portfolio Item
+                  <i className="fa-solid fa-plus me-2"></i>Add project
                 </button>
               </div>
             </div>
           </div>
         </div>
 
-          </AdminStep>
+      </AdminSection>
 
-          <AdminStep title="Manage Items" description="Edit details, media, and publish status.">
+      <AdminSection bare>
             {/* Items */}
         <div className="card border-0 shadow-sm">
           <div className="card-body">
@@ -898,7 +858,7 @@ export default function AdminPortfolioPage() {
                           <div className="fw-semibold">
                             {it.title}{" "}
                             {d.is_featured ? <span className="badge text-bg-warning ms-2">Featured</span> : null}
-                            {d.is_published ? <span className="badge text-bg-success ms-2">Published</span> : <span className="badge text-bg-secondary ms-2">Hidden</span>}
+                            {d.is_published ? <span className="badge text-bg-success ms-2">Shown</span> : <span className="badge text-bg-secondary ms-2">Hidden</span>}
                             {dirtyIds.has(it.id) ? <span className="badge text-bg-info ms-2">Unsaved</span> : null}
                           </div>
                           <div className="text-muted small">Position: {index + 1} • Media: {list.length}</div>
@@ -1026,10 +986,9 @@ export default function AdminPortfolioPage() {
                       </div>
 
                       <div className="col-6">
-                        <div className="form-check mt-2">
-                          <input className="form-check-input" type="checkbox" checked={!!d.is_published} onChange={(e) => setDraft(it.id, { is_published: e.target.checked })} disabled={busy} id={`pub_${it.id}`} />
-                          <label className="form-check-label" htmlFor={`pub_${it.id}`}>Published</label>
-                          <div className="form-text">Toggle to show or hide this project.</div>
+                        <div className="form-check form-switch mt-2">
+                          <input className="form-check-input" type="checkbox" role="switch" checked={!!d.is_published} onChange={(e) => setDraft(it.id, { is_published: e.target.checked })} disabled={busy} id={`pub_${it.id}`} />
+                          <label className="form-check-label" htmlFor={`pub_${it.id}`}>Show on website</label>
                         </div>
                       </div>
 
@@ -1090,10 +1049,9 @@ export default function AdminPortfolioPage() {
                                         <div className="form-text">Short caption that explains the screenshot or clip.</div>
 
                                         <div className="d-flex flex-wrap gap-2 align-items-center">
-                                          <div className="form-check">
-                                            <input className="form-check-input" type="checkbox" defaultChecked={!!m.is_published} onChange={(e) => updateMedia(m.id, { is_published: e.target.checked })} disabled={busy} id={`m_pub_${m.id}`} />
-                                          <label className="form-check-label small" htmlFor={`m_pub_${m.id}`}>Published</label>
-                                          <div className="form-text">Show this media in the gallery.</div>
+                                          <div className="form-check form-switch">
+                                            <input className="form-check-input" type="checkbox" role="switch" defaultChecked={!!m.is_published} onChange={(e) => updateMedia(m.id, { is_published: e.target.checked })} disabled={busy} id={`m_pub_${m.id}`} />
+                                          <label className="form-check-label small" htmlFor={`m_pub_${m.id}`}>Show in gallery</label>
                                         </div>
 
                                           <button className="btn btn-sm btn-outline-secondary" onClick={() => moveMedia(it.id, m.id, "up")} disabled={busy}>
@@ -1125,13 +1083,8 @@ export default function AdminPortfolioPage() {
             </div>
           </div>
         </div>
-
-          </AdminStep>
-        </AdminStepper>
-
-        {/* Storage tips removed from UI */}
-      </div>
+      </AdminSection>
       <AdminActionModal modal={modal} onConfirm={onConfirm} onCancel={onCancel} />
-    </div>
+    </AdminPageShell>
   );
 }

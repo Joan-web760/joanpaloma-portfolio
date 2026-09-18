@@ -1,0 +1,6 @@
+
+Add background color for all sections in homepage and other pages
+Add adjustable for profile image in homepage admin panel, Add adjustable size for homepage content, and Remove empty state for video introduction
+Add an option to hide other pages.
+Add upload logo for top left title.
+Update services format
